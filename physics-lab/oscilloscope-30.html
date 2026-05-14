@@ -6,8 +6,8 @@
 <meta property="og:description" content="YB43020B 模拟示波器 | 精密旋钮 + 连续波形延伸              * {             box-sizing: border-box;             user-select: none;         }          body {             background: #5a5a5a;">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mxiaocaoblog.com/img/2.jpg">
-<meta property="article:published_time" content="2026-05-14T15:00:34.645Z">
-<meta property="article:modified_time" content="2026-05-14T15:00:34.645Z">
+<meta property="article:published_time" content="2026-05-14T15:41:29.850Z">
+<meta property="article:modified_time" content="2026-05-14T15:41:29.846Z">
 <meta property="article:author" content="Mxiaocao">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://mxiaocaoblog.com/img/2.jpg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://mxiaocaoblog.com/physics-lab/oscilloscope-30.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
@@ -1377,9 +1377,95 @@
     #guidePanel .gp-num { display: inline-block; width: 20px; height: 20px; background: #1a6e3e; color: #fff; border-radius: 50%; text-align: center; line-height: 20px; font-size: 10px; margin-right: 6px; flex-shrink: 0; }
     #guidePanel .gp-title { color: #58b7ff; font-weight: bold; }
     #guidePanel .gp-formula { display: inline-block; background: #1a1a2e; color: #ffcc00; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas',monospace; font-size: 11px; margin: 2px 0; }
+
+    /* --- 试验信号源 --- */
+    .ts-device {
+        width: 300px;
+        background: #d8d8d8;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.7), inset 0 -3px 6px rgba(0,0,0,0.1);
+        border: 2px solid #aaa;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+    .ts-header {
+        background: #c0392b;
+        color: #fff;
+        text-align: center;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 8px 0;
+        letter-spacing: 2px;
+        border-bottom: 2px solid #96281b;
+    }
+    .ts-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        gap: 16px;
+    }
+    .ts-info {
+        flex: 1;
+    }
+    .ts-wave-type {
+        font-size: 12px;
+        font-weight: bold;
+        color: #555;
+        margin-bottom: 2px;
+    }
+    .ts-freq {
+        font-size: 28px;
+        font-weight: 900;
+        color: #222;
+        font-family: 'Consolas','Courier New',monospace;
+        letter-spacing: 1px;
+    }
+    .ts-connector {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+    .ts-bnc {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #222 30%, #eee 40%, #999 90%);
+        border: 2px solid #777;
+        cursor: pointer;
+        box-shadow: 0 3px 5px rgba(0,0,0,0.4);
+        transition: all 0.3s ease;
+    }
+    .ts-bnc:hover {
+        box-shadow: 0 0 10px #ff5555;
+    }
+    .ts-bnc.plugged {
+        box-shadow: 0 0 8px #44cc44, 0 3px 5px rgba(0,0,0,0.4);
+    }
+    .ts-bnc-label {
+        font-size: 9px;
+        font-weight: bold;
+        color: #666;
+    }
+    .ts-status {
+        font-size: 9px;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+    .ts-status.on {
+        background: #44cc44;
+        color: #000;
+    }
+    .ts-status.off {
+        background: #cc4444;
+        color: #fff;
+    }
     </style>
 </head>
 <body class="">
+<a href="/physics-lab/" style="position:fixed;top:12px;left:12px;z-index:100000;padding:8px 16px;background:#1b6aa5;color:#fff;border-radius:6px;text-decoration:none;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;">&larr; 返回实验列表</a>
 <button id="inspectToggle" title="Ctrl+Shift+I">&#128269; 检查</button>
 <div id="inspectTooltip"></div>
 <button id="guideToggle" title="实验操作指引">&#128214; 实验指引</button>
@@ -1391,6 +1477,23 @@
 </div>
 <div id="zoomContainer" style="transform: scale(1);">
 <div id="zoomIndicator" class="">100%</div>
+
+<!-- 试验信号源 -->
+<div class="ts-device">
+	<div class="ts-header">试 验 信 号 源</div>
+	<div class="ts-body">
+		<div class="ts-info">
+			<div class="ts-wave-type">正弦波 AC</div>
+			<div class="ts-freq">500 Hz</div>
+		</div>
+		<div class="ts-connector">
+			<div class="ts-bnc plugged" id="ts-bnc"></div>
+			<span class="ts-bnc-label">OUTPUT</span>
+			<span class="ts-status on" id="ts-status">已连接 CH2</span>
+		</div>
+	</div>
+</div>
+
 <div class="osc-wrapper" style="overflow: visible; transform-origin: 794px 304.5px; background: none 0% 0% / auto repeat scroll padding-box border-box rgba(0, 0, 0, 0); border: 0px none rgb(0, 0, 0); border-radius: 0px; outline: rgb(0, 0, 0) none 0px; outline-offset: 0px; box-shadow: none; filter: none; backdrop-filter: none; clip-path: none; color: rgb(0, 0, 0); opacity: 1; font-size: 16px; font-weight: 400; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 0px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0); z-index: 75; transform: translate(4px, -1px) scale(1, 1); position: relative;">
     <div class="oscilloscope light-theme" style="transform-origin: 689px 304.5px; background: none 0% 0% / auto repeat scroll padding-box border-box rgb(228, 230, 223); border: 1.6px solid rgb(204, 204, 204); border-radius: 8px; outline: rgb(51, 51, 51) none 0px; outline-offset: 0px; box-shadow: rgba(0, 0, 0, 0.4) 0px 15px 30px 0px, rgba(255, 255, 255, 0.8) 0px 2px 5px 0px inset; filter: none; backdrop-filter: none; clip-path: none; overflow: visible; color: rgb(51, 51, 51); opacity: 1; font-size: 16px; font-weight: 400; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 20px 25px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0);">
         <div class="crt-block" style="transform-origin: 322.4px 282.9px; background: none 0% 0% / auto repeat scroll padding-box border-box rgba(0, 0, 0, 0); border: 0px none rgb(51, 51, 51); border-radius: 0px; outline: rgb(51, 51, 51) none 0px; outline-offset: 0px; box-shadow: none; filter: none; backdrop-filter: none; clip-path: none; overflow: visible; color: rgb(51, 51, 51); opacity: 1; font-size: 16px; font-weight: 400; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 0px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0);">
@@ -1558,7 +1661,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="osc-bnc" id="osc-ch2-bnc" style="transform-origin: 14px 14px; background: radial-gradient(circle, rgb(34, 34, 34) 30%, rgb(238, 238, 238) 40%, rgb(153, 153, 153) 90%) 0% 0% / auto repeat scroll padding-box border-box rgba(0, 0, 0, 0); border: 1.6px solid rgb(119, 119, 119); border-radius: 50%; outline: rgb(51, 51, 51) none 0px; outline-offset: 0px; box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 5px 0px; filter: none; backdrop-filter: none; clip-path: none; overflow: visible; color: rgb(51, 51, 51); opacity: 1; font-size: 16px; font-weight: 400; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 0px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0);"></div>
+                        <div class="osc-bnc plugged" id="osc-ch2-bnc" style="transform-origin: 14px 14px; background: radial-gradient(circle, rgb(34, 34, 34) 30%, rgb(238, 238, 238) 40%, rgb(153, 153, 153) 90%) 0% 0% / auto repeat scroll padding-box border-box rgba(0, 0, 0, 0); border: 1.6px solid rgb(119, 119, 119); border-radius: 50%; outline: rgb(51, 51, 51) none 0px; outline-offset: 0px; box-shadow: rgba(0, 0, 0, 0.4) 0px 3px 5px 0px; filter: none; backdrop-filter: none; clip-path: none; overflow: visible; color: rgb(51, 51, 51); opacity: 1; font-size: 16px; font-weight: 400; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 0px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0);"></div>
                         <span class="bnc-label" style="transform-origin: 17.9375px 6.4px; background: none 0% 0% / auto repeat scroll padding-box border-box rgba(0, 0, 0, 0); border: 0px none rgb(51, 51, 51); border-radius: 0px; outline: rgb(51, 51, 51) none 0px; outline-offset: 0px; box-shadow: none; filter: none; backdrop-filter: none; clip-path: none; overflow: visible; color: rgb(51, 51, 51); opacity: 1; font-size: 10px; font-weight: 700; font-family: &quot;Segoe UI&quot;, Arial, sans-serif; font-style: normal; letter-spacing: normal; line-height: normal; text-shadow: none; text-align: start; padding: 0px; stroke: none; stroke-width: 1px; fill: rgb(0, 0, 0);">CH2 (Y)</span>
                     </div>
                 </div>
@@ -1872,6 +1975,7 @@
     </div>
 </div>
 
+
 </div>
 <svg id="cableOverlay" style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; pointer-events: none; z-index: 100; transition: opacity 0.3s; display: none;"></svg>
 
@@ -2118,7 +2222,8 @@
     let horizPos = 0;
     let coupling = "DC";
     let nx = 3, ny = 2;
-    let ch2FreqFixed = 1000; // CH2固定频率(Hz)，代表待测未知信号，用于XY模式
+    let ch2FreqFixed = 500; // CH2频率(Hz)，试验信号500Hz，用于XY模式
+    let isTestSignalConnected = true; // 试验信号是否接入CH2
     let phaseDeg = 0, phaseRad = 0;
     let isOscCh1Connected = true;
     let isSgCh1Connected = true;
@@ -2224,8 +2329,8 @@
         let gridMin = -7;
         let gridMax = 7;
         
-        // CH2 频率由旋钮控制，仅改变频率，不改变时间轴
-        let ch2Freq = (secDivValue === "XY") ? 1 : (0.01 / secDivValue);
+        // CH2 频率：试验信号接入时为500Hz，否则由时基旋钮推算
+        let ch2Freq = (secDivValue === "XY") ? 1 : (isTestSignalConnected ? secDivValue * 500 : (0.01 / secDivValue));
         // CH1 频率由信号发生器控制，产生有趣的相位差
         let ch1Freq = (sgState && sgState.ch1On && isCableConnected) ? (sgState.freqHz / 1000) : 1.5;
         
@@ -2239,7 +2344,10 @@
                 y1 = ch1VoltsDiv * Math.sin(2 * Math.PI * ch1Freq * gridX + phaseRad) + ch1VertPos;
             }
             
-            let y2 = ch2VoltsDiv * Math.sin(2 * Math.PI * ch2Freq * gridX) + ch2VertPos;
+            let y2 = ch2VertPos;
+            if (isTestSignalConnected) {
+                y2 = ch2VoltsDiv * Math.sin(2 * Math.PI * ch2Freq * gridX) + ch2VertPos;
+            }
             
             if(coupling === "GND") {
                 y1 = ch1VertPos;
@@ -2289,7 +2397,10 @@
                 x = ch1VoltsDiv * Math.sin(nx * t + phaseRad) + ch1VertPos + horizPos;
             }
 
-            let y = ch2VoltsDiv * Math.sin(ny * t) + ch2VertPos;
+            let y = ch2VertPos;
+            if (isTestSignalConnected) {
+                y = ch2VoltsDiv * Math.sin(ny * t) + ch2VertPos;
+            }
             points.push({x, y});
         }
         staticXYPoints = points;
@@ -2379,7 +2490,10 @@
             x = ch1VoltsDiv * Math.sin(nx * currentT + phaseRad) + ch1VertPos + horizPos;
         }
 
-        let y = ch2VoltsDiv * Math.sin(ny * currentT) + ch2VertPos;
+        let y = ch2VertPos;
+        if (isTestSignalConnected) {
+            y = ch2VoltsDiv * Math.sin(ny * currentT) + ch2VertPos;
+        }
         let px = mapX(x), py = mapY(y);
         ctx.beginPath();
         ctx.arc(px, py, 4, 0, 2*Math.PI);
@@ -2403,7 +2517,7 @@
     
     // 教材公式：Vpp = 灵敏度(V/div) × 竖直格数，T = 时基(time/div) × 水平格数
     function drawMeasurements() {
-        if(staticWaveformCH2.length === 0 || specialMode === "XY" || coupling === "GND") return;
+        if(staticWaveformCH2.length === 0 || specialMode === "XY" || coupling === "GND" || !isTestSignalConnected) return;
         // 计算CH2波形的峰峰值（竖直格数）
         let minY = Infinity, maxY = -Infinity;
         for(let p of staticWaveformCH2) {
@@ -3441,6 +3555,28 @@
                 refreshAll(); // Update oscilloscope waveform
             });
         }
+
+        // 试验信号 BNC 连接/断开 CH2
+        const tsBnc = document.getElementById('ts-bnc');
+        if (tsBnc) {
+            tsBnc.addEventListener('click', () => {
+                isTestSignalConnected = !isTestSignalConnected;
+                const tsStatus = document.getElementById('ts-status');
+                const oscCh2Bnc = document.getElementById('osc-ch2-bnc');
+                if (isTestSignalConnected) {
+                    tsBnc.classList.add('plugged');
+                    if (oscCh2Bnc) oscCh2Bnc.classList.add('plugged');
+                    tsStatus.textContent = '已连接 CH2';
+                    tsStatus.className = 'ts-status on';
+                } else {
+                    tsBnc.classList.remove('plugged');
+                    if (oscCh2Bnc) oscCh2Bnc.classList.remove('plugged');
+                    tsStatus.textContent = '已断开 CH2';
+                    tsStatus.className = 'ts-status off';
+                }
+                refreshAll();
+            });
+        }
     });
 
     function init() {
@@ -3486,7 +3622,7 @@
           </div>
           <ul class="card-category-list" id="aside-cat-list">
             <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/about/"><span class="card-category-list-name">about</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/codeforces/"><span class="card-category-list-name">codeforces</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/data-structures/"><span class="card-category-list-name">data-structures</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/dp/"><span class="card-category-list-name">dp</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/graph/"><span class="card-category-list-name">graph</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/hdoj/"><span class="card-category-list-name">hdoj</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/ladder/"><span class="card-category-list-name">ladder</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/leetcode/"><span class="card-category-list-name">leetcode</span><span class="card-category-list-count">2</span></a></li>
-          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E8%B4%A8%E6%95%B0/" style="font-size: 1.1em; color: #999">质数</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.1em; color: #999">最短路</a> <a href="/tags/string/" style="font-size: 1.1em; color: #999">string</a> <a href="/tags/%E7%BA%BF%E6%80%A7dp/" style="font-size: 1.1em; color: #999">线性dp</a> <a href="/tags/dp/" style="font-size: 1.1em; color: #999">dp</a> <a href="/tags/%E4%B9%98%E6%B3%95%E9%80%86%E5%85%83/" style="font-size: 1.1em; color: #999">乘法逆元</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 1.1em; color: #999">并查集</a> <a href="/tags/01Trie/" style="font-size: 1.1em; color: #999">01Trie</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a> <a href="/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/tags/stl/" style="font-size: 1.5em; color: #99a9bf">stl</a> <a href="/tags/priority-queue/" style="font-size: 1.1em; color: #999">priority_queue</a> <a href="/tags/deque/" style="font-size: 1.1em; color: #999">deque</a> <a href="/tags/%E6%AC%A7%E6%8B%89%E7%AD%9B/" style="font-size: 1.1em; color: #999">欧拉筛</a> <a href="/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.5em; color: #99a9bf">数学</a></div></div><div class="card-widget card-archives">
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/stl/" style="font-size: 1.5em; color: #99a9bf">stl</a> <a href="/tags/priority-queue/" style="font-size: 1.1em; color: #999">priority_queue</a> <a href="/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.5em; color: #99a9bf">数学</a> <a href="/tags/string/" style="font-size: 1.1em; color: #999">string</a> <a href="/tags/deque/" style="font-size: 1.1em; color: #999">deque</a> <a href="/tags/%E8%B4%A8%E6%95%B0/" style="font-size: 1.1em; color: #999">质数</a> <a href="/tags/01Trie/" style="font-size: 1.1em; color: #999">01Trie</a> <a href="/tags/%E6%AC%A7%E6%8B%89%E7%AD%9B/" style="font-size: 1.1em; color: #999">欧拉筛</a> <a href="/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/tags/dp/" style="font-size: 1.1em; color: #999">dp</a> <a href="/tags/%E7%BA%BF%E6%80%A7dp/" style="font-size: 1.1em; color: #999">线性dp</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 1.1em; color: #999">并查集</a> <a href="/tags/%E4%B9%98%E6%B3%95%E9%80%86%E5%85%83/" style="font-size: 1.1em; color: #999">乘法逆元</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.1em; color: #999">最短路</a></div></div><div class="card-widget card-archives">
     <div class="item-headline">
       <i class="fas fa-archive"></i>
       <span>归档</span>
@@ -3505,7 +3641,7 @@
         </li>
       
     </ul>
-  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">19</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-14T15:04:11.500Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Mxiaocao</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">浙ICP备2026013521号-1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">简</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">19</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-14T15:50:29.519Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Mxiaocao</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">浙ICP备2026013521号-1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">简</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
   const loadMathjax = () => {
     if (!window.MathJax) {
       window.MathJax = {
