@@ -1,0 +1,1003 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>codefoces mind (T1-10) | Mxiaocao Blog</title><meta name="author" content="Mxiaocao,xiaocao1758@gmail.com"><meta name="copyright" content="Mxiaocao"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="codefoces mind (T1-10)1. The 67th XOR Problem（1200）（binary search）（bitmasks）（brute force） Ques门钥匙 题意 You are given an array $a$, initially containing $n$ non-negative integers.  You perform the follow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="codefoces mind (T1-10)">
+<meta property="og:url" content="https://mxiaocaoblog.com/2026/05/14/codefoces-mind-T1-10/index.html">
+<meta property="og:site_name" content="Mxiaocao Blog">
+<meta property="og:description" content="codefoces mind (T1-10)1. The 67th XOR Problem（1200）（binary search）（bitmasks）（brute force） Ques门钥匙 题意 You are given an array $a$, initially containing $n$ non-negative integers.  You perform the follow">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mxiaocaoblog.com/img/2.jpg">
+<meta property="article:published_time" content="2026-05-14T08:01:27.000Z">
+<meta property="article:modified_time" content="2026-05-14T08:02:52.579Z">
+<meta property="article:author" content="Mxiaocao">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mxiaocaoblog.com/img/2.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "codefoces mind (T1-10)",
+  "url": "https://mxiaocaoblog.com/2026/05/14/codefoces-mind-T1-10/",
+  "image": "https://mxiaocaoblog.com/img/2.jpg",
+  "datePublished": "2026-05-14T08:01:27.000Z",
+  "dateModified": "2026-05-14T08:02:52.579Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Mxiaocao",
+      "url": "https://mxiaocaoblog.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://mxiaocaoblog.com/2026/05/14/codefoces-mind-T1-10/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":true},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'medium_zoom',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.13.0/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'codefoces mind (T1-10)',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> acm-ICPC</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/cpp-basics/"><i class="fa-fw fas fa-code"></i><span> c++基本语法</span></a></li><li><a class="site-page child" href="/categories/stl/"><i class="fa-fw fas fa-cube"></i><span> STL</span></a></li><li><a class="site-page child" href="/categories/search/"><i class="fa-fw fas fa-search"></i><span> 搜索</span></a></li><li><a class="site-page child" href="/categories/dp/"><i class="fa-fw fas fa-table"></i><span> 动态规划</span></a></li><li><a class="site-page child" href="/categories/graph/"><i class="fa-fw fas fa-project-diagram"></i><span> 图论</span></a></li><li><a class="site-page child" href="/categories/data-structures/"><i class="fa-fw fas fa-database"></i><span> 数据结构</span></a></li><li><a class="site-page child" href="/categories/string/"><i class="fa-fw fas fa-font"></i><span> 字符串</span></a></li><li><a class="site-page child" href="/categories/math/"><i class="fa-fw fas fa-square-root-alt"></i><span> 数学</span></a></li></ul></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> 数据结构</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/seq-list/"><i class="fa-fw fas fa-list-ol"></i><span> 顺序表</span></a></li><li><a class="site-page child" href="/categories/stack-queue/"><i class="fa-fw fas fa-layer-group"></i><span> 栈和队列</span></a></li></ul></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> 刷题笔记</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/codeforces/"><i class="fa-fw fas fa-code"></i><span> Codeforces</span></a></li><li><a class="site-page child" href="/categories/hdoj/"><i class="fa-fw fas fa-cube"></i><span> HDOJ</span></a></li><li><a class="site-page child" href="/categories/team-weekly-contest/"><i class="fa-fw fas fa-trophy"></i><span> 组队周赛</span></a></li><li><a class="site-page child" href="/categories/review/"><i class="fa-fw fas fa-redo"></i><span> 补题</span></a></li><li><a class="site-page child" href="/categories/ladder/"><i class="fa-fw fas fa-sort-amount-up"></i><span> 天梯赛</span></a></li><li><a class="site-page child" href="/categories/luogu/"><i class="fa-fw fas fa-mountain"></i><span> 洛谷</span></a></li><li><a class="site-page child" href="/categories/leetcode/"><i class="fa-fw fas fa-font"></i><span> leetcode</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Mxiaocao Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">codefoces mind (T1-10)</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> acm-ICPC</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/cpp-basics/"><i class="fa-fw fas fa-code"></i><span> c++基本语法</span></a></li><li><a class="site-page child" href="/categories/stl/"><i class="fa-fw fas fa-cube"></i><span> STL</span></a></li><li><a class="site-page child" href="/categories/search/"><i class="fa-fw fas fa-search"></i><span> 搜索</span></a></li><li><a class="site-page child" href="/categories/dp/"><i class="fa-fw fas fa-table"></i><span> 动态规划</span></a></li><li><a class="site-page child" href="/categories/graph/"><i class="fa-fw fas fa-project-diagram"></i><span> 图论</span></a></li><li><a class="site-page child" href="/categories/data-structures/"><i class="fa-fw fas fa-database"></i><span> 数据结构</span></a></li><li><a class="site-page child" href="/categories/string/"><i class="fa-fw fas fa-font"></i><span> 字符串</span></a></li><li><a class="site-page child" href="/categories/math/"><i class="fa-fw fas fa-square-root-alt"></i><span> 数学</span></a></li></ul></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> 数据结构</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/seq-list/"><i class="fa-fw fas fa-list-ol"></i><span> 顺序表</span></a></li><li><a class="site-page child" href="/categories/stack-queue/"><i class="fa-fw fas fa-layer-group"></i><span> 栈和队列</span></a></li></ul></div><div class="menus_item"><span class="site-page group hide"><i class="fa-fw fas fa-list"></i><span> 刷题笔记</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/categories/codeforces/"><i class="fa-fw fas fa-code"></i><span> Codeforces</span></a></li><li><a class="site-page child" href="/categories/hdoj/"><i class="fa-fw fas fa-cube"></i><span> HDOJ</span></a></li><li><a class="site-page child" href="/categories/team-weekly-contest/"><i class="fa-fw fas fa-trophy"></i><span> 组队周赛</span></a></li><li><a class="site-page child" href="/categories/review/"><i class="fa-fw fas fa-redo"></i><span> 补题</span></a></li><li><a class="site-page child" href="/categories/ladder/"><i class="fa-fw fas fa-sort-amount-up"></i><span> 天梯赛</span></a></li><li><a class="site-page child" href="/categories/luogu/"><i class="fa-fw fas fa-mountain"></i><span> 洛谷</span></a></li><li><a class="site-page child" href="/categories/leetcode/"><i class="fa-fw fas fa-font"></i><span> leetcode</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">codefoces mind (T1-10)</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-05-14T08:01:27.000Z" title="发表于 2026-05-14 16:01:27">2026-05-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-05-14T08:02:52.579Z" title="更新于 2026-05-14 16:02:52">2026-05-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/codeforces/">codeforces</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="codefoces-mind-T1-10"><a href="#codefoces-mind-T1-10" class="headerlink" title="codefoces mind (T1-10)"></a>codefoces mind (T1-10)</h1><h2 id="1-The-67th-XOR-Problem（1200）"><a href="#1-The-67th-XOR-Problem（1200）" class="headerlink" title="1. The 67th XOR Problem（1200）"></a>1. The 67th XOR Problem（1200）</h2><p>（binary search）（bitmasks）（brute force）</p>
+<h3 id="Ques"><a href="#Ques" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2218/E">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>You are given an array $a$, initially containing $n$ non-negative integers. </p>
+<p>You perform the following operation exactly $n-1$ times:</p>
+<ol>
+<li>Select an index $i$ of $a$ ($1 \leq i \leq |a|$, where $|a|$ denotes the current length of $a$). Let $x = a_i$. </li>
+<li>Set $a_j = a_j \oplus x$ for all $1 \leq j \leq |a|$, where $\oplus$ denotes the <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bitwise_operation#XOR">bitwise XOR operation</a>. </li>
+<li>Remove $a_i$ from the array.</li>
+</ol>
+<p>It can be shown that after $n-1$ operations, exactly one element remains in the array. Your task is to determine the maximum possible value of this final remaining element if you perform the operations optimally.</p>
+<p><strong>输入</strong></p>
+<p>每个测试包含多个测试用例。第一行包含测试用例的数量 $t$ ( $1 \le t \le 100$ )。测试用例说明如下。</p>
+<p>每个测试用例的第一行都包含一个整数 $n$ ( $2 \le n \le 3105$ ) - 数组的初始长度。</p>
+<p>每个测试用例的第二行包含 $n$ 个整数 $a_1, a_2, \dots, a_n$ ( $0 \le a_i \le 10^9$ ) - 数组的元素。</p>
+<p>保证所有测试用例中 $n$ 的总和不超过 $3105$ 。</p>
+<p><strong>输出</strong></p>
+<p>对于每个测试用例，输出一个整数 - 最终元素的最大可能值。</p>
+<p><strong>样例</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">3</span><br><span class="line">2</span><br><span class="line">67 67</span><br><span class="line">3</span><br><span class="line">1 2 3</span><br><span class="line">10</span><br><span class="line">67 667 167 867 267 467 367 567 767 967</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">0</span><br><span class="line">3</span><br><span class="line">1012</span><br></pre></td></tr></table></figure>
+<p><strong>注</strong></p>
+<p>在第二个测试案例中，数组为 $[1, 2, 3]$ 。一个最佳的操作顺序是</p>
+<ol>
+<li>选择元素 $3$ 。删除它。其余元素变为 $[1 \oplus 3, 2 \oplus 3] = [2, 1]$ 。</li>
+<li>选择元素 $2$ 。将其删除。剩余元素变为 $[1 \oplus 2] = [3]$ 。</li>
+</ol>
+<p>最终值为 $3$ 。</p>
+<h3 id="Ans"><a href="#Ans" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>看样例，感觉是先排序，然后从大往小依次遍历过去。然后数据量比较有意思，应该是两个for循环</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(n)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i) cin &gt;&gt; a[i];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">sort</span>(a.<span class="built_in">begin</span>(),a.<span class="built_in">end</span>());</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = n<span class="number">-1</span>;i &gt;= <span class="number">0</span>;--i)&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>;j &lt; i;++j)&#123;</span><br><span class="line">            a[j] ^= a[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; a[<span class="number">0</span>] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是样例一就WA了</p>
+<p><strong>题解</strong></p>
+<h4 id="法一"><a href="#法一" class="headerlink" title="法一"></a>法一</h4><p>首先，异或有个很重要的性质：$x ⊕ x = 0$</p>
+<p>现在我们有个数组$a=[a_1,a_2,a_3,…,a_n]$，然后我们现在从左到右执行操作，看看数组最后是怎么变化的</p>
+<p>第一次操作：$ a = [a_2 ⊕ a_1, a_3 ⊕ a_1, …, a_n ⊕ a_1]$</p>
+<p>第二次操作：$ a = [(a_3 ⊕ a_1) ⊕ (a_2 ⊕ a_1), …, (a_n ⊕ a_1) ⊕ (a_2 ⊕ a_1)]$</p>
+<p>$\Leftrightarrow a = [a_3 ⊕ a_2, …, a_n ⊕ a_2]$</p>
+<p>我们发现，此时这个新数组与$a_1$无关。也就是说，每进行两次操作，第一次操作中选的元素值都不再重要。进一步地，进行三次操作时，前两次选的元素都不重要。</p>
+<p>归纳可得：真正影响的只有两件事</p>
+<ol>
+<li><p>最后一次操作选中的元素（记为 x）</p>
+</li>
+<li><p>从未被选中过的元素（记为 y）</p>
+</li>
+</ol>
+<p>最终数组只剩一个值，为 x ⊕ y。</p>
+<p>而由于n较小，直接暴力枚举所有 (x, y) 对即可。最终输出所有数对中 a[x] ⊕ a[y] 的最大值即可。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(n)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i) cin &gt;&gt; a[i];</span><br><span class="line"></span><br><span class="line">    <span class="built_in">sort</span>(a.<span class="built_in">begin</span>(),a.<span class="built_in">end</span>());</span><br><span class="line">    <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j = i<span class="number">+1</span>;j &lt; n;++j)&#123;</span><br><span class="line">            res = <span class="built_in">max</span>(res,a[j]^a[i]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; res &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="法二"><a href="#法二" class="headerlink" title="法二"></a>法二</h4><p>但是如果数据量很大呢，总不能万事都暴力吧。而这种题就是经典的“最大两数异或”问题，复杂度仅用O(n*B)。(B是位数，int通常是31or 32)</p>
+<p>可选用两种高效做法：</p>
+<p>01-Trie（二进制字典树） or  按位贪心+哈希集合</p>
+<p>不过01-Trie稳定好写</p>
+<ol>
+<li><p>先建立节点</p>
+<p>ch[0]表示走到bit为0的儿子下标，ch[1]表示走到bit为1的儿子下标，-1表示边不存在</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">node</span>&#123;</span><br><span class="line">    <span class="type">int</span> ch[<span class="number">2</span>];</span><br><span class="line">    <span class="built_in">node</span>()&#123; ch[<span class="number">0</span>] = ch[<span class="number">1</span>] = <span class="number">-1</span>;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>建立节点数组</p>
+<p>初始的trie[0]是根节点，后续再加新节点就emplace_back()，索引代表节点编号</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">vector&lt;node&gt; <span class="title">trie</span><span class="params">(<span class="number">1</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建插入函数</p>
+<p>把数字x插入Trie时，从最高位b=30到最低位b=0，先通过<code>bit = (x &gt;&gt; b) &amp; 1</code>取第b位，如果当前节点没有这条边，就新建节点，同时，让p走到对应的儿子，继续下一位的操作</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> insert = [&amp;](<span class="type">int</span> x)&#123;</span><br><span class="line">    <span class="type">int</span> p = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> b = <span class="number">30</span>;b &gt;= <span class="number">0</span>;--b)&#123;</span><br><span class="line">        <span class="type">int</span> bit = (x &gt;&gt; b)&amp;<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(trie[p].ch[bit] == <span class="number">-1</span>)&#123;</span><br><span class="line">            trie[p].ch[bit] = (<span class="type">int</span>)trie.<span class="built_in">size</span>();</span><br><span class="line">            trie.<span class="built_in">emplace_back</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        p = trie[p].ch[bit];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建查询函数</p>
+<p>在已插入的数里，要想找到一个y使得x^y最大，那就要优先走x的反位</p>
+<p>设当前走到第b位：</p>
+<p><code>bit = (x&gt;&gt;b)&amp;1；</code></p>
+<p><code>want = bit^1；</code></p>
+<p>如果trie有want这条边：</p>
+<ul>
+<li>说明这一位可以异或出1</li>
+<li>此时执行<code>res |= (1&lt;&lt;b)</code>，把答案的第b位设为1</li>
+<li>沿着这条边继续走下去</li>
+</ul>
+<p>如果没有want这条边：</p>
+<ul>
+<li>这一位异或为0</li>
+<li>res不变</li>
+<li>只能走同位边</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">eg:</span><br><span class="line">Trie 里有 &#123;1,2&#125;，查询 x=3。</span><br><span class="line"></span><br><span class="line">  二进制（只看3位）：</span><br><span class="line"></span><br><span class="line">  - 1 = 001</span><br><span class="line">  - 2 = 010</span><br><span class="line">  - x = 3 = 011</span><br><span class="line"></span><br><span class="line">  Trie 树：</span><br><span class="line"></span><br><span class="line">  (根)</span><br><span class="line">   └─0→ A</span><br><span class="line">       ├─0→ B</span><br><span class="line">       │   └─1→ C      (路径 0-0-1，对应数字 1)</span><br><span class="line">       └─1→ D</span><br><span class="line">           └─0→ E      (路径 0-1-0，对应数字 2)</span><br><span class="line"></span><br><span class="line">  query_max_xor(3=011) 从高位到低位走：</span><br><span class="line"></span><br><span class="line">  1. b=2，x这一位是 0，想走 1（反位）</span><br><span class="line">      - 根没有 1 边，只能走 0 到 A</span><br><span class="line">      - 这一位异或是 0，res 不变</span><br><span class="line">  2. b=1，x这一位是 1，想走 0（反位）</span><br><span class="line">      - A 有 0 边，走到 B</span><br><span class="line">      - 这一位异或是 1，res += 2^1</span><br><span class="line">  3. b=0，x这一位是 1，想走 0（反位）</span><br><span class="line">      - B 没有 0 边，只能走 1 到 C</span><br><span class="line">      - 这一位异或是 0</span><br><span class="line"></span><br><span class="line">  最终：</span><br><span class="line">  - 走到的数是路径 001，也就是 y=1</span><br><span class="line">  - x ^ y = 3 ^ 1 = 2</span><br><span class="line">  - res=2</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">auto</span> query = [&amp;](<span class="type">int</span> x)&#123;</span><br><span class="line">    <span class="type">int</span> p = <span class="number">0</span>,res = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> b = <span class="number">30</span>;b &gt;= <span class="number">0</span>;--b)&#123;</span><br><span class="line">        <span class="type">int</span> bit = (x&gt;&gt;b)&amp;<span class="number">1</span>;</span><br><span class="line">        <span class="type">int</span> want = bit^<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">if</span>(trie[p].ch[want] != <span class="number">-1</span>)&#123;</span><br><span class="line">            res |= (<span class="number">1</span>&lt;&lt;b);</span><br><span class="line">            p = trie[p].ch[want];</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            p = trie[p].ch[bit];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>综合代码</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">node</span>&#123;</span><br><span class="line">    <span class="type">int</span> ch[<span class="number">2</span>];</span><br><span class="line">    <span class="built_in">node</span>()&#123; ch[<span class="number">0</span>] = ch[<span class="number">1</span>] = <span class="number">-1</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(n)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i) cin &gt;&gt; a[i];</span><br><span class="line"></span><br><span class="line">    <span class="function">vector&lt;node&gt; <span class="title">trie</span><span class="params">(<span class="number">1</span>)</span></span>;</span><br><span class="line">    <span class="keyword">auto</span> insert = [&amp;](<span class="type">int</span> x)&#123;</span><br><span class="line">        <span class="type">int</span> p = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> b = <span class="number">30</span>;b &gt;= <span class="number">0</span>;--b)&#123;</span><br><span class="line">            <span class="type">int</span> bit = (x &gt;&gt; b) &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span>(trie[p].ch[bit] == <span class="number">-1</span>)&#123;</span><br><span class="line">                trie[p].ch[bit] = (<span class="type">int</span>)trie.<span class="built_in">size</span>();</span><br><span class="line">                trie.<span class="built_in">emplace_back</span>();</span><br><span class="line">            &#125;</span><br><span class="line">            p = trie[p].ch[bit];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">auto</span> query = [&amp;](<span class="type">int</span> x)&#123;</span><br><span class="line">        <span class="type">int</span> p = <span class="number">0</span>,res = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> b = <span class="number">30</span>;b &gt;= <span class="number">0</span>;--b)&#123;</span><br><span class="line">            <span class="type">int</span> bit = (x &gt;&gt; b) &amp; <span class="number">1</span>;</span><br><span class="line">            <span class="type">int</span> want = bit ^ <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">if</span>(trie[p].ch[want] != <span class="number">-1</span>)&#123;</span><br><span class="line">                res |= (<span class="number">1</span> &lt;&lt; b);</span><br><span class="line">                p = trie[p].ch[want];</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                p = trie[p].ch[bit];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">    <span class="built_in">insert</span>(a[<span class="number">0</span>]);</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt; n;++i)&#123;</span><br><span class="line">        res = <span class="built_in">max</span>(res,<span class="built_in">query</span>(a[i]));</span><br><span class="line">        <span class="built_in">insert</span>(a[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; res &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="2-The-67th-OEIS-Problem（1100）"><a href="#2-The-67th-OEIS-Problem（1100）" class="headerlink" title="2. The 67th OEIS Problem（1100）"></a>2. The 67th OEIS Problem（1100）</h2><p>（constructive algorithms）（greedy）（math）（number theory）</p>
+<h3 id="Ques-1"><a href="#Ques-1" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2218/D">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>Construct a sequence $a$ containing $n$ integers such that $\operatorname{gcd}(a<em>i, a</em>{i+1})$ $^{\text{†}}$ is distinct over all $1 \leq i \leq n - 1$. It is guaranteed that at least one sequence $a$ exists.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 100$). The description of the test cases follows.</p>
+<p>The following $t$ lines contain one integer $n$ ($2 \leq n \leq 10^4$) — the desired length of the sequence.</p>
+<p>It is guaranteed the sum of $n$ over all test cases does not exceed $10^4$.</p>
+<p><strong>Output</strong></p>
+<p>For each query, output your answer — a sequence $a$ of $n$ space-separated integers ($1 \le a_i \le 10^{18}$).</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">3</span><br><span class="line">5</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1 6 2</span><br><span class="line">134 67 69 207 414</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first test case, the sequence $[1, 6, 2]$ is a possible answer. This is because $\gcd(1, 6)$ is not equal to $\gcd(6, 2)$.</p>
+<p>In the second test case, the sequence $[134, 67, 69, 207, 414]$ is a possible answer. This is because the values of $\gcd(a<em>i, a</em>{i+1})$ for all $i$ between $1$ and $n-1$ are distinct. For reference, they are $67$, $1$, $69$ and $207$.</p>
+<h3 id="Ans-1"><a href="#Ans-1" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>感觉跟质数有点关系，倒是在想，7 14 28 56，这样子gcd是不同的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    ll res = <span class="number">7</span>;</span><br><span class="line">    <span class="keyword">while</span>(n--)&#123;</span><br><span class="line">        cout &lt;&lt; res &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        res *= <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是样例二WA了</p>
+<p>所以哪错了呢？当n接近1e4时，7*2^(n-1)远超1e18，直接爆范围</p>
+<p><strong>题解</strong></p>
+<p>我们的目标是让相邻的$\gcd(a<em>i,a</em>{i+1})$两两不同，也就是是需要$(n-1)$个不同gcd值</p>
+<p>考虑先构造一个辅助序列$b = [b<em>1,b_2,…,b</em>{n+1}]$</p>
+<p>再定义${a<em>i = b_i·b</em>{i+1}} $</p>
+<p>即$a = [b<em>1·b_2,b_2·b_3,…,b_n·b</em>{n+1}]$</p>
+<p>$\xRightarrow{       } a = [a_1,a_2,…,a_n]$</p>
+<p>此时$\gcd(a<em>i,a</em>{i+1}) = \gcd(b<em>i·b</em>{i+1},b<em>{i+1}·b</em>{i+2}) = \gcd(b<em>i,b</em>{i+2})·b_{i+1}$</p>
+<p>而此时，若保证对所有的i，都有$\gcd(b<em>i,b</em>{i+2})=1$，那么相邻gcd会等于$b<em>{i+1},b</em>{i+2},…$，而只要这些值互不相同，题目条件就满足了</p>
+<p>而此时有两种实现方法</p>
+<p>$\left{\begin{aligned}&amp;b = [2,3,5,…] 质数\&amp; b = [1,3,5,…] 奇数\end{aligned}\right.$</p>
+<p>下面给出第二个实现方式</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">3</span>;i &lt;= <span class="number">2</span>*n<span class="number">+1</span>;i += <span class="number">2</span>)&#123;</span><br><span class="line">        cout &lt;&lt; i*(i<span class="number">+2</span>) &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="3-Mickey-Mouse-Constructive（1100）"><a href="#3-Mickey-Mouse-Constructive（1100）" class="headerlink" title="3. Mickey Mouse Constructive（1100）"></a>3. Mickey Mouse Constructive（1100）</h2><p>（constructive algorithms）（dp）（greedy）（math）</p>
+<h3 id="Ques-2"><a href="#Ques-2" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2211/B">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>Given an array $a$, let $f(a)$ be the number of ways to partition $a$ into one or more subarrays$^{\text{∗}}$ such that:</p>
+<ul>
+<li>Each element appears in exactly one subarray.</li>
+<li>All subarrays have the same sum.</li>
+</ul>
+<p>For example, if $a=[1,1]$, then $f(a)=2$, because there are two such ways to partition $[1,1]$:</p>
+<ul>
+<li>$[1,1]$, where the only subarray has sum $2$.</li>
+<li>$[1]+[1]$, where both subarrays have sum $1$.</li>
+</ul>
+<p>You are given two integers $x$ and $y$. Find the minimum value of $f(a)$ over all arrays $a$ of length $x+y$, consisting of $x$ copies of the number $1$, and $y$ copies of the number $-1$ in some order. Since this answer may be large, output the answer modulo $676\,767\,677$. Additionally, you should construct one array that achieves this minimal value.</p>
+<p>$^{\text{∗}}$An array $b$ is a subarray of an array $c$ if $b$ can be obtained from $c$ by the deletion of several (possibly, zero or all) elements from the beginning and several (possibly, zero or all) elements from the end.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 10^4$). The description of the test cases follows.</p>
+<p>The first line of each test case contains two integers $x$ and $y$ ($0 \leq x,y \leq 2\cdot 10^5$). It is guaranteed that $x+y \geq 1$.</p>
+<p>It is guaranteed that the sum of $x$ over all test cases does not exceed $2\cdot 10^5$, and the sum of $y$ over all test cases does not exceed $2\cdot 10^5$.</p>
+<p><strong>Output</strong></p>
+<p>For each test case, output two lines: the minimum value of $f(a)$ over all valid arrays $a$ modulo $676\,767\,677$, and an example of an array that achieves the minimal result. Note you are minimizing $f(a)$, and taking that minimum value modulo $676\,767\,677$, not finding the minimal possible result of $f(a)$ mod $676\,767\,677$.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">4</span><br><span class="line">2 0</span><br><span class="line">1 1</span><br><span class="line">6 7</span><br><span class="line">1 3</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">1 1</span><br><span class="line">1</span><br><span class="line">1 -1</span><br><span class="line">1</span><br><span class="line">-1 1 -1 1 -1 1 -1 1 -1 1 -1 1 -1</span><br><span class="line">2</span><br><span class="line">-1 -1 -1 1</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first test case, $x=2$ and $y=0$. The only possible array is $a=[1,1]$, with $f(a)=2$ as explained above.</p>
+<p>In the second case, $x=1$ and $y=1$. One possible array that minimizes $f(a)$ is $a=[1,-1]$, where $f(a)=1$ (as the only way to partition into subarrays with all subarrays having equal sum is $[[1,-1]]$).</p>
+<h3 id="Ans-2"><a href="#Ans-2" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>研究样例，猜一下先全部输出-1，再输出剩下的1</p>
+<p><strong>题解</strong></p>
+<ol>
+<li>如果x=y，那么最小值是1</li>
+<li>如果$x≠y \Rightarrow |x-y| = a$，那么最小值是这个a的因子个数</li>
+</ol>
+<p>对于最终的构造数列，先输出-1，再输出1<del>（当然也可以对调）</del></p>
+<p>（题解不会写）</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> mod = <span class="number">676767677</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">run</span><span class="params">(<span class="type">int</span> x)</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i*i &lt;= x;++i)&#123;</span><br><span class="line">        <span class="keyword">if</span>(x % i == <span class="number">0</span>)&#123;</span><br><span class="line">            res++;</span><br><span class="line">            <span class="keyword">if</span>(i*i != x) res++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> x,y; cin &gt;&gt; x &gt;&gt; y;</span><br><span class="line">    <span class="keyword">if</span>(x == y)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">1</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        cout &lt;&lt; <span class="built_in">run</span>(<span class="built_in">abs</span>(x-y))%mod &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= y;++i)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;-1&quot;</span> &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= x;++i)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;1&quot;</span> &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="4-Flipping-Binary-String（1000）"><a href="#4-Flipping-Binary-String（1000）" class="headerlink" title="4. Flipping Binary String（1000）"></a>4. Flipping Binary String（1000）</h2><p>（constructive algorithms）（strings）</p>
+<h3 id="Ques-3"><a href="#Ques-3" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2192/B">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>You are given a binary string $s$ of length $n$. You can perform the following operation on the string:</p>
+<ul>
+<li>Choose an index $i$, and flip the bit present at all other indices except for the index $i$. In other words, choose an integer $i$ ($1 \le i \le n$), and for all $j$ such that $1 \le j \le n$ and $j \ne i$, if $s_j = 0$, then set $s_j:=1$, otherwise set $s_j:=0$.</li>
+</ul>
+<p>You can perform the operation any number of times, but each index can be chosen by <strong>at most one</strong> operation.</p>
+<p>Your task is to make all bits present in the string $s$ equal $0$, or report that it is impossible to do so. You don’t have to minimize the number of operations.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 10^4$). The description of the test cases follows.</p>
+<p>The first line of each test case contains a single integer $n$ ($1 \le n \le 2 \cdot 10^5$).</p>
+<p>The second line of each test case contains the binary string $s$ of length $n$.</p>
+<p>It is guaranteed that the sum of $n$ over all test cases does not exceed $2 \cdot 10^5$.</p>
+<p><strong>Output</strong></p>
+<p>For each test case, output $-1$ if it is impossible to transform all bits to $0$. Otherwise, output two lines in the following format:</p>
+<ul>
+<li>In the first line, print the number of operations $x$ ($0 \leq x \leq n$).</li>
+<li>In the second line of each test case, print $x$ numbers – the indices you select in each operation in order. You should guarantee that each index is chosen at most once.</li>
+</ul>
+<p>If there are multiple possible solutions, you may output any.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">4</span><br><span class="line">3</span><br><span class="line">101</span><br><span class="line">3</span><br><span class="line">100</span><br><span class="line">4</span><br><span class="line">0000</span><br><span class="line">4</span><br><span class="line">1010</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1</span><br><span class="line">2 </span><br><span class="line">-1</span><br><span class="line">0</span><br><span class="line">2</span><br><span class="line">1 3 </span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first test case, performing the operation on index $2$ means flipping bits present at index $1$ and $3$. So the new string formed will be $000$.</p>
+<p>In the second test case, it can be shown that we cannot make string $a$ equal to $000$ using the described operations.</p>
+<h3 id="Ans-3"><a href="#Ans-3" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>一头雾水，在研究总数和1的个数之间的关系</p>
+<p><strong>题解</strong></p>
+<p>提示：要去研究一下什么时候答案为-1。</p>
+<p>$\left{\begin{aligned}&amp;翻转一个位偶数次 \Leftrightarrow 不翻转该位\&amp;翻转一个位奇数次 \Leftrightarrow 只翻转该位一次\end{aligned}\right.$</p>
+<p>而要使所有位都是0，那么我们必须确保所有的0位都翻转偶数次，所有的1位都翻转奇数次</p>
+<p>那么现在我们要展开讨论：</p>
+<ul>
+<li>如果字符串中0位都是奇数，那么就对所有0位进行操作。因为此时对1操作n次（奇数），对其余的0操作n-1次（偶数）</li>
+<li>如果字符串中0位都是偶数，且字符串中的1位数也是偶数，则对所有1位进行操作。因为此时对1操作n-1次（奇数），对0操作n次（偶数）</li>
+<li>如果字符串中0位都是偶数，且字符串中的1位数是奇数。那么这种情况下，我们无法使得所有位都是0，输出-1。</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    string s; cin &gt;&gt; s;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> cnt0 = <span class="built_in">count</span>(s.<span class="built_in">begin</span>(),s.<span class="built_in">end</span>(),<span class="string">&#x27;0&#x27;</span>);</span><br><span class="line">    <span class="type">int</span> cnt1 = <span class="built_in">count</span>(s.<span class="built_in">begin</span>(),s.<span class="built_in">end</span>(),<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">    <span class="keyword">if</span>(cnt0&amp;<span class="number">1</span>)&#123;</span><br><span class="line">        cout &lt;&lt; cnt0 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; (<span class="type">int</span>)s.<span class="built_in">size</span>();++i)&#123;</span><br><span class="line">            <span class="keyword">if</span>(s[i] == <span class="string">&#x27;0&#x27;</span>)&#123;</span><br><span class="line">                cout &lt;&lt; i<span class="number">+1</span> &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(cnt1&amp;<span class="number">1</span>)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;-1&quot;</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        cout &lt;&lt; cnt1 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">if</span>(cnt1 == <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; (<span class="type">int</span>)s.<span class="built_in">size</span>();++i)&#123;</span><br><span class="line">            <span class="keyword">if</span>(s[i] == <span class="string">&#x27;1&#x27;</span>)&#123;</span><br><span class="line">                cout &lt;&lt; i<span class="number">+1</span> &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当然也要注意下如果cnt1 = 0的情况。</p>
+<h2 id="5-MEX-Reordering（1000）"><a href="#5-MEX-Reordering（1000）" class="headerlink" title="5. MEX Reordering（1000）"></a>5. MEX Reordering（1000）</h2><p>（constructive algorithms）（sortings）</p>
+<h3 id="Ques-4"><a href="#Ques-4" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2191/B">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>You are given an integer array $a$ consisting of $n$ elements. Denote $f(l, r) = \operatorname{MEX}([a<em>l, a</em>{l + 1}, \ldots, a_r])$$^{\text{∗}}$.</p>
+<p>Determine if there is a way to reorder the array $a$ such that for <strong>every</strong> $i$ ($1 \le i \le n - 1$), $f(1, i) \neq f(i + 1, n)$. In other words, for every split point $i$, the $\operatorname{MEX}$ of the prefix must be different from the $\operatorname{MEX}$ of the suffix.</p>
+<p>$^{\text{∗}}$The minimum excluded (MEX) of a collection of integers $c_1, c_2, \ldots, c_k$ is defined as the smallest non-negative integer $x$ which does not occur in the collection $c$.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 500$). The description of the test cases follows.</p>
+<p>The first line of each test case contains a single integer $n$ ($2 \le n \le 100$) — the length of the array.</p>
+<p>The second line of each test case contains $n$ integers $a_1, a_2, \ldots, a_n$ ($0 \le a_i \le n$).</p>
+<p><strong>Output</strong></p>
+<p>Output “YES” if you can reorder $a$ so that the condition from the statement is satisfied, and “NO” otherwise. You can output the answer in any case (upper or lower). For example, the strings “yEs”, “yes”, “Yes”, and “YES” will be recognized as positive responses.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">3</span><br><span class="line">2</span><br><span class="line">1 0</span><br><span class="line">3</span><br><span class="line">0 3 0</span><br><span class="line">6</span><br><span class="line">1 0 5 0 6 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">YES</span><br><span class="line">NO</span><br><span class="line">YES</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first example, the initial ordering of $a$ already satisfies the condition. The only choice for $i$ is $i = 1$. Then $f(1, i) = f(1, 1) = \operatorname{MEX}([a_1]) = \operatorname{MEX}([1]) = 0$, and $f(i + 1, n) = f(2, 2) = \operatorname{MEX}([a_2]) = \operatorname{MEX}([0]) = 1$. Since $0 \neq 1$, the condition is satisfied.</p>
+<p>In the second example, it can be shown that there is no way to reorder $a$ to satisfy the condition. As an example, consider the order $a = [3, 0, 0]$ and $i = 2$. We have $f(1, i) = f(1, 2) = \operatorname{MEX}([a_1, a_2]) = \operatorname{MEX}([3, 0]) = 1$, and $f(i + 1, n) = f(3, 3) = \operatorname{MEX}([a_3]) = \operatorname{MEX}([0]) = 1$, hence $f(1, i) = f(i + 1, n)$, so the choice of reordering is invalid.</p>
+<p>In the third example, we can reorder $a$ into $[1, 6, 1, 0, 0, 5]$. When $i = 4$, $f(1, i) = f(1, 4) = \operatorname{MEX}([a_1, a_2, a_3, a_4]) = \operatorname{MEX}([1, 6, 1, 0]) = 2$, $f(i + 1, n) = f(5, 6) = \operatorname{MEX}([a_5, a_6]) = \operatorname{MEX}([0, 5]) = 1$, so the condition is satisfied for this $i$. It can be verified that the condition is also satisfied for all other $i$.</p>
+<h3 id="Ans-4"><a href="#Ans-4" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>好像跟1的存在有关系，构造了下[1,0,5,6]，然后参考[0,3,0]，没有1就错。不过这个应该是1和0之间的相对关系。反正就是想什么时候构造不出来。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(n)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i) cin &gt;&gt; a[i];</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> cnt0 = <span class="built_in">count</span>(a.<span class="built_in">begin</span>(),a.<span class="built_in">end</span>(),<span class="number">0</span>);</span><br><span class="line">    <span class="type">int</span> cnt1 = <span class="built_in">count</span>(a.<span class="built_in">begin</span>(),a.<span class="built_in">end</span>(),<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span>(cnt1 == <span class="number">0</span>)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;NO\n&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(cnt0-cnt1 &gt; <span class="number">1</span>)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;NO\n&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;YES\n&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经典WA2</p>
+<p><strong>题解</strong></p>
+<p>提示 1：如果数组中没有 0，那么一定不可能；如果恰好有一个 0，那么一定可以。</p>
+<p>提示 2：如果至少有两个 0，并且没有 1，那么总能找到一个分割点，使得左右两边都包含 0。</p>
+<p>提示 3：如果至少有两个 0，并且至少有一个 1，那么可以把所有 0 都放到数组末尾。</p>
+<p>接下来解释为什么这些结论成立。</p>
+<p>首先，$f(l, r) &gt; 0$ 当且仅当区间 $a[l, r]$ 中包含至少一个 0。因此，如果数组中没有任何 0，那么所有区间的 $f(l, r)$ 都等于 $0$，自然无法构造出满足条件的排列，答案是 $\texttt{NO}$。</p>
+<p>如果数组中恰好有一个 0，我们只需要把这个 0 放在最后。此时，对于任意 $1 \leq i \leq n-1$，前缀 $a[1, i]$ 都不包含 0，所以 $f(1, i)=0$；而后缀 $a[i+1, n]$ 一定包含这个 0，所以 $f(i+1,<br>  n) \ne 0$。因此每个分割点两边的值都不相等，答案是 $\texttt{YES}$。</p>
+<p>接着考虑数组中至少有两个 0 的情况。</p>
+<p>如果数组中没有 1，那么答案是 $\texttt{NO}$。因为无论如何排列，我们总能选择一个分割点，把这些 0 分到左右两边，使得 $a[1, i]$ 和 $a[i+1, n]$ 都包含 0。由于数组中没有 1，此时两边的 $f$值都会等于 $1$，即$f(1, i)=f(i+1, n)=1$，所以不满足条件。</p>
+<p>如果数组中至少有一个 1，那么答案是 $\texttt{YES}$。我们可以把所有 0 放在数组末尾，并把所有1放在 0 前面。现在考虑任意分割点 $1 \leq i \leq n-1$：</p>
+<ul>
+<li>如果 $a[1, i]$ 不包含 0，那么 $f(1, i)=0$；而 $a[i+1, n]$ 一定包含 0，所以 $f(i+1, n) \ne<br>0$。</li>
+<li>如果 $a[1, i]$ 包含 0，由于所有 1 都在所有 0 前面，所以 $a[1, i]$ 也一定包含 1，于是<br>$f(1, i) \geq 2$。而 $a[i+1, n]$ 只由 0 组成，所以 $f(i+1, n)=1$。</li>
+</ul>
+<p>两种情况下都有 $f(1, i) \ne f(i+1, n)$，因此答案是 $\texttt{YES}$。</p>
+<h2 id="6-Sorting-Game（1200）"><a href="#6-Sorting-Game（1200）" class="headerlink" title="6. Sorting Game（1200）"></a>6. Sorting Game（1200）</h2><p>（constructive algorithms）（games）（greedy）</p>
+<h3 id="Ques-5"><a href="#Ques-5" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2190/A">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>Alice and Bob play a game on a binary string $s$ of length $n$ (a string consisting only of characters $\mathtt{0}$ and $\mathtt{1}$). Alice moves first, and the players take alternate turns.</p>
+<p>In one turn, a player chooses a sequence of indices $i<em>1, i_2, \ldots, i_m$ ($1 \le i_1 \lt i_2 \lt \ldots \lt i_m \le n$) such that the characters at these positions form a <strong>non-increasing</strong> sequence (that is, $s</em>{i<em>1} \ge s</em>{i<em>2} \ge \ldots \ge s</em>{i_m}$). The player then rearranges the characters at these positions to be sorted in <strong>non-decreasing</strong> order.</p>
+<p>Formally, let the chosen characters consist of $z$ zeros and $o$ ones (where $z + o = m$). The move replaces the characters at positions $i_1, i_2, \ldots, i_m$ with a sequence of $z$ zeros followed by $o$ ones. A move is valid if and only if it strictly <strong>modifies</strong> the string $s$ (which implies $z \ge 1$ and $o \ge 1$).</p>
+<p>The player who cannot make a valid move loses.</p>
+<p>Assuming both players play optimally, determine the winner. If Alice wins, output a valid first move that is part of a winning strategy.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 10^4$). The description of the test cases follows.</p>
+<p>The first line of each test case consists of a single integer $n$ ($1 \le n \le 2 \cdot 10^5$) — the length of the string $s$.</p>
+<p>The second line of each test case contains a binary string $s$ of length $n$ consisting of only characters $\mathtt{0}$ and $\mathtt{1}$.</p>
+<p>It is guaranteed that the sum of $n$ over all test cases does not exceed $2 \cdot 10^5$.</p>
+<p><strong>Output</strong></p>
+<p>For each test case, output one or three lines:</p>
+<ul>
+<li>If Bob wins with optimal play, print a single line containing “Bob”.</li>
+<li>Otherwise, print three lines. On the first line print “Alice”. On the second line print an integer $m$ ($2 \le m \le n$), and on the third line print $m$ distinct integers $i_1, i_2, \ldots, i_m$ ($1 \le i_1 \lt i_2 \lt \ldots \lt i_m \le n$) — the indices chosen for Alice’s first move.</li>
+</ul>
+<p>The sequence of indices you print must form a valid move according to the rules described in the statement. The indices must be printed in <strong>increasing order</strong>. If there are multiple winning moves, you may output any of them.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">3</span><br><span class="line">3</span><br><span class="line">000</span><br><span class="line">2</span><br><span class="line">10</span><br><span class="line">3</span><br><span class="line">101</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Bob</span><br><span class="line">Alice</span><br><span class="line">2</span><br><span class="line">1 2 </span><br><span class="line">Alice</span><br><span class="line">2</span><br><span class="line">1 2 </span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first example, there is no way to make a move after which $s$ will change, so Bob wins immediately.</p>
+<p>In the third example, Alice can choose a subsequence $[1, 2]$ and sort it, after which $s$ will turn into $\mathtt{011}$. After that, Bob can’t make a move, so Alice wins.</p>
+<h3 id="Ans-5"><a href="#Ans-5" class="headerlink" title="Ans"></a>Ans</h3><p>设 t 是 s 排序后得到的结果，如果在游戏一开始就存在 s = t，那么答案就是bob，反之就是alice。</p>
+<p>而对于alice来说，可以第一回合就选择所有满足 $s_i \ne t_i$ 的下标，从而直接获胜。</p>
+<p>设 $s$ 中 0 的个数为 $i$，那么排序后的$t[1,i]$ 全部由 0 组成，$t[i+1,n]$ 全部由 1 组成。对于任意 $1 \leq j \leq i$，如果 $s_j$ 和 $t_j$ 不同，那么由于 $t_j=0$，所以一定有$s_j=1$。类似地，对于任意 $i+1 \leq j \leq n$，如果 $s_j$ 和 $t_j$ 不同，那么由于 $t_j=1$，所以一定有 $s_j=0$。因此，在被选中的下标中，前半部分对应的$s_j$都是1，后半部分对应的$s_j$都是0，也就是说这是个非递增序列。注意到，在区间 $[1,i]$ 中被选中的下标数量，等于区间 $[i+1,n]$ 中被选中的下标数量。原因是$s$ 和 $t$ 中 0 和 1 的数量完全相同，所以这次操作本质上就是把 $s[1,i]$ 中所有放错位置的 1，和 $s[i+1,n]$ 中所有放错位置的 0 交换，操作之后就得到 $s=t$。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    string s; cin &gt;&gt; s;</span><br><span class="line">    string t = s;</span><br><span class="line">    <span class="built_in">sort</span>(t.<span class="built_in">begin</span>(),t.<span class="built_in">end</span>());\</span><br><span class="line">    <span class="keyword">if</span>(s == t)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="string">&quot;Bob\n&quot;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; res;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        <span class="keyword">if</span>(s[i] != t[i])&#123;</span><br><span class="line">            res.<span class="built_in">push_back</span>(i<span class="number">+1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&quot;Alice\n&quot;</span>;</span><br><span class="line">    cout &lt;&lt; res.<span class="built_in">size</span>() &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i : res)&#123;</span><br><span class="line">        cout &lt;&lt; i &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="7-The-Curse-of-the-Frog（1200）"><a href="#7-The-Curse-of-the-Frog（1200）" class="headerlink" title="7. The Curse of the Frog（1200）"></a>7. The Curse of the Frog（1200）</h2><p>（constructive algorithms）（greedy）（math）</p>
+<h3 id="Ques-6"><a href="#Ques-6" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2189/B">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>On an infinite number line, at point $0$, sits a frog. After many years of meditation, the frog has mastered $n$ unique types of magical jumps. The $i$-th type of jump allows it to jump forward by no more than $a_i$ units. In other words, if it was at integer point $k$, after the jump it can land <strong>at any integer point from $k$ to $k+a_i$</strong>.</p>
+<p>But magic always comes with a price; it has been cursed. Before each $b_i$-th attempt (before $b_i$-th, $2b_i$-th, $3b_i$-th etc. attempt among the jumps of type $i$) to use the $i$-th type of jump, the frog rolls back $c_i$ units! In other words, if it was at point $k$, it will first find itself at point $k-c_i$, and after the jump, it can land at any integer point from $k-c_i$ to $k-c_i+a_i$.</p>
+<p>The frog’s goal is to reach the point with the number $x$, using jumps while minimizing the number of rollbacks. Help the frog — find the minimum number of rollbacks it will have to endure on its way to the goal, or determine that it cannot reach point $x$.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 10^4$). The description of the test cases follows.</p>
+<p>In the first line of each test case, there are $2$ integers $n$ and $x$ ($1 \leq n \leq 10^5$, $1 \leq x \leq 10^{18}$) — the number of types of jumps the frog can make and its final target.</p>
+<p>In the following $n$ lines, the description of the jump types is provided; the $i$-th line contains $3$ integers $a_i$, $b_i$, and $c_i$ ($1 \leq a_i, b_i, c_i \leq 10^6$).</p>
+<p>It is guaranteed that the sum of $n$ across all test cases does not exceed $10^5$.</p>
+<p><strong>Output</strong></p>
+<p>For each test case, if the frog can reach point $x$, find the smallest number of rollbacks it must endure to do so. If it cannot reach point $x$, output $-1$.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">6</span><br><span class="line">1 1</span><br><span class="line">3 3 3</span><br><span class="line">1 7</span><br><span class="line">4 2 5</span><br><span class="line">2 4</span><br><span class="line">1 2 3</span><br><span class="line">2 2 4</span><br><span class="line">5 8</span><br><span class="line">12 1 11</span><br><span class="line">10 1 4</span><br><span class="line">1 1 3</span><br><span class="line">1 2 5</span><br><span class="line">2 1 7</span><br><span class="line">1 1000000000000000000</span><br><span class="line">1000000 4 654321</span><br><span class="line">1 10</span><br><span class="line">2 2 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">0</span><br><span class="line">1</span><br><span class="line">-1</span><br><span class="line">2</span><br><span class="line">298892990032</span><br><span class="line">3</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first test case, the frog can jump forward by $1$ unit and will end up at point $1$. Thus, the answer is $0$.</p>
+<p>In the third test case, it can be shown that the frog cannot reach point $4$.</p>
+<p>In the fourth test case, the frog can reach point $8$, for example, as follows: jump using the $1$-st type by $12$, jump using the $4$-th type by $1$, and jump using the $2$-nd type by $10$. Then it will sequentially be at the following points $0 \rightarrow \text{(rollback)} -11 \rightarrow 1 \rightarrow 2 \rightarrow \text{(rollback)} -2 \rightarrow 8$.</p>
+<p>In the sixth test case, the frog can reach point $10$, for example, as follows: jump $6$ times by $2$ and $1$ time by $1$. Then it will sequentially be at the following points $0 \rightarrow 2 \rightarrow \text{(rollback)} 1 \rightarrow 3 \rightarrow 5 \rightarrow \text{(rollback)} 4 \rightarrow 6 \rightarrow 8 \rightarrow \text{(rollback)} 7 \rightarrow 9 \rightarrow 10$.</p>
+<h3 id="Ans-6"><a href="#Ans-6" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>先从贪心的角度考虑。我们先计算青蛙在不发生回撤的情况下，最多能够到达的位置。如果这个位置已经大于等于目标距离，那么答案就是 0。否则，我们需要考虑发生回撤后的情况。对于每一种跳跃方式，计算它在一轮中能够带来的净前进距离，也就是：$a_i b_i - c_i$</p>
+<p>然后取其中的最大值。若这个最大净前进距离小于等于 0，说明即使选择最优跳跃方式，青蛙也无法继续向前推进，因此答案为 -1。否则，设剩余距离为 r，最大净前进距离为 m，那么所需的最少回撤次数就是：$\left\lceil \frac{r}{m} \right\rceil$</p>
+<p>也就是说，答案为：$\left\lceil \frac{\text{剩余的距离}}{\text{最大净前进距离}} \right\rceil$</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> ll = <span class="type">long</span> <span class="type">long</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; ll x; cin &gt;&gt; n &gt;&gt; x;</span><br><span class="line">    ll sum = <span class="number">0</span>;</span><br><span class="line">    vector&lt;ll&gt; res;</span><br><span class="line">    <span class="keyword">while</span>(n--)&#123;</span><br><span class="line">        ll a,b,c; cin &gt;&gt; a &gt;&gt; b &gt;&gt; c;</span><br><span class="line">        sum += (b<span class="number">-1</span>)*a;</span><br><span class="line">        res.<span class="built_in">push_back</span>(a*b-c);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">sort</span>(res.<span class="built_in">begin</span>(),res.<span class="built_in">end</span>(),<span class="built_in">greater</span>&lt;ll&gt;());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span>(sum &gt;= x)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">0</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(res[<span class="number">0</span>] &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">            cout &lt;&lt; <span class="number">-1</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            cout &lt;&lt; (x-sum+res[<span class="number">0</span>]<span class="number">-1</span>)/res[<span class="number">0</span>] &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后也是顺利AC了，不过这道题在数据上也是有点坑的，写的时候需要注意。</p>
+<h2 id="8-Yet-Another-MEX-Problem（1100）"><a href="#8-Yet-Another-MEX-Problem（1100）" class="headerlink" title="8.Yet Another MEX Problem（1100）"></a>8.Yet Another MEX Problem（1100）</h2><p>（constructive algorithms）（greedy）</p>
+<h3 id="Ques-7"><a href="#Ques-7" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2183/B">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>You are given an array $a$ of length $n$, and an integer $k$. Let $f(l,r)$ be the value of $\operatorname{mex}(a<em>l,a</em>{l+1},\ldots,a_r)$$^{\text{∗}}$. You want to perform the following operation $n-k+1$ times:</p>
+<ul>
+<li>Let the current length of the sequence be $|a|$. You need to find an interval $[l, r]$ of length $k$ such that $\operatorname{max}<em>{i=1}^{|a|-k+1} f(i, i+k-1) = f(l, r).$ In other words, you need to select a window of size $k$ such that among all windows of size $k$, the window you selected has the maximum $\operatorname{mex}$. If multiple $[l,r]$ exist, you may select any. Then, you must select any integer $i$ such that $l \leq i \leq r$, and delete $a_i$ from $a$. That is, your new sequence will be $[a_1, a_2, \ldots, a</em>{i-1}, a<em>{i+1}, a</em>{i+2}, \ldots, a_n]$.</li>
+</ul>
+<p>For example, in the array $[1,2,0,1,3,0]$ with $k=3$, the two possible $(l,r)$ pairs are $(1,3)$ and $(2,4)$ (since they each have $\operatorname{mex} 3$, which is the maximum among all windows of size $3$). Therefore, you can remove any one of the indices $1,2,3,4$ in your next move.</p>
+<p>After $n - k + 1$ operations, you will have a sequence of length $k-1$. Your objective is to maximize the $\operatorname{mex}$ of the remaining elements. Please output the maximum $\operatorname{mex}$ possible.</p>
+<p>$^{\text{∗}}$The minimum excluded (MEX) of a collection of integers $c_1, c_2, \ldots, c_k$ is defined as the smallest non-negative integer $x$ which does not occur in the collection $c$.</p>
+<p><strong>Input</strong></p>
+<p>Each test contains multiple test cases. The first line contains the number of test cases $t$ ($1 \le t \le 10^4$). The description of the test cases follows.</p>
+<p>The first line of each test case contains two positive integers $n$ and $k$ ($2 \le k \le n \le 2 \cdot 10^5$).</p>
+<p>The second line of each test case contains $n$ integers $a_1,a_2,\ldots,a_n$ ($0 \le a_i \le n$).</p>
+<p>It is guaranteed that the sum of $n$ over all test cases does not exceed $2 \cdot 10^5$.</p>
+<p><strong>Output</strong></p>
+<p>Output a single non-negative integer representing your answer.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">5</span><br><span class="line">3 3</span><br><span class="line">0 0 0</span><br><span class="line">4 2</span><br><span class="line">0 2 1 3</span><br><span class="line">5 3</span><br><span class="line">0 1 2 1 0</span><br><span class="line">6 2</span><br><span class="line">0 1 0 1 2 0</span><br><span class="line">7 5</span><br><span class="line">0 1 2 4 0 3 1</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1</span><br><span class="line">1</span><br><span class="line">2</span><br><span class="line">1</span><br><span class="line">4</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>In the first test case, we can select the interval $[1,3]$. Then, delete $a_2$ to obtain $[0,0]$. The process terminates, and the $\operatorname{mex}$ of the remaining elements is $1$.</p>
+<p>In the third test case, we can perform the following operations:</p>
+<ul>
+<li>Select $i=1,j=3$. This is allowed because the $\operatorname{mex}$ of all windows of size $3$ is $3,0,3$, and the window $[1,3]$ has a $\operatorname{mex}$ of $3$, which is the largest. Then, remove $a_2$. The sequence is now $[0,2,1,0]$.</li>
+<li>Select $i=2,j=4$. Then, remove $a_2$. The sequence is now $[0,1,0]$.</li>
+<li>Select $i=1,j=3$. Then, remove $a_1$. The sequence is now $[1,0]$. The process terminates, and the final $\operatorname{mex}$ is $2$.</li>
+</ul>
+<h3 id="Ans-7"><a href="#Ans-7" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>反正数组中没有0肯定输出0。一开始以为数组中如果有多个0那就消除最大，一个0也消除最大。但后面发现如果这样了，样例5就不是最优了，所以想想可能和后面的有关系，难道是有个特判？如果是最后一轮，如果有多个相同的最大值，那就删掉多余的那个，如果只有一个最大值，但是这个区间里面有多余的数，那也删去。不过这个不好讲，而且也写不出代码。</p>
+<p><strong>题解</strong></p>
+<p>我们可以先思考一个关键点：由于最后只会剩下 k - 1 个数字，因此对于任意长度为 k 的区间，都必须从中删除一个数字。</p>
+<p>那么哪些数字是可以删除的呢？显然，如果区间中存在大于等于 k - 1 的数字，它不会影响我们保留 0 到 k - 2 这些数，因此可以删除。另一方面，如果区间中存在重复值，那么删除其中一个重复的数字，也不会影响最终能够得到的 mex。</p>
+<p>而我们最终希望尽可能保留的是$ 0,1,\dots,k-2 $这些数字，它们一共只有 k - 1个。对于任意长度为 k 的区间来说，根据抽屉原理，区间内一定至少存在一个“无效数字”：要么是大于等于 k - 1 的数，要么是某个重复值。</p>
+<p>因此，每次操作都可以删除一个不会影响答案的数字。最终答案受到两个限制：$\operatorname{mex}(a)$以及$k - 1$</p>
+<p>所以答案为：$\min(\operatorname{mex}(a), k-1)$</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n,k; cin &gt;&gt; n &gt;&gt; k;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">a</span><span class="params">(n)</span>,<span class="title">b</span><span class="params">(n)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i) cin &gt;&gt; a[i],a[i] = <span class="built_in">min</span>(a[i],n<span class="number">+1</span>);<span class="comment">//这一步不写会runtime error</span></span><br><span class="line">    <span class="type">int</span> mex = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        b[a[i]]++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span>(b[mex])&#123;</span><br><span class="line">        mex++;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="built_in">min</span>(mex,k<span class="number">-1</span>) &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还有一版更逆天的</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n, k;</span><br><span class="line">    cin &gt;&gt; n &gt;&gt; k;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">cnt</span><span class="params">(n<span class="number">+2</span>,<span class="number">0</span>)</span></span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        <span class="type">int</span> x;</span><br><span class="line">        cin &gt;&gt; x;</span><br><span class="line">        cnt[x]++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> mex = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span>(cnt[mex] &gt; <span class="number">0</span>)</span><br><span class="line">        mex++;</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; <span class="built_in">min</span>(mex,k<span class="number">-1</span>) &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>非常简短。</p>
+<h2 id="9-Blackslex-and-Penguin-Civilization（1300）（×）"><a href="#9-Blackslex-and-Penguin-Civilization（1300）（×）" class="headerlink" title="9.Blackslex and Penguin Civilization（1300）（×）"></a>9.Blackslex and Penguin Civilization（1300）（×）</h2><p>（bitmasks）（constructive algorithms）（greedy）（math）</p>
+<h3 id="Ques-8"><a href="#Ques-8" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2179/D">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>Penguins are civilized creatures that communicate using permutations. Blackslex, as a penguin researcher, must study their means of communication.</p>
+<p>For a given integer $n$, consider permutations$^{\text{∗}}$ $p$ of the array $[0, 1, \ldots, 2^n - 1]$. Define</p>
+<script type="math/tex; mode=display">
+S(p) \;=\; \sum_{i=0}^{2^n-1} \operatorname{popcount}\!\bigl(p_0 \mathbin{\&} p_1 \mathbin{\&} \cdots \mathbin{\&} p_i\bigr),</script><p> where $\operatorname{popcount}(z)$ is the number of $1$-bits in the binary representation of $z$ (for instance, $\operatorname{popcount}(5) = 2$ because $5 = 101_2$ has two $1$-bits in the binary representation), and $\&amp;$ denotes the <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bitwise_operation#AND">bitwise AND operation</a>. .</p>
+<p>A permutation is considered <strong>sacred</strong> if it maximizes $S(p)$. Find the <strong>lexicographically minimal</strong>$^{\text{†}}$ sacred permutation.</p>
+<p>$^{\text{∗}}$A permutation of length $n$ is an array consisting of $n$ distinct integers from $1$ to $n$ in arbitrary order. For example, $[2,3,1,5,4]$ is a permutation, but $[1,2,2]$ is not a permutation ($2$ appears twice in the array), and $[1,3,4]$ is also not a permutation ($n=3$ but there is $4$ in the array).</p>
+<p>$^{\text{†}}$An array $a$ is lexicographically smaller than an array $b$ of the same size if and only if the following holds:</p>
+<ul>
+<li>in the first position where $a$ and $b$ differ, the array $a$ has a smaller element than the corresponding element in $b$.</li>
+</ul>
+<p><strong>Input</strong></p>
+<p>The first line contains a single integer $t$ ($1 \le t \le 16$) — the number of test cases.</p>
+<p>Each test case contains a single integer $n$ ($1 \le n \le 16$).</p>
+<p>It is guaranteed that the sum of $2^n$ over all test cases does not exceed $2^{16}$.</p>
+<p><strong>Output</strong></p>
+<p>For each test case, output $2^n$ integers $p<em>0, p_1, \ldots, p</em>{2^n-1}$ — the required permutation.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">1</span><br><span class="line">2</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1 0 </span><br><span class="line">3 1 0 2 </span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>For the first test case, there are two possible permutations.</p>
+<ul>
+<li>$p = [0, 1]$, $S(p) = 0$</li>
+<li>$p = [1, 0]$, $S(p) = 1$</li>
+</ul>
+<p>For the second test case, $S([3, 1, 0, 2]) = 3$ is sacred. There are other permutations $p$ that are sacred, such as $p = [3, 2, 0, 1]$, but those are not lexicographically minimal.</p>
+<h3 id="Ans-8"><a href="#Ans-8" class="headerlink" title="Ans"></a>Ans</h3><p>对于$A<em>i = p_0 \&amp; p_1 \&amp;\ …\&amp; p_i $，如果$\operatorname{popcount}(A_i) ≥ k$，说明有k个二进制位在所有前i+1个数中都保持为1，这些1都是锁死的，而剩下的能自由变化的仅有n-k个。所以对于不同的前缀A最多只有$2^{n-k}$种可能。那么$S</em>{max} = \sum_{k=1}^n2^{n-k}$。</p>
+<p>而要用满每个情况，我们要让popcount尽可能缓慢下降，一种方式是让A每次只减少一个1。也就是从一个全1的数，每次只把一个1变成0，比如$p_i = 2^n-1-i$，这样得到7，6，5，4，3，2，1，0，但是这个并不是字典序最小，所以我们要在所有最大化的排序中找字典序最小的：</p>
+<ul>
+<li>每次选择下一个数时，在保证人能填满所有可能时，尽量选小的数</li>
+<li>固定低位为1，让高位部分按偶数递增</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> n; cin &gt;&gt; n;</span><br><span class="line">    cout &lt;&lt; (<span class="number">1</span>&lt;&lt;n)<span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;++i)</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">0</span>;j &lt; (<span class="number">1</span>&lt;&lt;i);j += <span class="number">2</span>)&#123;</span><br><span class="line">        <span class="type">int</span> val = (j&lt;&lt;(n-i)) | ((<span class="number">1</span>&lt;&lt;(n-i))<span class="number">-1</span>);</span><br><span class="line">        cout &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; val;</span><br><span class="line">    &#125;</span><br><span class="line">    cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="10-Beautiful-XOR（1100）"><a href="#10-Beautiful-XOR（1100）" class="headerlink" title="10. Beautiful XOR（1100）"></a>10. Beautiful XOR（1100）</h2><p>（bitmasks）（constructive algorithms）（greedy）</p>
+<h3 id="Ques-9"><a href="#Ques-9" class="headerlink" title="Ques"></a>Ques</h3><p><a target="_blank" rel="noopener" href="https://codeforces.com/problemset/problem/2162/C">门钥匙</a></p>
+<p><strong>题意</strong></p>
+<p>You are given two integers $a$ and $b$. You are allowed to perform the following operation any number of times (including zero):</p>
+<ul>
+<li>choose any integer $x$ such that $0 \le x \le a$ (the current value of $a$, not initial),</li>
+<li>set $a := a \oplus x$. Here, $\oplus$ represents the <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Bitwise_operation#XOR">bitwise XOR</a> operator.</li>
+</ul>
+<p>After performing a sequence of operations, you want the value of $a$ to become exactly $b$.</p>
+<p>Find a sequence of at most $100$ operations (values of $x$ used in each operation) that transforms $a$ into $b$, or report that it is impossible.</p>
+<p>Note that you are not required to find the minimum number of operations, but any valid sequence of at most $100$ operations.</p>
+<p><strong>Input</strong></p>
+<p>The first line of input contains a single integer $t$ ($1 \le t \le 1000$) — the number of test cases.</p>
+<p>Each test case contains two integers $a$ and $b$ ($1 \le a, b \le 10^9$).</p>
+<p><strong>Output</strong></p>
+<p>For each test case, if it is impossible to obtain $b$ from $a$ using the allowed operations, print a single line containing $-1$.</p>
+<p>Otherwise, on the first line print a single integer $k$ ($0 \le k \le 100$) — the number of operations. On the second line print $k$ integers ($x_1, x_2, \dots , x_k$) — the chosen values of $x$ in the order you apply them.</p>
+<p>If there are multiple valid sequences, you may print any one of them.</p>
+<p><strong>Example</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">6</span><br><span class="line">9 6</span><br><span class="line">13 13</span><br><span class="line">292 929</span><br><span class="line">405 400</span><br><span class="line">998 244</span><br><span class="line">244 353</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">2</span><br><span class="line">7 8</span><br><span class="line">0</span><br><span class="line">-1</span><br><span class="line">1</span><br><span class="line">5</span><br><span class="line">2</span><br><span class="line">25 779</span><br><span class="line">-1</span><br></pre></td></tr></table></figure>
+<p><strong>Note</strong></p>
+<p>For the first test case,</p>
+<ul>
+<li>choose $x = 7$, now $a$ becomes equal to $9 \oplus 7 = 14$.</li>
+<li>choose $x = 8$, now $a$ becomes equal to $14 \oplus 8 = 6$.</li>
+</ul>
+<p>Thus, we can make $a = b$.</p>
+<p>For the fourth test case, choosing $x = 5$ makes $a = b$.</p>
+<h3 id="Ans-9"><a href="#Ans-9" class="headerlink" title="Ans"></a>Ans</h3><p><strong>初始思路</strong></p>
+<p>如果a = b，输出0；</p>
+<p>如果a &gt; b，找下最前面的位，使得a是1，b是0，此时可以两步调好，先把除此位以后的位调好，再调此位。</p>
+<p>如果a &lt; b，输出-1；（不过原因没有细想）</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="type">int</span> a,b; cin &gt;&gt; a &gt;&gt; b;</span><br><span class="line">    <span class="keyword">if</span>(a == b)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">0</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span>(a &lt; b)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">-1</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//这里放了个黑箱 -&gt; 处理剩下的一种情况，写得一坨，不展示</span></span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>依旧WA2</p>
+<p><strong>题解</strong></p>
+<p>不过这道题想法没问题。</p>
+<p>对于每个测试用例：</p>
+<ol>
+<li><p>先看 a 和 b 的最高位（最高二进制位）是否一致范围内。</p>
+</li>
+<li><p>如果 b 的最高位比 a 还高，那么不可能。</p>
+</li>
+<li><p>否则：</p>
+<ul>
+<li>如果 a == b，输出 0</li>
+<li>其他情况，一定可以用 2 次操作完成：设a的最高位是第m位，那么把这一位及以下的全部变成1，构造c。由于$x_1 \oplus a=c$，那么$x_1$其实也就是a的按位取反。而因为$x_2 = c\oplus b$，所以$c \oplus x_2 = b$</li>
+</ul>
+</li>
+<li><p>总结一下：$c = (1 &lt;&lt; (m+1))-1，再输出x_1 = c \oplus  a,x2 = c\oplus  b$</p>
+<p>若a==b，直接输出0</p>
+</li>
+</ol>
+<p>过一下流程，欣赏一下人家细节处理的优雅</p>
+<p>$a=9\ (1001)_2,\ b = 6\ (0110)_2$</p>
+<p>a的最高位是3，所以构造中间变量$c = 15\ (1111)_2$</p>
+<p>$x_1 = 15 \oplus 9 = 6$</p>
+<p>$x_2 =  15 \oplus 6 = 9$</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">using</span> ll = <span class="type">long</span> <span class="type">long</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">solve</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ll a,b; cin &gt;&gt; a &gt;&gt; b;</span><br><span class="line">    <span class="keyword">if</span>(a == b)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">0</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> msb_a = <span class="number">63</span>-__builtin_clzll(a);</span><br><span class="line">    <span class="type">int</span> msb_b = <span class="number">63</span>-__builtin_clzll(b);</span><br><span class="line">    <span class="keyword">if</span>(msb_b &gt; msb_a)&#123;</span><br><span class="line">        cout &lt;&lt; <span class="number">-1</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ll c = (<span class="number">1ll</span> &lt;&lt; (msb_a<span class="number">+1</span>)) - <span class="number">1</span>;</span><br><span class="line">    ll x1 = c^a;</span><br><span class="line">    ll x2 = c^b;</span><br><span class="line">    cout &lt;&lt; <span class="number">2</span> &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    cout &lt;&lt; x1 &lt;&lt; <span class="string">&#x27; &#x27;</span> &lt;&lt; x2 &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后就有人问了，主播主播，这个__builtin_clzll()是什么，操作太快了，没看清思路。</p>
+<p><code>__builtin_clzll(x)</code>是 GCC/Clang 提供的一个内建函数，意思是：</p>
+<blockquote>
+<p><strong>count leading zeros long long</strong><br>统计一个 <code>unsigned long long</code> 的二进制表示里，<strong>从最高位开始有多少个前导 0</strong></p>
+</blockquote>
+<p>而如果你想求 <code>x</code> 的最高位下标（从 0 开始），常用：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> msb = <span class="number">63</span> - __builtin_clzll(x);</span><br><span class="line"><span class="comment">//msb: most significant bit,也就是一个数最高位1所在的位置</span></span><br></pre></td></tr></table></figure>
+<p>而用这个之前，要记住两点</p>
+<ul>
+<li>参数不能是 0，<code>__builtin_clzll(0)</code>是未定义行为，不能用</li>
+<li>类型最好是无符号（unsigned）</li>
+</ul>
+<p>而与之类似的，还有__builtin_clz()，它是处理unsigned int类型的</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://mxiaocaoblog.com">Mxiaocao</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://mxiaocaoblog.com/2026/05/14/codefoces-mind-T1-10/">https://mxiaocaoblog.com/2026/05/14/codefoces-mind-T1-10/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://mxiaocaoblog.com" target="_blank">Mxiaocao Blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/2.jpg" data-sites="facebook,x,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/05/14/codefoces-mind-T11-20/" title="codefoces mind (T11-20)"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">codefoces mind (T11-20)</div></div><div class="info-2"><div class="info-item-1">codefoces mind (T11-20)11. Beautiful String（1000）（brute force）（constructive algorithms） Ques门钥匙 题意 You are given a binary$^{\text{∗}}$ string $s$ of length $n$. Your task is to find any subsequence$^{\text{†}}$ $p$ of $s$ such that:  The subsequence $p$ is non-decreasing. That is, each character in $p$ is not greater than the next one. Let $x$ denote the string obtained by removing all characters of $p$ from $s$, while preserving the order of the remaining characters. Then $x$ must be a palin...</div></div></div></a><a class="pagination-related" href="/2026/05/14/8-8-3-Euler-s-Sieve/" title="8.8.3 Euler's Sieve"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">8.8.3 Euler's Sieve</div></div><div class="info-2"><div class="info-item-1">欧拉筛欧拉筛（Euler Sieve），也被称为线性筛，是算法竞赛中极其重要且优雅的基础算法。它可以在 $\mathcal{O}(N)$ 的严格线性时间内，找出 $1 \sim N$ 范围内的所有质数。它比我们初学时接触的“埃氏筛（埃拉托斯特尼筛法，$\mathcal{O}(N \log \log N)$）”更快。 接下来介绍它的核心（不重复劳动）： 在普通的埃氏筛中，我们会用质数去筛掉它的倍数，比如用质数2筛掉4，6，8，10，12，用质数3筛掉6，9，12，15。不难发现，像6，12，被2筛了一次，被3也筛了一次。当N很大时，就会有很多个数会被重复标记，这样就浪费了大量的时间。 而欧拉筛则避免了这个问题，它保证每一个合数，必定且只能被它的最小质因数筛掉一次 步骤：  我们先假设所有数初始都是质数，并且再创建一个数组记录已经找到的质数 123vector&lt;char&gt; is_prime(n+1,1);vector&lt;int&gt; primes;is_prime[0] = is_prime[1] = 0; //0和1不是质数  然后开始循环，遍历2到N的每一个数字...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/2.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Mxiaocao</div><div class="author-info-description">Welcome to Mxiaocao Blog. Here you can find articles on various topics, including technology, programming, and more.</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">21</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">12</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Mxiaocao/Mxiaocao-blog"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Mxiaocao" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:xiaocao1758@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#codefoces-mind-T1-10"><span class="toc-number">1.</span> <span class="toc-text">codefoces mind (T1-10)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-The-67th-XOR-Problem%EF%BC%881200%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">1. The 67th XOR Problem（1200）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques"><span class="toc-number">1.1.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans"><span class="toc-number">1.1.2.</span> <span class="toc-text">Ans</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%95%E4%B8%80"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">法一</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B3%95%E4%BA%8C"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">法二</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-The-67th-OEIS-Problem%EF%BC%881100%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">2. The 67th OEIS Problem（1100）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-1"><span class="toc-number">1.2.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-1"><span class="toc-number">1.2.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Mickey-Mouse-Constructive%EF%BC%881100%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">3. Mickey Mouse Constructive（1100）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-2"><span class="toc-number">1.3.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-2"><span class="toc-number">1.3.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Flipping-Binary-String%EF%BC%881000%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">4. Flipping Binary String（1000）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-3"><span class="toc-number">1.4.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-3"><span class="toc-number">1.4.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-MEX-Reordering%EF%BC%881000%EF%BC%89"><span class="toc-number">1.5.</span> <span class="toc-text">5. MEX Reordering（1000）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-4"><span class="toc-number">1.5.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-4"><span class="toc-number">1.5.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-Sorting-Game%EF%BC%881200%EF%BC%89"><span class="toc-number">1.6.</span> <span class="toc-text">6. Sorting Game（1200）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-5"><span class="toc-number">1.6.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-5"><span class="toc-number">1.6.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-The-Curse-of-the-Frog%EF%BC%881200%EF%BC%89"><span class="toc-number">1.7.</span> <span class="toc-text">7. The Curse of the Frog（1200）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-6"><span class="toc-number">1.7.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-6"><span class="toc-number">1.7.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-Yet-Another-MEX-Problem%EF%BC%881100%EF%BC%89"><span class="toc-number">1.8.</span> <span class="toc-text">8.Yet Another MEX Problem（1100）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-7"><span class="toc-number">1.8.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-7"><span class="toc-number">1.8.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-Blackslex-and-Penguin-Civilization%EF%BC%881300%EF%BC%89%EF%BC%88%C3%97%EF%BC%89"><span class="toc-number">1.9.</span> <span class="toc-text">9.Blackslex and Penguin Civilization（1300）（×）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-8"><span class="toc-number">1.9.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-8"><span class="toc-number">1.9.2.</span> <span class="toc-text">Ans</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-Beautiful-XOR%EF%BC%881100%EF%BC%89"><span class="toc-number">1.10.</span> <span class="toc-text">10. Beautiful XOR（1100）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Ques-9"><span class="toc-number">1.10.1.</span> <span class="toc-text">Ques</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Ans-9"><span class="toc-number">1.10.2.</span> <span class="toc-text">Ans</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/14/hdoj2/" title="hdoj2">hdoj2</a><time datetime="2026-05-14T08:21:42.000Z" title="发表于 2026-05-14 16:21:42">2026-05-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/14/hdoj1/" title="hdoj1">hdoj1</a><time datetime="2026-05-14T08:20:45.000Z" title="发表于 2026-05-14 16:20:45">2026-05-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/14/1-Codeforces-Round-1097-Div-2-Based-on-Zhili-Cup-2026/" title="1. Codeforces Round 1097 (Div. 2, Based on Zhili Cup 2026)">1. Codeforces Round 1097 (Div. 2, Based on Zhili Cup 2026)</a><time datetime="2026-05-14T08:18:49.000Z" title="发表于 2026-05-14 16:18:49">2026-05-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/14/stack/" title="栈">栈</a><time datetime="2026-05-14T08:15:18.000Z" title="发表于 2026-05-14 16:15:18">2026-05-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/05/14/Linked-List/" title="链表">链表</a><time datetime="2026-05-14T08:14:05.000Z" title="发表于 2026-05-14 16:14:05">2026-05-14</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Mxiaocao</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.5.4</a></span></div><div class="footer_custom_text">浙ICP备2026013521号-1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">简</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        loader: {
+          load: [
+            // Four font extension packages (optional)
+            //- '[tex]/bbm',
+            //- '[tex]/bboldx',
+            //- '[tex]/dsfont',
+            '[tex]/mhchem'
+          ],
+          paths: {
+            'mathjax-newcm': '[mathjax]/../@mathjax/mathjax-newcm-font',
+
+            //- // Four font extension packages (optional)
+            //- 'mathjax-bbm-extension': '[mathjax]/../@mathjax/mathjax-bbm-font-extension',
+            //- 'mathjax-bboldx-extension': '[mathjax]/../@mathjax/mathjax-bboldx-font-extension',
+            //- 'mathjax-dsfont-extension': '[mathjax]/../@mathjax/mathjax-dsfont-font-extension',
+            'mathjax-mhchem-extension': '[mathjax]/../@mathjax/mathjax-mhchem-font-extension'
+          }
+        },
+        output: {
+          font: 'mathjax-newcm',
+        },
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+          packages: {
+            '[+]': [
+              'mhchem'
+            ]
+          }
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          menuOptions: {
+            settings: {
+              enrich: false  // Turn off Braille and voice narration text automatic generation
+            }
+          },
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@4.1.0/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script><script>(() => {
+  const parseViewBox = viewBox => {
+    if (!viewBox) return null
+    const parts = viewBox.trim().split(/[\s,]+/).map(n => Number(n))
+    if (parts.length !== 4 || parts.some(n => Number.isNaN(n))) return null
+    return parts
+  }
+
+  const getSvgViewBox = svg => {
+    const attr = parseViewBox(svg.getAttribute('viewBox'))
+    if (attr) return attr
+
+    // Fallback: use bbox to build a viewBox
+    try {
+      const bbox = svg.getBBox()
+      if (bbox && bbox.width && bbox.height) return [bbox.x, bbox.y, bbox.width, bbox.height]
+    } catch (e) {
+      // getBBox may fail on some edge cases; ignore
+    }
+
+    const w = Number(svg.getAttribute('width')) || 0
+    const h = Number(svg.getAttribute('height')) || 0
+    if (w > 0 && h > 0) return [0, 0, w, h]
+    return [0, 0, 100, 100]
+  }
+
+  const setSvgViewBox = (svg, vb) => {
+    svg.setAttribute('viewBox', `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}`)
+  }
+
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v))
+
+  const openSvgInNewTab = ({ source, initViewBox }) => {
+    const getClonedSvg = () => {
+      if (typeof source === 'string') {
+        const template = document.createElement('template')
+        template.innerHTML = source.trim()
+        const svg = template.content.querySelector('svg')
+        return svg ? svg.cloneNode(true) : null
+      }
+      if (source && typeof source.cloneNode === 'function') {
+        return source.cloneNode(true)
+      }
+      return null
+    }
+
+    const clone = getClonedSvg()
+    if (!clone) return
+    if (initViewBox && initViewBox.length === 4) {
+      clone.setAttribute('viewBox', initViewBox.join(' '))
+    }
+    if (!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    if (!clone.getAttribute('xmlns:xlink') && clone.outerHTML.includes('xlink:')) {
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink')
+    }
+    // inject background to match current theme
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    const bg = getComputedStyle(document.body).backgroundColor || (isDark ? '#1e1e1e' : '#ffffff')
+    if (!clone.style.background) clone.style.background = bg
+
+    const serializer = new XMLSerializer()
+    const svgSource = serializer.serializeToString(clone)
+    const htmlSource = `<!doctype html><html><head><meta charset="utf-8" />
+      <style>
+        html, body { width: 100%; height: 100%; margin: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; }
+        svg { max-width: 100%; max-height: 100%; height: auto; width: auto; }
+      </style>
+      </head><body>${svgSource}</body></html>`
+    const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank', 'noopener')
+    setTimeout(() => URL.revokeObjectURL(url), 30000)
+  }
+
+  const attachMermaidViewerButton = wrap => {
+    let btn = wrap.querySelector('.mermaid-open-btn')
+    if (!btn) {
+      btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'mermaid-open-btn'
+      wrap.appendChild(btn)
+    }
+
+    btn.innerHTML = '<i class="fa fa-search fa-fw" aria-hidden="true"></i>'
+
+    if (!btn.__mermaidViewerBound) {
+      btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        const svg = wrap.__mermaidOriginalSvg || wrap.querySelector('svg')
+        if (!svg) return
+        const initViewBox = wrap.__mermaidInitViewBox
+        if (typeof svg === 'string') {
+          openSvgInNewTab({ source: svg, initViewBox })
+          return
+        }
+        openSvgInNewTab({ source: svg, initViewBox })
+      })
+      btn.__mermaidViewerBound = true
+    }
+  }
+
+  // Zoom around a point (px, py) in the SVG viewport (in viewBox coordinates)
+  const zoomAtPoint = (vb, factor, px, py) => {
+    const w = vb[2] * factor
+    const h = vb[3] * factor
+    const nx = px - (px - vb[0]) * factor
+    const ny = py - (py - vb[1]) * factor
+    return [nx, ny, w, h]
+  }
+
+  const initMermaidGestures = wrap => {
+    const svg = wrap.querySelector('svg')
+    if (!svg) return
+
+    // Ensure viewBox exists so gestures always work
+    const initVb = getSvgViewBox(svg)
+    wrap.__mermaidInitViewBox = initVb
+    wrap.__mermaidCurViewBox = initVb.slice()
+    setSvgViewBox(svg, initVb)
+
+    // Avoid binding multiple times on themeChange/pjax
+    if (wrap.__mermaidGestureBound) return
+    wrap.__mermaidGestureBound = true
+
+    // Helper: map client (viewport) coordinate -> viewBox coordinate
+    const clientToViewBox = (clientX, clientY) => {
+      const rect = svg.getBoundingClientRect()
+      const vb = wrap.__mermaidCurViewBox || getSvgViewBox(svg)
+      const x = vb[0] + (clientX - rect.left) * (vb[2] / rect.width)
+      const y = vb[1] + (clientY - rect.top) * (vb[3] / rect.height)
+      return { x, y, rect, vb }
+    }
+
+    const state = {
+      pointers: new Map(),
+      startVb: null,
+      startDist: 0,
+      startCenter: null
+    }
+
+    const clampVb = vb => {
+      const init = wrap.__mermaidInitViewBox || vb
+      const minW = init[2] * 0.1
+      const maxW = init[2] * 10
+      const minH = init[3] * 0.1
+      const maxH = init[3] * 10
+      vb[2] = clamp(vb[2], minW, maxW)
+      vb[3] = clamp(vb[3], minH, maxH)
+      return vb
+    }
+
+    const setCurVb = vb => {
+      vb = clampVb(vb)
+      wrap.__mermaidCurViewBox = vb
+      setSvgViewBox(svg, vb)
+    }
+
+    const onPointerDown = e => {
+      // Allow only primary button for mouse
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      svg.setPointerCapture(e.pointerId)
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      if (state.pointers.size === 1) {
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      } else if (state.pointers.size === 2) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        state.startDist = Math.hypot(dx, dy)
+        state.startVb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        state.startCenter = { x: (pts[0].x + pts[1].x) / 2, y: (pts[0].y + pts[1].y) / 2 }
+      }
+    }
+
+    const onPointerMove = e => {
+      if (!state.pointers.has(e.pointerId)) return
+      state.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
+
+      // Pan with 1 pointer
+      if (state.pointers.size === 1 && state.startVb) {
+        const p = [...state.pointers.values()][0]
+        const prev = { x: e.clientX - e.movementX, y: e.clientY - e.movementY }
+        // movementX/Y unreliable on touch, compute from stored last position
+        const last = wrap.__mermaidLastSinglePointer || p
+        const dxClient = p.x - last.x
+        const dyClient = p.y - last.y
+        wrap.__mermaidLastSinglePointer = p
+
+        const { rect } = clientToViewBox(p.x, p.y)
+        const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+        const dx = dxClient * (vb[2] / rect.width)
+        const dy = dyClient * (vb[3] / rect.height)
+        setCurVb([vb[0] - dx, vb[1] - dy, vb[2], vb[3]])
+        return
+      }
+
+      // Pinch zoom with 2 pointers
+      if (state.pointers.size === 2 && state.startVb && state.startDist > 0) {
+        const pts = [...state.pointers.values()]
+        const dx = pts[0].x - pts[1].x
+        const dy = pts[0].y - pts[1].y
+        const dist = Math.hypot(dx, dy)
+        if (!dist) return
+        const factor = state.startDist / dist // dist bigger => zoom in (viewBox smaller)
+
+        const cx = (pts[0].x + pts[1].x) / 2
+        const cy = (pts[0].y + pts[1].y) / 2
+        const centerClient = { x: cx, y: cy }
+
+        const pxy = clientToViewBox(centerClient.x, centerClient.y)
+        const cpx = pxy.x
+        const cpy = pxy.y
+
+        const vb = zoomAtPoint(state.startVb, factor, cpx, cpy)
+        setCurVb(vb)
+      }
+    }
+
+    const onPointerUpOrCancel = e => {
+      state.pointers.delete(e.pointerId)
+      if (state.pointers.size === 0) {
+        state.startVb = null
+        state.startDist = 0
+        state.startCenter = null
+        wrap.__mermaidLastSinglePointer = null
+      } else if (state.pointers.size === 1) {
+        // reset single pointer baseline to avoid jump
+        wrap.__mermaidLastSinglePointer = [...state.pointers.values()][0]
+      }
+    }
+
+    // Wheel zoom (mouse/trackpad)
+    const onWheel = e => {
+      // ctrlKey on mac trackpad pinch; we treat both as zoom
+      e.preventDefault()
+      const delta = e.deltaY
+      const zoomFactor = delta > 0 ? 1.1 : 0.9
+      const { x, y } = clientToViewBox(e.clientX, e.clientY)
+      const vb = (wrap.__mermaidCurViewBox || getSvgViewBox(svg)).slice()
+      setCurVb(zoomAtPoint(vb, zoomFactor, x, y))
+    }
+
+    const onDblClick = () => {
+      const init = wrap.__mermaidInitViewBox
+      if (!init) return
+      wrap.__mermaidCurViewBox = init.slice()
+      setSvgViewBox(svg, init)
+    }
+
+    svg.addEventListener('pointerdown', onPointerDown)
+    svg.addEventListener('pointermove', onPointerMove)
+    svg.addEventListener('pointerup', onPointerUpOrCancel)
+    svg.addEventListener('pointercancel', onPointerUpOrCancel)
+    svg.addEventListener('wheel', onWheel, { passive: false })
+    svg.addEventListener('dblclick', onDblClick)
+  }
+
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+
+      // Clear old render (themeChange/pjax will rerun)
+      const oldSvg = item.querySelector('svg')
+      if (oldSvg) oldSvg.remove()
+      item.__mermaidGestureBound = false
+
+      const config = mermaidSrc.dataset.config ? JSON.parse(mermaidSrc.dataset.config) : {}
+      if (!config.theme) {
+        config.theme = theme
+      }
+      const mermaidThemeConfig = `%%{init: ${JSON.stringify(config)}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+        if (true) initMermaidGestures(item)
+        item.__mermaidOriginalSvg = svg
+        if (true) attachMermaidViewerButton(item)
+      }
+
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = false;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.6/dist/click-show-text.min.js" data-mobile="true" data-text="I,LOVE,YOU,TTTTTDK" data-fontsize="15px" data-random="false" async="async"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
