@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电场可视化 - 交互式物理仿真实验</title>
+    <style>
+        :root {
+            --bg: #0a0a14;
+            --panel-bg: #12122a;
+            --text: #c8c8d8;
+            --text-secondary: #8888a8;
+            --accent: #5b9bd5;
+            --accent2: #e8734a;
+            --border: #2a2a45;
+            --slider-track: #2a2a45;
+            --button-bg: #1e1e3a;
+            --button-hover: #2a2a50;
+            --danger: #d94a5a;
+            --success: #4ac9a0;
+            --warning: #e8a840;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========== 顶部标题栏 ========== */
+        .header {
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-left: 12px;
+        }
+        .header-badges {
+            display: flex;
+            gap: 8px;
+        }
+        .badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            background: var(--button-bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        /* ========== 主布局 ========== */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ========== 画布区域 ========== */
+        .canvas-wrapper {
+            flex: 1;
+            position: relative;
+            cursor: crosshair;
+            min-width: 0;
+        }
+        .canvas-wrapper.dragging {
+            cursor: grabbing;
+        }
+        .canvas-wrapper.rotate-mode {
+            cursor: grab;
+        }
+        .canvas-wrapper.rotate-mode:active {
+            cursor: grabbing;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 模式标签 */
+        .mode-indicator {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: rgba(10, 10, 20, 0.85);
+            border: 1px solid var(--border);
+            color: var(--accent);
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
+        /* 快捷提示 */
+        .hint-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #b0b0cc;
+            pointer-events: auto;
+            text-align: center;
+            letter-spacing: 0.3px;
+            background: rgba(18, 18, 40, 0.9);
+            border: 1px solid #3a3a60;
+            border-radius: 10px;
+            padding: 10px 20px;
+            backdrop-filter: blur(8px);
+            transition: opacity 0.4s;
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        .hint-overlay .hint-title {
+            font-weight: 700;
+            color: #ffcc55;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+        .hint-overlay .hint-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: center;
+            margin: 2px 0;
+        }
+        .hint-overlay .hint-key {
+            display: inline-block;
+            background: #2a2a50;
+            border: 1px solid #4a4a70;
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #ffcc55;
+        }
+        .hint-overlay .hint-close {
+            position: absolute;
+            top: 4px;
+            right: 10px;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .hint-overlay .hint-close:hover {
+            color: #fff;
+            background: #3a3a50;
+        }
+        .hint-fade {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* ========== 右侧控制面板 ========== */
+        .panel {
+            width: 320px;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            gap: 16px;
+            z-index: 5;
+        }
+        .panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .panel::-webkit-scrollbar-thumb {
+            background: var(--slider-track);
+            border-radius: 2px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin-bottom: -8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* 模式选择按钮组 */
+        .mode-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .mode-btn {
+            padding: 10px 8px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--button-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .mode-btn:hover {
+            background: var(--button-hover);
+            border-color: var(--accent);
+        }
+        .mode-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 16px rgba(91, 155, 213, 0.3);
+        }
+
+        /* 预设按钮 */
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .preset-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--button-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .preset-btn:hover {
+            background: var(--button-hover);
+            border-color: var(--accent2);
+            color: #fff;
+        }
+
+        /* 滑块样式 */
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .slider-label span:last-child {
+            color: var(--accent);
+            font-weight: 600;
+            min-width: 32px;
+            text-align: right;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--slider-track);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px rgba(91, 155, 213, 0.4);
+        }
+
+        /* 操作按钮 */
+        .action-btn {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            width: 100%;
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-accent:hover {
+            filter: brightness(1.15);
+        }
+
+        /* 图例 */
+        .legend {
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            flex-wrap: wrap;
+            color: var(--text-secondary);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        /* ========== 右键上下文菜单 ========== */
+        .context-menu {
+            position: fixed;
+            z-index: 1000;
+            background: #1a1a38;
+            border: 1px solid #3a3a60;
+            border-radius: 10px;
+            padding: 6px 0;
+            min-width: 160px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            transition: opacity 0.15s, transform 0.15s;
+        }
+        .context-menu.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        .context-menu .menu-item {
+            padding: 9px 16px;
+            font-size: 13px;
+            color: #c8c8d8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.12s;
+            white-space: nowrap;
+        }
+        .context-menu .menu-item:hover {
+            background: #2a2a50;
+            color: #fff;
+        }
+        .context-menu .menu-item.danger {
+            color: #e05555;
+        }
+        .context-menu .menu-item.danger:hover {
+            background: #3a2028;
+            color: #ff6666;
+        }
+        .context-menu .menu-divider {
+            height: 1px;
+            background: #2a2a45;
+            margin: 4px 8px;
+        }
+        .context-menu .menu-icon {
+            font-size: 15px;
+            width: 18px;
+            text-align: center;
+        }
+        .context-menu .menu-charge-name {
+            font-size: 11px;
+            color: #8888aa;
+            padding: 6px 16px 2px;
+            pointer-events: none;
+        }
+
+        /* 重命名对话框 */
+        .rename-dialog {
+            position: fixed;
+            z-index: 1001;
+            background: #1a1a38;
+            border: 1px solid #4a6a9a;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            display: none;
+            min-width: 240px;
+        }
+        .rename-dialog.visible {
+            display: block;
+        }
+        .rename-dialog label {
+            font-size: 12px;
+            color: #8888aa;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .rename-dialog input {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 14px;
+            background: #0f0f22;
+            border: 1px solid #3a3a60;
+            border-radius: 6px;
+            color: #e0e0f0;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .rename-dialog input:focus {
+            border-color: #5b9bd5;
+            box-shadow: 0 0 8px rgba(91,155,213,0.2);
+        }
+        .rename-dialog .dialog-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            justify-content: flex-end;
+        }
+        .rename-dialog button {
+            padding: 7px 16px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: 1px solid #3a3a60;
+            cursor: pointer;
+            background: #1e1e3a;
+            color: #c8c8d8;
+            transition: all 0.15s;
+        }
+        .rename-dialog button:hover {
+            background: #2a2a50;
+        }
+        .rename-dialog button.confirm {
+            background: #5b9bd5;
+            border-color: #5b9bd5;
+            color: #fff;
+        }
+        .rename-dialog button.confirm:hover {
+            filter: brightness(1.15);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .panel {
+                width: 100%;
+                max-height: 40vh;
+                flex-shrink: 1;
+            }
+            .canvas-wrapper {
+                flex: 1;
+                min-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== 顶部标题栏 ========== -->
+    <header class="header">
+        <div style="display:flex;align-items:baseline;">
+            <h1>⚡ 电场可视化仿真</h1>
+            <span class="subtitle">Electrostatic Field Visualization</span>
+        </div>
+        <div class="header-badges">
+            <span class="badge">库仑定律</span>
+            <span class="badge">高斯定理</span>
+            <span class="badge">电势叠加</span>
+        </div>
+    </header>
+
+    <!-- ========== 主体区域 ========== -->
+    <div class="main-container">
+        <!-- 画布 -->
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="mainCanvas"></canvas>
+            <div class="mode-indicator" id="modeIndicator">电场线模式</div>
+            <div class="hint-overlay" id="hintOverlay">
+                <span class="hint-close" id="hintClose" title="关闭提示">✕</span>
+                <div class="hint-title">💡 操作提示</div>
+                <div class="hint-row">
+                    <span class="hint-key">左键</span> 放置<strong style="color:#ff7755;">正电荷 (+)</strong>
+                </div>
+                <div class="hint-row">
+                    <span class="hint-key">右键</span> 放置<strong style="color:#6699ff;">负电荷 (−)</strong>
+                </div>
+                <div class="hint-row" style="font-size:10px;color:#888;margin-top:2px;">
+                    拖拽移动 · 右键电荷打开菜单 · 双击删除
+                </div>
+            </div>
+        </div>
+
+        <!-- 右键上下文菜单 -->
+        <div class="context-menu" id="contextMenu">
+            <div class="menu-charge-name" id="menuChargeName">电荷</div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" data-action="editCharge">
+                <span class="menu-icon">⚡</span> 修改电量与电性
+            </div>
+            <div class="menu-item" data-action="rename">
+                <span class="menu-icon">✏</span> 重命名
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-item danger" data-action="delete">
+                <span class="menu-icon">🗑</span> 删除此电荷
+            </div>
+        </div>
+
+        <!-- 重命名对话框 -->
+        <div class="rename-dialog" id="renameDialog">
+            <label for="renameInput">为电荷命名：</label>
+            <input type="text" id="renameInput" maxlength="20" placeholder="输入名称...">
+            <div class="dialog-buttons">
+                <button id="renameCancel">取消</button>
+                <button class="confirm" id="renameConfirm">确定</button>
+            </div>
+        </div>
+
+        <!-- 电荷编辑对话框（电量+电性） -->
+        <div class="rename-dialog" id="editChargeDialog">
+            <label id="editChargeLabel">编辑电荷参数</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                <span style="font-size:12px;color:#8888aa;">电量大小：</span>
+                <span style="font-size:13px;color:#ffcc55;font-weight:700;" id="editChargeMagVal">5.0</span>
+            </div>
+            <input type="range" id="editChargeSlider" min="0.5" max="10" value="5" step="0.5"
+                   style="width:100%;margin-bottom:10px;">
+            <div style="display:flex;gap:10px;margin-bottom:4px;">
+                <span style="font-size:12px;color:#8888aa;">电性：</span>
+                <button id="editPolarityPos" class="polarity-btn positive"
+                        style="flex:1;padding:8px;font-size:13px;border-radius:6px;border:1px solid #ff5530;background:#2a1a18;color:#ff7755;cursor:pointer;font-weight:600;">⊕ 正电荷</button>
+                <button id="editPolarityNeg" class="polarity-btn negative"
+                        style="flex:1;padding:8px;font-size:13px;border-radius:6px;border:1px solid #335588;background:#181a28;color:#6699ff;cursor:pointer;font-weight:600;">⊖ 负电荷</button>
+            </div>
+            <div style="font-size:10px;color:#666;margin-bottom:8px;" id="editChargePreview">当前：+5.0（正电荷）</div>
+            <div class="dialog-buttons">
+                <button id="editChargeCancel">取消</button>
+                <button class="confirm" id="editChargeConfirm">确定</button>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <aside class="panel" id="controlPanel">
+            <div class="section-title">可视化模式</div>
+            <div class="mode-buttons" id="modeButtons">
+                <button class="mode-btn active" data-mode="fieldlines">⚡ 电场线</button>
+                <button class="mode-btn" data-mode="vectors">🧭 矢量场</button>
+                <button class="mode-btn" data-mode="equipotential">🫧 等势线</button>
+                <button class="mode-btn" data-mode="surface3d">🏔 3D 势能面</button>
+            </div>
+
+            <div class="section-title">预设场景</div>
+            <div class="preset-buttons" id="presetButtons">
+                <button class="preset-btn" data-preset="dipole">电偶极子</button>
+                <button class="preset-btn" data-preset="same_positive">同号双电荷</button>
+                <button class="preset-btn" data-preset="same_negative">两负电荷</button>
+                <button class="preset-btn" data-preset="tripole">三电荷</button>
+                <button class="preset-btn" data-preset="quadrupole">电四极子</button>
+                <button class="preset-btn" data-preset="single_positive">单正电荷</button>
+                <button class="preset-btn" data-preset="single_negative">单负电荷</button>
+            </div>
+
+            <div class="section-title">电荷参数</div>
+            <div class="slider-group">
+                <div class="slider-label"><span>新电荷电量</span><span id="chargeVal">+5</span></div>
+                <input type="range" id="chargeSlider" min="-10" max="10" value="5" step="0.5">
+            </div>
+
+            <div class="slider-group">
+                <div class="slider-label"><span>电场线密度</span><span id="densityVal">8</span></div>
+                <input type="range" id="densitySlider" min="2" max="20" value="8" step="1">
+            </div>
+
+            <div class="slider-group" id="vectorScaleGroup">
+                <div class="slider-label"><span>矢量缩放</span><span id="vectorScaleVal">1.0</span></div>
+                <input type="range" id="vectorScaleSlider" min="0.2" max="3" value="1" step="0.1">
+            </div>
+
+            <div class="section-title">操作</div>
+            <button class="action-btn btn-danger" id="clearBtn">🗑 清除所有电荷</button>
+            <button class="action-btn btn-accent" id="resetBtn" style="margin-top:4px;">🔄 恢复默认场景</button>
+
+            <div class="section-title">图例</div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-dot" style="background:#ff5555;color:#ff5555;"></div> 正电荷 (+)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#55aaff;color:#55aaff;"></div> 负电荷 (−)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#ffcc44;color:#ffcc44;"></div> 电场线</div>
+                <div class="legend-item"><div class="legend-dot" style="background:#4ac9a0;color:#4ac9a0;"></div> 等势线</div>
+            </div>
+
+            <!-- 实时数据 -->
+            <div class="section-title">实时数据</div>
+            <div id="dataDisplay" style="font-size:11px;color:var(--text-secondary);line-height:1.8;">
+                点击画布放置电荷开始实验
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // ============================================================
+        //  电场可视化仿真 - 主程序
+        //  基于库仑定律、电场叠加原理、电势理论
+        //  支持：电场线 / 矢量场 / 等势线 / 3D势能面 四种模式
+        // ============================================================
+
+        // ==================== DOM元素引用 ====================
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvasWrapper');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const hintOverlay = document.getElementById('hintOverlay');
+        const dataDisplay = document.getElementById('dataDisplay');
+        const chargeSlider = document.getElementById('chargeSlider');
+        const densitySlider = document.getElementById('densitySlider');
+        const vectorScaleSlider = document.getElementById('vectorScaleSlider');
+        const vectorScaleGroup = document.getElementById('vectorScaleGroup');
+
+        // ==================== 物理常量与仿真参数 ====================
+        const K = 8000; // 库仑常数（仿真单位），调整使电场线在画布上比例合适
+        const SMOOTHING = 400; // 平滑参数 ε²，防止在电荷位置处电场/电势趋于无穷大
+        // 使用平滑模型：E = kQ * r_vec / (r² + ε²)^(3/2)
+        //             V = kQ / sqrt(r² + ε²)
+        const CHARGE_RADIUS = 16; // 电荷绘制半径（像素）
+        const FIELD_LINE_STEP = 2.5; // 电场线追踪步长（像素）
+        const FIELD_LINE_MAX_STEPS = 600; // 电场线最大追踪步数
+        const FIELD_STRENGTH_MIN = 0.003; // 电场强度下限，低于此值停止追踪
+
+        // ==================== 全局状态 ====================
+        let charges = []; // 电荷数组: {x, y, q}
+        let mode = 'fieldlines'; // 当前可视化模式
+        let linesPerUnit = 8; // 每单位电荷发出的电场线数
+        let newChargeQ = 5; // 新放置电荷的电量
+        let vectorScale = 1.0; // 矢量缩放因子
+
+        // 交互状态
+        let mouseX = 0;
+        let mouseY = 0;
+        let draggedCharge = null; // 正在拖拽的电荷索引
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        // 3D视图状态
+        let azimuth = 35 * Math.PI / 180; // 水平旋转角（弧度），绕Y轴
+        let elevation = 35 * Math.PI / 180; // 垂直旋转角（弧度），绕X轴
+        let is3DRotating = false;
+        let lastMouse3DX = 0;
+        let lastMouse3DY = 0;
+        let surfaceGridRes = 50; // 3D表面网格分辨率
+
+        // 动画
+        let animFrameId = null;
+        let time = 0; // 用于动画效果
+
+        // ==================== 电荷类 ====================
+        let chargeIdCounter = 1; // 全局电荷编号计数器，用于自动命名
+
+        class Charge {
+            /**
+             * 创建一个点电荷
+             * @param {number} x - 画布X坐标（像素）
+             * @param {number} y - 画布Y坐标（像素）
+             * @param {number} q - 电量（仿真单位），正=正电荷，负=负电荷
+             * @param {string} [name] - 电荷名称，不传则自动生成
+             */
+            constructor(x, y, q, name) {
+                this.x = x;
+                this.y = y;
+                this.q = q;
+                this.name = name || ('电荷' + chargeIdCounter++);
+            }
+        }
+
+        // ==================== 物理核心计算 ====================
+        /**
+         * 计算点 (x,y) 处的合电场强度
+         * 基于库仑定律 E = kQ/r² 和电场叠加原理：E_total = Σ E_i
+         * 使用平滑模型防止奇点：E_i = k * Q_i * r_vec_i / (r_i² + ε²)^(3/2)
+         *
+         * @param {number} x - 考察点X坐标
+         * @param {number} y - 考察点Y坐标
+         * @returns {{ex: number, ey: number, mag: number}} 电场分量及大小
+         */
+        function electricField(x, y) {
+            let ex = 0;
+            let ey = 0;
+            for (const c of charges) {
+                const dx = x - c.x;
+                const dy = y - c.y;
+                const r2 = dx * dx + dy * dy;
+                const r2s = r2 + SMOOTHING; // 平滑后的 r²
+                const r = Math.sqrt(r2s);
+                // E = kQ * r_vec / (r² + ε²)^(3/2)
+                const factor = K * c.q / (r2s * r);
+                ex += factor * dx;
+                ey += factor * dy;
+            }
+            const mag = Math.sqrt(ex * ex + ey * ey);
+            return { ex, ey, mag };
+        }
+
+        /**
+         * 计算点 (x,y) 处的电势（标量）
+         * 基于电势叠加原理：V = Σ kQ_i / r_i
+         * 使用平滑模型：V_i = kQ_i / sqrt(r_i² + ε²)
+         *
+         * @param {number} x
+         * @param {number} y
+         * @returns {number} 电势值
+         */
+        function electricPotential(x, y) {
+            let v = 0;
+            for (const c of charges) {
+                const dx = x - c.x;
+                const dy = y - c.y;
+                const r2 = dx * dx + dy * dy;
+                const r = Math.sqrt(r2 + SMOOTHING);
+                v += K * c.q / r;
+            }
+            return v;
+        }
+
+        /**
+         * 追踪一条电场线
+         * 从起始点出发，沿电场方向逐步前进（欧拉积分法）
+         * 电场线的切线方向 = 电场方向
+         *
+         * @param {number} startX - 起始X坐标
+         * @param {number} startY - 起始Y坐标
+         * @param {number} direction - 1=沿电场方向(正向), -1=逆电场方向(反向)
+         * @returns {Array<{x:number, y:number}>} 电场线采样点数组
+         */
+        function traceFieldLine(startX, startY, direction) {
+            const points = [{ x: startX, y: startY }];
+            let x = startX;
+            let y = startY;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            for (let i = 0; i < FIELD_LINE_MAX_STEPS; i++) {
+                const { ex, ey, mag } = electricField(x, y);
+
+                // 电场过弱，停止追踪（远离所有电荷的区域）
+                if (mag < FIELD_STRENGTH_MIN) break;
+
+                // 归一化电场方向并沿之步进
+                const stepX = direction * (ex / mag) * FIELD_LINE_STEP;
+                const stepY = direction * (ey / mag) * FIELD_LINE_STEP;
+
+                x += stepX;
+                y += stepY;
+
+                // 检查是否进入某个电荷的"吸收范围"
+                let absorbed = false;
+                for (const c of charges) {
+                    const dx = x - c.x;
+                    const dy = y - c.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    // 正向追踪 → 被负电荷吸收；反向追踪 → 被正电荷吸收
+                    if (dist < CHARGE_RADIUS + 2) {
+                        if ((direction > 0 && c.q < 0) || (direction < 0 && c.q > 0)) {
+                            points.push({ x: c.x, y: c.y });
+                            absorbed = true;
+                            break;
+                        }
+                    }
+                    // 返回到起始电荷附近（闭环处理）
+                    if (points.length > 20 && dist < CHARGE_RADIUS + 2) {
+                        if ((direction > 0 && c.q > 0) || (direction < 0 && c.q < 0)) {
+                            absorbed = true;
+                            break;
+                        }
+                    }
+                }
+                if (absorbed) break;
+
+                // 超出画布边界，停止
+                if (x < -100 || x > w + 100 || y < -100 || y > h + 100) break;
+
+                points.push({ x, y });
+            }
+            return points;
+        }
+
+        // ==================== 渲染：电荷 ====================
+        function renderCharges(ctx) {
+            for (const c of charges) {
+                const r = CHARGE_RADIUS;
+
+                // 外发光效果
+                const glowGrad = ctx.createRadialGradient(c.x, c.y, r * 0.4, c.x, c.y, r * 2.2);
+                if (c.q > 0) {
+                    glowGrad.addColorStop(0, 'rgba(255,80,60,0.8)');
+                    glowGrad.addColorStop(0.4, 'rgba(255,80,60,0.25)');
+                    glowGrad.addColorStop(1, 'rgba(255,80,60,0)');
+                } else {
+                    glowGrad.addColorStop(0, 'rgba(60,130,255,0.8)');
+                    glowGrad.addColorStop(0.4, 'rgba(60,130,255,0.25)');
+                    glowGrad.addColorStop(1, 'rgba(60,130,255,0)');
+                }
+                ctx.fillStyle = glowGrad;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, r * 2.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 电荷主体
+                const bodyGrad = ctx.createRadialGradient(c.x - r * 0.25, c.y - r * 0.3, r * 0.1, c.x, c.y, r);
+                if (c.q > 0) {
+                    bodyGrad.addColorStop(0, '#ffccaa');
+                    bodyGrad.addColorStop(0.5, '#ff5530');
+                    bodyGrad.addColorStop(1, '#aa2000');
+                } else {
+                    bodyGrad.addColorStop(0, '#ccddff');
+                    bodyGrad.addColorStop(0.5, '#4080ff');
+                    bodyGrad.addColorStop(1, '#0030aa');
+                }
+                ctx.fillStyle = bodyGrad;
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 电荷符号
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 16px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const symbol = c.q > 0 ? '+' : '−';
+                ctx.fillText(symbol, c.x, c.y - 1);
+
+                // 名称标签（画在电荷上方）
+                if (c.name) {
+                    ctx.font = 'bold 12px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(c.name, c.x, c.y - r - 8);
+                }
+
+                // 电量标签
+                ctx.font = '11px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                const qStr = (c.q > 0 ? '+' : '') + c.q.toFixed(0);
+                ctx.fillText(qStr, c.x, c.y + r + 6);
+            }
+        }
+
+        // ==================== 渲染：电场线模式 ====================
+        function renderFieldLines(ctx, w, h) {
+            if (charges.length === 0) return;
+
+            // ---- 绘制背景场强热力图 ----
+            const imageData = ctx.createImageData(w, h);
+            const data = imageData.data;
+            // 低分辨率采样以提升性能（每4像素采样一次）
+            const sampleStep = 4;
+            for (let py = 0; py < h; py += sampleStep) {
+                for (let px = 0; px < w; px += sampleStep) {
+                    const { mag } = electricField(px, py);
+                    // 将场强映射到颜色：暗蓝(弱) → 暗紫(中) → 暗红(强)
+                    const intensity = Math.min(1, Math.log10(1 + mag * 100) / Math.log10(1 + 500));
+                    const r = Math.floor(10 + intensity * 18);
+                    const g = Math.floor(8 + intensity * 5);
+                    const b = Math.floor(20 + intensity * 12);
+                    const alpha = Math.floor(intensity * 40);
+
+                    // 填充采样块
+                    for (let dy = 0; dy < sampleStep && py + dy < h; dy++) {
+                        for (let dx = 0; dx < sampleStep && px + dx < w; dx++) {
+                            const idx = ((py + dy) * w + (px + dx)) * 4;
+                            data[idx] = r;
+                            data[idx + 1] = g;
+                            data[idx + 2] = b;
+                            data[idx + 3] = 255; // 不透明背景 + 透明度叠加
+                        }
+                    }
+                }
+            }
+            // 先绘制纯色背景，再叠加半透明热力图
+            ctx.fillStyle = '#0a0a18';
+            ctx.fillRect(0, 0, w, h);
+            ctx.putImageData(imageData, 0, 0);
+
+            // ---- 绘制电场线 ----
+            const allLines = [];
+
+            for (const c of charges) {
+                const nLines = Math.max(4, Math.round(Math.abs(c.q) * linesPerUnit));
+                const direction = c.q > 0 ? 1 : -1;
+                // 电场线从电荷表面均匀发出（角度均分）
+                for (let i = 0; i < nLines; i++) {
+                    const angle = (2 * Math.PI * i) / nLines;
+                    const startX = c.x + (CHARGE_RADIUS + 3) * Math.cos(angle);
+                    const startY = c.y + (CHARGE_RADIUS + 3) * Math.sin(angle);
+                    const points = traceFieldLine(startX, startY, direction);
+                    if (points.length > 1) {
+                        allLines.push({ points, chargeQ: c.q });
+                    }
+                }
+            }
+
+            // 绘制所有电场线（带颜色渐变）
+            for (const line of allLines) {
+                const pts = line.points;
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) {
+                    ctx.lineTo(pts[i].x, pts[i].y);
+                }
+
+                // 电场线颜色：从电荷颜色渐变到中性色
+                const baseColor = line.chargeQ > 0 ?
+                    { r: 255, g: 170, b: 50 } // 暖金色（从正电荷出发）
+                    :
+                    { r: 80, g: 180, b: 255 }; // 冷蓝色（指向负电荷）
+
+                ctx.strokeStyle = `rgba(${baseColor.r},${baseColor.g},${baseColor.b},0.7)`;
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+
+                // 箭头标记（沿电场线等距放置）
+                const arrowInterval = Math.max(8, Math.floor(pts.length / 6));
+                for (let i = arrowInterval; i < pts.length - 1; i += arrowInterval) {
+                    drawArrow(ctx, pts[i].x, pts[i].y, pts[Math.min(i + 2, pts.length - 1)].x,
+                        pts[Math.min(i + 2, pts.length - 1)].y,
+                        baseColor, 4);
+                }
+            }
+        }
+
+        /**
+         * 在电场线上绘制方向箭头
+         */
+        function drawArrow(ctx, x1, y1, x2, y2, color, size) {
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const arrowLen = size;
+            const arrowAngle = Math.PI / 6; // 30°
+
+            ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},0.85)`;
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(
+                x2 - arrowLen * Math.cos(angle - arrowAngle),
+                y2 - arrowLen * Math.sin(angle - arrowAngle)
+            );
+            ctx.lineTo(
+                x2 - arrowLen * Math.cos(angle + arrowAngle),
+                y2 - arrowLen * Math.sin(angle + arrowAngle)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // ==================== 渲染：矢量场模式 ====================
+        function renderVectorField(ctx, w, h) {
+            ctx.fillStyle = '#0a0a18';
+            ctx.fillRect(0, 0, w, h);
+
+            if (charges.length === 0) return;
+
+            // 自适应网格间距（基于画布大小）
+            const gridSpacing = Math.max(25, Math.min(w, h) / 18);
+
+            // 先绘制背景场强
+            const sampleStep = 5;
+            const imageData = ctx.createImageData(w, h);
+            const data = imageData.data;
+            for (let py = 0; py < h; py += sampleStep) {
+                for (let px = 0; px < w; px += sampleStep) {
+                    const { mag } = electricField(px, py);
+                    const intensity = Math.min(1, Math.log10(1 + mag * 100) / 3);
+                    const r = Math.floor(8 + intensity * 15);
+                    const g = Math.floor(6 + intensity * 4);
+                    const b = Math.floor(18 + intensity * 10);
+                    for (let dy = 0; dy < sampleStep && py + dy < h; dy++) {
+                        for (let dx = 0; dx < sampleStep && px + dx < w; dx++) {
+                            const idx = ((py + dy) * w + (px + dx)) * 4;
+                            data[idx] = r;
+                            data[idx + 1] = g;
+                            data[idx + 2] = b;
+                            data[idx + 3] = 255;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            // 绘制矢量箭头
+            let maxMag = 0;
+            const fieldCache = [];
+            // 第一遍：计算最大场强（用于归一化箭头长度）
+            for (let gy = gridSpacing; gy < h - gridSpacing; gy += gridSpacing) {
+                for (let gx = gridSpacing; gx < w - gridSpacing; gx += gridSpacing) {
+                    const { ex, ey, mag } = electricField(gx, gy);
+                    if (mag > maxMag) maxMag = mag;
+                    fieldCache.push({ x: gx, y: gy, ex, ey, mag });
+                }
+            }
+
+            if (maxMag < 1e-6) return;
+
+            // 第二遍：绘制箭头
+            const arrowMaxLen = gridSpacing * 0.7 * vectorScale;
+            for (const f of fieldCache) {
+                // 对数映射：使弱场区域的箭头也可见
+                const logMag = Math.log10(1 + f.mag * 50);
+                const logMaxMag = Math.log10(1 + maxMag * 50);
+                const normalizedLen = logMag / logMaxMag;
+                const arrowLen = normalizedLen * arrowMaxLen;
+
+                if (arrowLen < 2) continue;
+
+                const angle = Math.atan2(f.ey, f.ex);
+                const endX = f.x + arrowLen * Math.cos(angle);
+                const endY = f.y + arrowLen * Math.sin(angle);
+
+                // 箭头颜色：强度映射
+                const alpha = 0.25 + normalizedLen * 0.75;
+                const r = Math.floor(100 + normalizedLen * 155);
+                const g = Math.floor(160 + normalizedLen * 95);
+                const b = Math.floor(255);
+
+                ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+                ctx.lineWidth = 1 + normalizedLen * 2;
+                ctx.beginPath();
+                ctx.moveTo(f.x, f.y);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                // 箭头尖端
+                if (arrowLen > 5) {
+                    const tipSize = 3 + normalizedLen * 5;
+                    ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+                    ctx.beginPath();
+                    ctx.moveTo(endX, endY);
+                    ctx.lineTo(
+                        endX - tipSize * Math.cos(angle - 0.6),
+                        endY - tipSize * Math.sin(angle - 0.6)
+                    );
+                    ctx.lineTo(
+                        endX - tipSize * Math.cos(angle + 0.6),
+                        endY - tipSize * Math.sin(angle + 0.6)
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+        }
+
+        // ==================== 渲染：等势线模式 ====================
+        function renderEquipotential(ctx, w, h) {
+            ctx.fillStyle = '#0a0a18';
+            ctx.fillRect(0, 0, w, h);
+
+            if (charges.length === 0) return;
+
+            // 计算画布上电势的范围
+            const sampleSpacing = 8;
+            let vMin = Infinity;
+            let vMax = -Infinity;
+            for (let py = 0; py < h; py += sampleSpacing) {
+                for (let px = 0; px < w; px += sampleSpacing) {
+                    const v = electricPotential(px, py);
+                    if (v < vMin) vMin = v;
+                    if (v > vMax) vMax = v;
+                }
+            }
+
+            const vRange = vMax - vMin;
+            if (vRange < 1) return;
+
+            // 等势线级别（约20条等势线）
+            const nLevels = 20;
+            const levels = [];
+            for (let i = 0; i < nLevels; i++) {
+                levels.push(vMin + (vRange * (i + 0.5)) / nLevels);
+            }
+
+            // ---- 绘制背景电势热力图 ----
+            const imageData = ctx.createImageData(w, h);
+            const data = imageData.data;
+            const ssHeat = 3;
+            for (let py = 0; py < h; py += ssHeat) {
+                for (let px = 0; px < w; px += ssHeat) {
+                    const v = electricPotential(px, py);
+                    const t = vRange > 0 ? (v - vMin) / vRange : 0.5; // 归一化 [0,1]
+                    // 配色：低电势(蓝紫) → 零电势(深色) → 高电势(红橙)
+                    const r = Math.floor(15 + t * 40);
+                    const g = Math.floor(8 + (1 - Math.abs(t - 0.5) * 2) * 12);
+                    const b = Math.floor(20 + (1 - t) * 35);
+                    for (let dy = 0; dy < ssHeat && py + dy < h; dy++) {
+                        for (let dx = 0; dx < ssHeat && px + dx < w; dx++) {
+                            const idx = ((py + dy) * w + (px + dx)) * 4;
+                            data[idx] = r;
+                            data[idx + 1] = g;
+                            data[idx + 2] = b;
+                            data[idx + 3] = 255;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            // ---- 使用Marching Squares算法绘制等势线 ----
+            const gridRes = 4;
+            for (const level of levels) {
+                ctx.strokeStyle = 'rgba(74,201,160,0.45)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+
+                for (let gy = 0; gy < h - gridRes; gy += gridRes) {
+                    for (let gx = 0; gx < w - gridRes; gx += gridRes) {
+                        // 获取四个角点的电势值
+                        const v00 = electricPotential(gx, gy);
+                        const v10 = electricPotential(gx + gridRes, gy);
+                        const v11 = electricPotential(gx + gridRes, gy + gridRes);
+                        const v01 = electricPotential(gx, gy + gridRes);
+
+                        // 确定哪些角点在等势面之上
+                        const b00 = v00 > level ? 1 : 0;
+                        const b10 = v10 > level ? 1 : 0;
+                        const b11 = v11 > level ? 1 : 0;
+                        const b01 = v01 > level ? 1 : 0;
+                        const caseIndex = b00 | (b10 << 1) | (b11 << 2) | (b01 << 3);
+
+                        if (caseIndex === 0 || caseIndex === 15) continue; // 全部在等势面同侧
+
+                        // 在线段端点上进行线性插值
+                        const interpolate = (vA, vB, pA, pB) => {
+                            if (Math.abs(vB - vA) < 1e-9) return (pA + pB) / 2;
+                            return pA + (pB - pA) * (level - vA) / (vB - vA);
+                        };
+
+                        // 四条边的插值点
+                        const top = interpolate(v00, v10, gx, gx + gridRes);
+                        const right = interpolate(v10, v11, gy, gy + gridRes);
+                        const bottom = interpolate(v01, v11, gx, gx + gridRes);
+                        const left = interpolate(v00, v01, gy, gy + gridRes);
+
+                        const drawSegment = (x1, y1, x2, y2) => {
+                            ctx.moveTo(x1, y1);
+                            ctx.lineTo(x2, y2);
+                        };
+
+                        // Marching Squares 16种情况的线段组合
+                        switch (caseIndex) {
+                            case 1:
+                            case 14:
+                                drawSegment(gx, left, top, gy);
+                                break;
+                            case 2:
+                            case 13:
+                                drawSegment(top, gy, gx + gridRes, right);
+                                break;
+                            case 3:
+                            case 12:
+                                drawSegment(gx, left, gx + gridRes, right);
+                                break;
+                            case 4:
+                            case 11:
+                                drawSegment(gx + gridRes, right, bottom, gy + gridRes);
+                                break;
+                            case 5:
+                                drawSegment(gx, left, top, gy);
+                                drawSegment(gx + gridRes, right, bottom, gy + gridRes);
+                                break;
+                            case 6:
+                            case 9:
+                                drawSegment(top, gy, bottom, gy + gridRes);
+                                break;
+                            case 7:
+                            case 8:
+                                drawSegment(gx, left, bottom, gy + gridRes);
+                                break;
+                            case 10:
+                                drawSegment(top, gy, gx + gridRes, right);
+                                drawSegment(gx, left, bottom, gy + gridRes);
+                                break;
+                        }
+                    }
+                }
+                ctx.stroke();
+            }
+
+            // 标注电势值
+            ctx.font = '10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+            ctx.fillStyle = 'rgba(160,220,200,0.7)';
+            ctx.textAlign = 'left';
+            for (let i = 0; i < levels.length; i += 3) {
+                const lv = levels[i];
+                ctx.fillText((lv / 1000).toFixed(1) + 'k', 8, 18 + i * 6);
+            }
+        }
+
+        // ==================== 渲染：3D 势能面模式 ====================
+        function render3DSurface(ctx, w, h) {
+            ctx.fillStyle = '#0a0a18';
+            ctx.fillRect(0, 0, w, h);
+
+            if (charges.length === 0) return;
+
+            const cx = w / 2;
+            const cy = h / 2;
+            const margin = 40;
+            const plotW = w - margin * 2;
+            const plotH = h - margin * 2;
+            const gridRes = surfaceGridRes; // 网格分辨率
+
+            // ---- 第一步：在网格上计算电势值 ----
+            const grid = [];
+            let vMin = Infinity;
+            let vMax = -Infinity;
+
+            for (let i = 0; i <= gridRes; i++) {
+                const row = [];
+                const fy = margin + (plotH * i) / gridRes;
+                for (let j = 0; j <= gridRes; j++) {
+                    const fx = margin + (plotW * j) / gridRes;
+                    const v = electricPotential(fx, fy);
+                    if (v < vMin) vMin = v;
+                    if (v > vMax) vMax = v;
+                    row.push({ x: fx, y: fy, v });
+                }
+                grid.push(row);
+            }
+
+            // 钳制电势范围（切掉极端峰值，使图形可读）
+            const vAbsMax = Math.max(Math.abs(vMin), Math.abs(vMax));
+            const vClamp = vAbsMax * 0.4;
+            const vRange = vClamp * 2;
+
+            // 高度缩放因子
+            const heightScale = Math.min(plotW, plotH) * 0.25 / (vClamp / 1000);
+
+            // ---- 第二步：3D旋转与投影 ----
+            const cosAz = Math.cos(azimuth);
+            const sinAz = Math.sin(azimuth);
+            const cosEl = Math.cos(elevation);
+            const sinEl = Math.sin(elevation);
+
+            /**
+             * 将3D坐标 (worldX, worldY, worldZ) 投影到屏幕坐标
+             * 旋转顺序：先绕Y轴(azimuth)，再绕X轴(elevation)
+             * 使用正交投影
+             */
+            function project(wx, wy, wz) {
+                // 绕Y轴旋转（水平）
+                const x1 = wx * cosAz - wz * sinAz;
+                const z1 = wx * sinAz + wz * cosAz;
+                // 绕X轴旋转（垂直）
+                const y2 = wy * cosEl - z1 * sinEl;
+                const z2 = wy * sinEl + z1 * cosEl;
+                // 正交投影到屏幕
+                return {
+                    sx: x1,
+                    sy: -y2, // Y轴翻转（屏幕Y向下）
+                    depth: z2 // 深度用于排序
+                };
+            }
+
+            // 将网格点从画布坐标转换到以画布中心为原点的世界坐标
+            const offsetX = cx;
+            const offsetY = cy;
+
+            // 构建投影后的网格
+            const projected = [];
+            for (let i = 0; i <= gridRes; i++) {
+                const row = [];
+                for (let j = 0; j <= gridRes; j++) {
+                    const gp = grid[i][j];
+                    // 钳制电势值
+                    const vz = Math.max(-vClamp, Math.min(vClamp, gp.v)) * heightScale / 1000;
+                    const proj = project(gp.x - offsetX, gp.y - offsetY, vz);
+                    proj.sx += offsetX;
+                    proj.sy += offsetY;
+                    proj.v = gp.v; // 保留原始电势用于着色
+                    row.push(proj);
+                }
+                projected.push(row);
+            }
+
+            // ---- 第三步：按深度排序并绘制网格线 ----
+            // 收集所有线段
+            const segments = [];
+            for (let i = 0; i <= gridRes; i++) {
+                for (let j = 0; j <= gridRes; j++) {
+                    // 水平线 (i, j) → (i, j+1)
+                    if (j < gridRes) {
+                        const a = projected[i][j];
+                        const b = projected[i][j + 1];
+                        const avgDepth = (a.depth + b.depth) / 2;
+                        const avgV = (a.v + b.v) / 2;
+                        segments.push({ x1: a.sx, y1: a.sy, x2: b.sx, y2: b.sy, depth: avgDepth, v: avgV });
+                    }
+                    // 竖直线 (i, j) → (i+1, j)
+                    if (i < gridRes) {
+                        const a = projected[i][j];
+                        const b = projected[i + 1][j];
+                        const avgDepth = (a.depth + b.depth) / 2;
+                        const avgV = (a.v + b.v) / 2;
+                        segments.push({ x1: a.sx, y1: a.sy, x2: b.sx, y2: b.sy, depth: avgDepth, v: avgV });
+                    }
+                }
+            }
+
+            // 画家算法：从远到近绘制
+            segments.sort((a, b) => a.depth - b.depth);
+
+            for (const seg of segments) {
+                // 根据电势值着色
+                const t = vRange > 0 ? (seg.v + vClamp) / vRange : 0.5;
+                const tClamped = Math.max(0, Math.min(1, t));
+
+                // 颜色映射：蓝(低电势) → 青(中低) → 深灰(中) → 橙(中高) → 红(高电势)
+                let r, g, b;
+                if (tClamped < 0.25) {
+                    const s = tClamped / 0.25;
+                    r = Math.floor(30 + s * 30);
+                    g = Math.floor(60 + s * 140);
+                    b = Math.floor(180 + s * 75);
+                } else if (tClamped < 0.5) {
+                    const s = (tClamped - 0.25) / 0.25;
+                    r = Math.floor(60 + s * 60);
+                    g = Math.floor(200 - s * 80);
+                    b = Math.floor(255 - s * 80);
+                } else if (tClamped < 0.75) {
+                    const s = (tClamped - 0.5) / 0.25;
+                    r = Math.floor(120 + s * 135);
+                    g = Math.floor(120 - s * 80);
+                    b = Math.floor(175 - s * 130);
+                } else {
+                    const s = (tClamped - 0.75) / 0.25;
+                    r = Math.floor(255);
+                    g = Math.floor(40 - s * 20);
+                    b = Math.floor(45 - s * 25);
+                }
+
+                // 根据深度调整亮度（远处更暗）
+                const depthFactor = 0.5 + 0.5 / (1 + Math.exp((seg.depth - 50) / 80));
+                const alpha = 0.35 + depthFactor * 0.55;
+
+                ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
+                ctx.lineWidth = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
+                ctx.stroke();
+            }
+
+            // ---- 第四步：绘制参考底面 ----
+            ctx.strokeStyle = 'rgba(100,100,120,0.3)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 8]);
+            // 底面四个角
+            const corners = [
+                { x: margin, y: margin },
+                { x: margin + plotW, y: margin },
+                { x: margin + plotW, y: margin + plotH },
+                { x: margin, y: margin + plotH },
+            ];
+            const projCorners = corners.map(c => {
+                const p = project(c.x - offsetX, c.y - offsetY, 0);
+                return { sx: p.sx + offsetX, sy: p.sy + offsetY };
+            });
+            ctx.beginPath();
+            ctx.moveTo(projCorners[0].sx, projCorners[0].sy);
+            for (let i = 1; i < 4; i++) ctx.lineTo(projCorners[i].sx, projCorners[i].sy);
+            ctx.closePath();
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ---- 第五步：在3D空间中绘制电荷位置 ----
+            for (const c of charges) {
+                const vz = Math.max(-vClamp, Math.min(vClamp, electricPotential(c.x, c.y))) * heightScale / 1000;
+                const proj = project(c.x - offsetX, c.y - offsetY, vz);
+                const sx = proj.sx + offsetX;
+                const sy = proj.sy + offsetY;
+
+                const glowGrad = ctx.createRadialGradient(sx, sy, 3, sx, sy, 16);
+                if (c.q > 0) {
+                    glowGrad.addColorStop(0, 'rgba(255,200,100,0.9)');
+                    glowGrad.addColorStop(0.5, 'rgba(255,80,30,0.4)');
+                    glowGrad.addColorStop(1, 'rgba(255,80,30,0)');
+                } else {
+                    glowGrad.addColorStop(0, 'rgba(150,200,255,0.9)');
+                    glowGrad.addColorStop(0.5, 'rgba(50,120,255,0.4)');
+                    glowGrad.addColorStop(1, 'rgba(50,120,255,0)');
+                }
+                ctx.fillStyle = glowGrad;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = c.q > 0 ? '#ff8844' : '#5599ff';
+                ctx.beginPath();
+                ctx.arc(sx, sy, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 坐标轴提示
+            ctx.fillStyle = 'rgba(200,200,220,0.6)';
+            ctx.font = '11px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('拖拽鼠标旋转视角 | 电势高处=山峰 电势低处=山谷', cx, h - 10);
+        }
+
+        // ==================== 主渲染循环 ====================
+        function render() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            switch (mode) {
+                case 'fieldlines':
+                    renderFieldLines(ctx, w, h);
+                    break;
+                case 'vectors':
+                    renderVectorField(ctx, w, h);
+                    break;
+                case 'equipotential':
+                    renderEquipotential(ctx, w, h);
+                    break;
+                case 'surface3d':
+                    render3DSurface(ctx, w, h);
+                    break;
+            }
+
+            // 在所有模式下绘制电荷（3D模式有自己的电荷渲染）
+            if (mode !== 'surface3d') {
+                renderCharges(ctx);
+            }
+
+            // 如果在拖拽电荷，高亮显示
+            if (draggedCharge !== null && charges[draggedCharge]) {
+                const c = charges[draggedCharge];
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 3]);
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, CHARGE_RADIUS + 5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // 更新实时数据面板
+            updateDataPanel();
+
+            time += 0.016;
+            animFrameId = requestAnimationFrame(render);
+        }
+
+        // ==================== 实时数据面板更新 ====================
+        function updateDataPanel() {
+            if (charges.length === 0) {
+                dataDisplay.innerHTML =
+                    '<span style="color:#888;">点击画布放置电荷开始实验<br>左键=正电荷 | 右键=负电荷</span>';
+                return;
+            }
+
+            let html = '';
+            for (let i = 0; i < charges.length; i++) {
+                const c = charges[i];
+                const type = c.q > 0 ? '正电荷' : '负电荷';
+                const color = c.q > 0 ? '#ff6644' : '#5599ff';
+                html +=
+                    `<div style="color:${color};margin-bottom:4px;">
+                <b>${c.name || ('电荷' + (i+1))}</b> ${type} q=${c.q.toFixed(1)}<br>
+                <span style="color:#888;font-size:10px;">位置 (${c.x.toFixed(0)}, ${c.y.toFixed(0)})</span></div>`;
+            }
+
+            // 如果鼠标在画布上，显示鼠标位置处的电场信息
+            if (mouseX > 0 && mouseY > 0 && mouseX < canvas.width && mouseY < canvas.height) {
+                const { ex, ey, mag } = electricField(mouseX, mouseY);
+                const v = electricPotential(mouseX, mouseY);
+                const angle = Math.atan2(ey, ex) * 180 / Math.PI;
+                html += `<hr style="border-color:#2a2a45;margin:8px 0;">`;
+                html +=
+                    `<span style="color:#aaa;font-size:10px;">光标位置电场:</span><br>
+                <span style="font-size:11px;">E = ${(mag*1000).toFixed(1)} mV/m<br>
+                方向 = ${angle.toFixed(1)}°<br>
+                V = ${(v/1000).toFixed(2)} kV</span>`;
+            }
+
+            dataDisplay.innerHTML = html;
+        }
+
+        // ==================== 画布自适应 ====================
+        function resizeCanvas() {
+            const rect = wrapper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            // 存储逻辑尺寸
+            canvas.logicalWidth = rect.width;
+            canvas.logicalHeight = rect.height;
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        // ==================== 右键菜单状态 ====================
+        let contextMenuChargeIndex = -1; // 当前菜单关联的电荷索引
+        let contextMenuVisible = false;
+
+        function hideContextMenu() {
+            contextMenuVisible = false;
+            contextMenuChargeIndex = -1;
+            document.getElementById('contextMenu').classList.remove('visible');
+        }
+
+        function showContextMenu(e, chargeIndex) {
+            const menu = document.getElementById('contextMenu');
+            const c = charges[chargeIndex];
+            contextMenuChargeIndex = chargeIndex;
+            contextMenuVisible = true;
+
+            // 更新菜单标题
+            document.getElementById('menuChargeName').textContent = c.name || ('电荷' + (chargeIndex + 1));
+
+            // 定位菜单（防止超出屏幕）
+            const menuW = 180;
+            const menuH = 175;
+            let mx = e.clientX + 5;
+            let my = e.clientY + 5;
+            if (mx + menuW > window.innerWidth) mx = e.clientX - menuW - 5;
+            if (my + menuH > window.innerHeight) my = e.clientY - menuH - 5;
+
+            menu.style.left = mx + 'px';
+            menu.style.top = my + 'px';
+            menu.classList.add('visible');
+        }
+
+        // ==================== 鼠标事件处理 ====================
+        canvas.addEventListener('mousedown', (e) => {
+            // 先隐藏已打开的菜单
+            if (contextMenuVisible) {
+                hideContextMenu();
+            }
+
+            const pos = getCanvasPos(e);
+            const x = pos.x;
+            const y = pos.y;
+
+            // 3D模式：拖拽旋转
+            if (mode === 'surface3d') {
+                // 检查是否点击到了电荷
+                for (let i = charges.length - 1; i >= 0; i--) {
+                    const c = charges[i];
+                    const dx = x - c.x;
+                    const dy = y - c.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < CHARGE_RADIUS + 5) {
+                        // 左键拖拽，右键弹出菜单
+                        if (e.button === 2) {
+                            e.preventDefault();
+                            showContextMenu(e, i);
+                            return;
+                        }
+                        draggedCharge = i;
+                        dragOffsetX = c.x - x;
+                        dragOffsetY = c.y - y;
+                        isDragging = true;
+                        wrapper.classList.add('dragging');
+                        return;
+                    }
+                }
+                // 右键在空白区域 → 放置负电荷
+                if (e.button === 2) {
+                    e.preventDefault();
+                    charges.push(new Charge(x, y, newChargeQ < 0 ? newChargeQ : -Math.abs(newChargeQ)));
+                    return;
+                }
+                // 否则为3D旋转
+                is3DRotating = true;
+                lastMouse3DX = e.clientX;
+                lastMouse3DY = e.clientY;
+                wrapper.classList.add('rotate-mode');
+                return;
+            }
+
+            // 检查是否点击了已有电荷
+            for (let i = charges.length - 1; i >= 0; i--) {
+                const c = charges[i];
+                const dx = x - c.x;
+                const dy = y - c.y;
+                if (Math.sqrt(dx * dx + dy * dy) < CHARGE_RADIUS + 5) {
+                    // 右键 → 弹出上下文菜单
+                    if (e.button === 2) {
+                        e.preventDefault();
+                        showContextMenu(e, i);
+                        return;
+                    }
+                    // 左键 → 拖拽移动
+                    draggedCharge = i;
+                    dragOffsetX = c.x - x;
+                    dragOffsetY = c.y - y;
+                    isDragging = true;
+                    wrapper.classList.add('dragging');
+                    return;
+                }
+            }
+
+            // 未点击到电荷 → 放置新电荷
+            if (e.button === 0) {
+                // 左键：正电荷
+                charges.push(new Charge(x, y, newChargeQ > 0 ? newChargeQ : Math.abs(newChargeQ)));
+            } else if (e.button === 2) {
+                // 右键：负电荷
+                e.preventDefault();
+                charges.push(new Charge(x, y, newChargeQ < 0 ? newChargeQ : -Math.abs(newChargeQ)));
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getCanvasPos(e);
+            mouseX = pos.x;
+            mouseY = pos.y;
+
+            if (is3DRotating) {
+                const dx = e.clientX - lastMouse3DX;
+                const dy = e.clientY - lastMouse3DY;
+                azimuth += dx * 0.01;
+                elevation += dy * 0.01;
+                // 限制垂直旋转范围
+                elevation = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, elevation));
+                lastMouse3DX = e.clientX;
+                lastMouse3DY = e.clientY;
+                return;
+            }
+
+            if (isDragging && draggedCharge !== null && charges[draggedCharge]) {
+                charges[draggedCharge].x = pos.x + dragOffsetX;
+                charges[draggedCharge].y = pos.y + dragOffsetY;
+                // 限制在画布内
+                charges[draggedCharge].x = Math.max(CHARGE_RADIUS,
+                    Math.min(canvas.logicalWidth - CHARGE_RADIUS, charges[draggedCharge].x));
+                charges[draggedCharge].y = Math.max(CHARGE_RADIUS,
+                    Math.min(canvas.logicalHeight - CHARGE_RADIUS, charges[draggedCharge].y));
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                draggedCharge = null;
+                wrapper.classList.remove('dragging');
+            }
+            if (is3DRotating) {
+                is3DRotating = false;
+                wrapper.classList.remove('rotate-mode');
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (isDragging) {
+                isDragging = false;
+                draggedCharge = null;
+                wrapper.classList.remove('dragging');
+            }
+            if (is3DRotating) {
+                is3DRotating = false;
+                wrapper.classList.remove('rotate-mode');
+            }
+            mouseX = -1;
+            mouseY = -1;
+        });
+
+        // 阻止右键菜单
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        // 滚轮缩放（3D模式）
+        canvas.addEventListener('wheel', (e) => {
+            if (mode === 'surface3d') {
+                e.preventDefault();
+                surfaceGridRes = Math.max(20, Math.min(80, surfaceGridRes + (e.deltaY > 0 ? -5 : 5)));
+            }
+        }, { passive: false });
+
+        // ==================== 右键菜单、对话框、提示关闭按钮 事件 ====================
+        const contextMenu = document.getElementById('contextMenu');
+        const renameDialog = document.getElementById('renameDialog');
+        const renameInput = document.getElementById('renameInput');
+        const editChargeDialog = document.getElementById('editChargeDialog');
+        const editChargeSlider = document.getElementById('editChargeSlider');
+        const editChargeMagVal = document.getElementById('editChargeMagVal');
+        const editChargePreview = document.getElementById('editChargePreview');
+        const editPolarityPos = document.getElementById('editPolarityPos');
+        const editPolarityNeg = document.getElementById('editPolarityNeg');
+        const hintClose = document.getElementById('hintClose');
+
+        // 当前编辑对话框中的临时电性（true=正，false=负）
+        let editTempPolarity = true;
+
+        function hideAllDialogs() {
+            renameDialog.classList.remove('visible');
+            renameDialog._chargeIndex = -1;
+            editChargeDialog.classList.remove('visible');
+            editChargeDialog._chargeIndex = -1;
+        }
+
+        // 菜单项点击
+        contextMenu.addEventListener('click', (e) => {
+            const item = e.target.closest('.menu-item');
+            if (!item) return;
+            const action = item.dataset.action;
+
+            if (action === 'editCharge') {
+                // 打开电荷编辑对话框（电量+电性）
+                hideContextMenu();
+                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
+                    const c = charges[contextMenuChargeIndex];
+                    const absQ = Math.abs(c.q);
+                    editTempPolarity = c.q > 0;
+                    editChargeSlider.value = absQ;
+                    editChargeMagVal.textContent = absQ.toFixed(1);
+                    updatePolarityButtons();
+                    updateEditPreview(absQ);
+                    document.getElementById('editChargeLabel').textContent =
+                        '编辑：' + (c.name || ('电荷' + (contextMenuChargeIndex + 1)));
+                    editChargeDialog.classList.add('visible');
+                    editChargeDialog._chargeIndex = contextMenuChargeIndex;
+                    editChargeDialog.style.left = (window.innerWidth / 2 - 140) + 'px';
+                    editChargeDialog.style.top = (window.innerHeight / 2 - 100) + 'px';
+                }
+            } else if (action === 'rename') {
+                hideContextMenu();
+                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
+                    const c = charges[contextMenuChargeIndex];
+                    renameInput.value = c.name || '';
+                    renameDialog.classList.add('visible');
+                    renameDialog._chargeIndex = contextMenuChargeIndex;
+                    renameDialog.style.left = (window.innerWidth / 2 - 130) + 'px';
+                    renameDialog.style.top = (window.innerHeight / 2 - 50) + 'px';
+                    setTimeout(() => renameInput.focus(), 100);
+                }
+            } else if (action === 'delete') {
+                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
+                    charges.splice(contextMenuChargeIndex, 1);
+                }
+                hideContextMenu();
+            }
+        });
+
+        // ---- 电荷编辑对话框逻辑 ----
+        function updatePolarityButtons() {
+            if (editTempPolarity) {
+                editPolarityPos.style.background = '#ff5530';
+                editPolarityPos.style.color = '#fff';
+                editPolarityPos.style.borderColor = '#ff5530';
+                editPolarityPos.style.boxShadow = '0 0 12px rgba(255,85,48,0.4)';
+                editPolarityNeg.style.background = '#181a28';
+                editPolarityNeg.style.color = '#6699ff';
+                editPolarityNeg.style.borderColor = '#335588';
+                editPolarityNeg.style.boxShadow = 'none';
+            } else {
+                editPolarityNeg.style.background = '#3366cc';
+                editPolarityNeg.style.color = '#fff';
+                editPolarityNeg.style.borderColor = '#3366cc';
+                editPolarityNeg.style.boxShadow = '0 0 12px rgba(51,102,204,0.4)';
+                editPolarityPos.style.background = '#2a1a18';
+                editPolarityPos.style.color = '#ff7755';
+                editPolarityPos.style.borderColor = '#ff5530';
+                editPolarityPos.style.boxShadow = 'none';
+            }
+        }
+
+        function updateEditPreview(absQ) {
+            const sign = editTempPolarity ? '+' : '−';
+            const type = editTempPolarity ? '正电荷' : '负电荷';
+            editChargePreview.textContent = '当前：' + sign + absQ.toFixed(1) + '（' + type + '）';
+        }
+
+        editPolarityPos.addEventListener('click', () => {
+            editTempPolarity = true;
+            updatePolarityButtons();
+            updateEditPreview(parseFloat(editChargeSlider.value));
+        });
+        editPolarityNeg.addEventListener('click', () => {
+            editTempPolarity = false;
+            updatePolarityButtons();
+            updateEditPreview(parseFloat(editChargeSlider.value));
+        });
+
+        editChargeSlider.addEventListener('input', () => {
+            const val = parseFloat(editChargeSlider.value);
+            editChargeMagVal.textContent = val.toFixed(1);
+            updateEditPreview(val);
+        });
+
+        // 电荷编辑对话框：确定
+        document.getElementById('editChargeConfirm').addEventListener('click', () => {
+            const idx = editChargeDialog._chargeIndex;
+            const absQ = parseFloat(editChargeSlider.value);
+            if (idx !== undefined && idx >= 0 && charges[idx] && absQ > 0) {
+                charges[idx].q = editTempPolarity ? absQ : -absQ;
+            }
+            editChargeDialog.classList.remove('visible');
+            editChargeDialog._chargeIndex = -1;
+        });
+
+        // 电荷编辑对话框：取消
+        document.getElementById('editChargeCancel').addEventListener('click', () => {
+            editChargeDialog.classList.remove('visible');
+            editChargeDialog._chargeIndex = -1;
+        });
+
+        // ---- 重命名对话框逻辑 ----
+        document.getElementById('renameConfirm').addEventListener('click', () => {
+            const idx = renameDialog._chargeIndex;
+            const newName = renameInput.value.trim();
+            if (idx !== undefined && idx >= 0 && charges[idx] && newName) {
+                charges[idx].name = newName;
+            }
+            renameDialog.classList.remove('visible');
+            renameDialog._chargeIndex = -1;
+        });
+
+        document.getElementById('renameCancel').addEventListener('click', () => {
+            renameDialog.classList.remove('visible');
+            renameDialog._chargeIndex = -1;
+        });
+
+        renameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('renameConfirm').click();
+            } else if (e.key === 'Escape') {
+                document.getElementById('renameCancel').click();
+            }
+        });
+
+        // ---- 操作提示关闭按钮 ----
+        hintClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const hint = document.getElementById('hintOverlay');
+            hint.classList.add('hint-fade');
+            // 10秒后自动恢复提示
+            setTimeout(() => {
+                hint.classList.remove('hint-fade');
+            }, 30000);
+        });
+
+        // 双击画布空白区域可重新显示提示
+        canvas.addEventListener('dblclick', (e) => {
+            const pos = getCanvasPos(e);
+            // 检查是否双击在电荷上
+            for (let i = charges.length - 1; i >= 0; i--) {
+                const c = charges[i];
+                const dx = pos.x - c.x;
+                const dy = pos.y - c.y;
+                if (Math.sqrt(dx * dx + dy * dy) < CHARGE_RADIUS + 5) {
+                    charges.splice(i, 1);
+                    return;
+                }
+            }
+            // 双击空白处 → 重新显示提示
+            const hint = document.getElementById('hintOverlay');
+            hint.classList.remove('hint-fade');
+        });
+
+        // ---- 点击页面其他地方关闭菜单和对话框 ----
+        document.addEventListener('mousedown', (e) => {
+            if (contextMenuVisible && !contextMenu.contains(e.target)) {
+                hideContextMenu();
+            }
+            if (renameDialog.classList.contains('visible') &&
+                !renameDialog.contains(e.target) &&
+                e.target !== contextMenu) {
+                renameDialog.classList.remove('visible');
+                renameDialog._chargeIndex = -1;
+            }
+            if (editChargeDialog.classList.contains('visible') &&
+                !editChargeDialog.contains(e.target) &&
+                e.target !== contextMenu) {
+                editChargeDialog.classList.remove('visible');
+                editChargeDialog._chargeIndex = -1;
+            }
+        });
+
+        // ---- ESC 关闭所有弹窗 ----
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (contextMenuVisible) hideContextMenu();
+                if (renameDialog.classList.contains('visible')) {
+                    renameDialog.classList.remove('visible');
+                    renameDialog._chargeIndex = -1;
+                }
+                if (editChargeDialog.classList.contains('visible')) {
+                    editChargeDialog.classList.remove('visible');
+                    editChargeDialog._chargeIndex = -1;
+                }
+            }
+        });
+
+        // ==================== 控制面板事件 ====================
+        // 模式切换
+        document.getElementById('modeButtons').addEventListener('click', (e) => {
+            const btn = e.target.closest('.mode-btn');
+            if (!btn) return;
+            const newMode = btn.dataset.mode;
+            if (newMode === mode) return;
+
+            mode = newMode;
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // 更新模式指示器
+            const modeNames = {
+                'fieldlines': '电场线模式',
+                'vectors': '矢量场模式',
+                'equipotential': '等势线模式',
+                'surface3d': '3D 势能面模式'
+            };
+            modeIndicator.textContent = modeNames[mode] || '';
+
+            // 矢量缩放滑块仅在矢量模式下显示
+            vectorScaleGroup.style.display = (mode === 'vectors') ? 'flex' : 'none';
+
+            wrapper.classList.remove('rotate-mode');
+            is3DRotating = false;
+        });
+
+        // 预设场景
+        document.getElementById('presetButtons').addEventListener('click', (e) => {
+            const btn = e.target.closest('.preset-btn');
+            if (!btn) return;
+            const preset = btn.dataset.preset;
+            const cx = (canvas.logicalWidth || 900) / 2;
+            const cy = (canvas.logicalHeight || 600) / 2;
+
+            charges = [];
+            switch (preset) {
+                case 'dipole':
+                    charges.push(new Charge(cx - 120, cy, 5, '正电荷A'));
+                    charges.push(new Charge(cx + 120, cy, -5, '负电荷B'));
+                    break;
+                case 'same_positive':
+                    charges.push(new Charge(cx - 100, cy, 5, '正电荷A'));
+                    charges.push(new Charge(cx + 100, cy, 5, '正电荷B'));
+                    break;
+                case 'same_negative':
+                    charges.push(new Charge(cx - 100, cy, -5, '负电荷A'));
+                    charges.push(new Charge(cx + 100, cy, -5, '负电荷B'));
+                    break;
+                case 'tripole':
+                    charges.push(new Charge(cx - 140, cy, 6, '正电荷A'));
+                    charges.push(new Charge(cx + 140, cy, -6, '负电荷B'));
+                    charges.push(new Charge(cx, cy - 120, 4, '正电荷C'));
+                    break;
+                case 'quadrupole':
+                    charges.push(new Charge(cx - 100, cy - 80, 5, '正电荷A'));
+                    charges.push(new Charge(cx + 100, cy - 80, -5, '负电荷B'));
+                    charges.push(new Charge(cx + 100, cy + 80, 5, '正电荷C'));
+                    charges.push(new Charge(cx - 100, cy + 80, -5, '负电荷D'));
+                    break;
+                case 'single_positive':
+                    charges.push(new Charge(cx, cy, 8, '正电荷'));
+                    break;
+                case 'single_negative':
+                    charges.push(new Charge(cx, cy, -8, '负电荷'));
+                    break;
+            }
+        });
+
+        // 电量滑块
+        chargeSlider.addEventListener('input', () => {
+            newChargeQ = parseFloat(chargeSlider.value);
+            document.getElementById('chargeVal').textContent =
+                (newChargeQ > 0 ? '+' : '') + newChargeQ.toFixed(1);
+        });
+
+        // 密度滑块
+        densitySlider.addEventListener('input', () => {
+            linesPerUnit = parseInt(densitySlider.value);
+            document.getElementById('densityVal').textContent = linesPerUnit;
+        });
+
+        // 矢量缩放滑块
+        vectorScaleSlider.addEventListener('input', () => {
+            vectorScale = parseFloat(vectorScaleSlider.value);
+            document.getElementById('vectorScaleVal').textContent = vectorScale.toFixed(1);
+        });
+
+        // 清除按钮
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            charges = [];
+            surfaceGridRes = 50;
+        });
+
+        // 重置按钮
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            const cx = (canvas.logicalWidth || 900) / 2;
+            const cy = (canvas.logicalHeight || 600) / 2;
+            charges = [
+                new Charge(cx - 120, cy, 5, '正电荷A'),
+                new Charge(cx + 120, cy, -5, '负电荷B')
+            ];
+            newChargeQ = 5;
+            linesPerUnit = 8;
+            vectorScale = 1;
+            surfaceGridRes = 50;
+            azimuth = 35 * Math.PI / 180;
+            elevation = 35 * Math.PI / 180;
+            chargeSlider.value = 5;
+            densitySlider.value = 8;
+            vectorScaleSlider.value = 1;
+            document.getElementById('chargeVal').textContent = '+5.0';
+            document.getElementById('densityVal').textContent = '8';
+            document.getElementById('vectorScaleVal').textContent = '1.0';
+            mode = 'fieldlines';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            const fieldBtn = document.querySelector('[data-mode="fieldlines"]');
+            if (fieldBtn) fieldBtn.classList.add('active');
+            modeIndicator.textContent = '电场线模式';
+            vectorScaleGroup.style.display = 'none';
+            // 重新显示操作提示
+            document.getElementById('hintOverlay').classList.remove('hint-fade');
+        });
+
+        // ==================== 键盘快捷键 ====================
+        window.addEventListener('keydown', (e) => {
+            switch (e.key.toLowerCase()) {
+                case '1':
+                    mode = 'fieldlines';
+                    break;
+                case '2':
+                    mode = 'vectors';
+                    break;
+                case '3':
+                    mode = 'equipotential';
+                    break;
+                case '4':
+                    mode = 'surface3d';
+                    break;
+                case 'c':
+                    charges = [];
+                    surfaceGridRes = 50;
+                    break;
+                case 'r':
+                    document.getElementById('resetBtn').click();
+                    break;
+                default:
+                    return;
+            }
+            // 更新UI
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector(`[data-mode="${mode}"]`);
+            if (btn) btn.classList.add('active');
+            const modeNames = {
+                'fieldlines': '电场线模式',
+                'vectors': '矢量场模式',
+                'equipotential': '等势线模式',
+                'surface3d': '3D 势能面模式'
+            };
+            modeIndicator.textContent = modeNames[mode] || '';
+            vectorScaleGroup.style.display = (mode === 'vectors') ? 'flex' : 'none';
+        });
+
+        // ==================== 窗口大小响应 ====================
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==================== 初始化 ====================
+        function init() {
+            resizeCanvas();
+            const cx = (canvas.logicalWidth || 900) / 2;
+            const cy = (canvas.logicalHeight || 600) / 2;
+            // 默认场景：电偶极子
+            charges = [
+                new Charge(cx - 120, cy, 5, '正电荷A'),
+                new Charge(cx + 120, cy, -5, '负电荷B')
+            ];
+            vectorScaleGroup.style.display = 'none';
+            render();
+        }
+
+        init();
+
+        console.log('⚡ 电场可视化仿真已就绪');
+        console.log('  模式切换: 按键 1/2/3/4');
+        console.log('  清除电荷: 按键 C');
+        console.log('  重置场景: 按键 R');
+        console.log('  支持四种可视化模式：');
+        console.log('    1. 电场线 - 基于库仑定律的电场线追踪');
+        console.log('    2. 矢量场 - 显示空间各点的电场矢量');
+        console.log('    3. 等势线 - Marching Squares算法绘制等势面');
+        console.log('    4. 3D势能面 - 电势的三维曲面可视化');
+    </script>
+</body>
+</html>
