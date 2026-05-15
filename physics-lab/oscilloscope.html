@@ -2179,9 +2179,9 @@
         let samples = 4000;  // 足够多的采样点保证平滑
         let pointsCH1 = [], pointsCH2 = [];
         
-        // 固定绘制范围为 -7 到 7（屏幕可见范围是 -5 到 5），这样波形会超出框而不截断
-        let gridMin = -7;
-        let gridMax = 7;
+        // 波形生成范围 ±12 格（可见±5格 + horizPos±5格 + 2格余量），左右移动不会截断
+        let gridMin = -12;
+        let gridMax = 12;
         
         // CH2 频率：试验信号接入时为500Hz，否则由时基旋钮推算
         let ch2Freq = (secDivValue === "XY") ? 1 : (isTestSignalConnected ? secDivValue * 500 : (0.01 / secDivValue));
