@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>等厚干涉虚拟仿真实验</title>
+<style>
+/* ========== 全局样式与学术主题 ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+  background: #f0f2f5;
+  color: #2c3e50;
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+}
+/* 顶部标题栏 */
+.header {
+  width: 100%; max-width: 1200px;
+  background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  color: #fff; padding: 16px 28px; border-radius: 0 0 12px 12px;
+  text-align: center; box-shadow: 0 4px 20px rgba(26,35,126,0.3);
+}
+.header h1 { font-size: 1.6rem; font-weight: 600; letter-spacing: 2px; }
+.header .subtitle { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+
+/* 模式切换标签 */
+.tabs {
+  display: flex; gap: 0; margin: 20px auto 0; max-width: 1200px; width: 100%;
+  padding: 0 12px;
+}
+.tab-btn {
+  flex: 1; padding: 12px 24px; font-size: 1rem; font-weight: 600;
+  border: 2px solid #c5cae9; background: #fff; color: #3949ab;
+  cursor: pointer; transition: all 0.25s;
+  font-family: inherit; letter-spacing: 1px;
+}
+.tab-btn:first-child { border-radius: 8px 0 0 8px; }
+.tab-btn:last-child { border-radius: 0 8px 8px 0; }
+.tab-btn.active { background: #3949ab; color: #fff; border-color: #3949ab; }
+.tab-btn:hover:not(.active) { background: #e8eaf6; }
+
+/* 主布局 */
+.main-container {
+  display: flex; gap: 16px; max-width: 1200px; width: 100%;
+  padding: 16px 12px; flex-wrap: wrap;
+}
+/* 左侧：仿真区 */
+.sim-panel {
+  flex: 1 1 580px; min-width: 500px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.canvas-card {
+  background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 10px; position: relative;
+}
+.canvas-card .card-label {
+  font-size: 0.8rem; color: #5c6bc0; font-weight: 600;
+  margin-bottom: 4px; padding-left: 4px;
+}
+canvas { display: block; margin: 0 auto; border-radius: 4px; cursor: crosshair; }
+
+/* 右侧：控制与数据区 */
+.ctrl-panel {
+  flex: 0 0 360px; display: flex; flex-direction: column; gap: 10px;
+  max-height: 820px; overflow-y: auto;
+}
+.ctrl-card {
+  background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 14px 16px;
+}
+.ctrl-card h3 {
+  font-size: 0.95rem; color: #1a237e; border-bottom: 2px solid #e8eaf6;
+  padding-bottom: 8px; margin-bottom: 10px; font-weight: 600;
+}
+/* 参数行 */
+.param-row { display: flex; align-items: center; margin: 8px 0; gap: 8px; }
+.param-row label { flex: 0 0 70px; font-size: 0.82rem; color: #555; font-weight: 500; }
+.param-row input[type=range] { flex: 1; accent-color: #3949ab; }
+.param-row .val { flex: 0 0 65px; font-size: 0.78rem; color: #1a237e; font-weight: 600; text-align: right; }
+
+/* 按钮 */
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.btn {
+  padding: 8px 16px; border: none; border-radius: 6px; font-size: 0.85rem;
+  font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.btn-primary { background: #3949ab; color: #fff; }
+.btn-primary:hover { background: #283593; }
+.btn-outline { background: #fff; color: #3949ab; border: 1.5px solid #3949ab; }
+.btn-outline:hover { background: #e8eaf6; }
+.btn-warn { background: #e53935; color: #fff; }
+.btn-warn:hover { background: #c62828; }
+.btn-success { background: #2e7d32; color: #fff; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* 数据表格 */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 6px; }
+.data-table th { background: #e8eaf6; color: #1a237e; padding: 6px 4px; font-weight: 600; text-align: center; }
+.data-table td { padding: 5px 4px; text-align: center; border-bottom: 1px solid #eee; }
+.data-table tr:hover td { background: #f5f5ff; }
+
+/* 读数显示 */
+.readout {
+  background: #1a237e; color: #ffd54f; font-family: "Courier New", monospace;
+  font-size: 1.4rem; font-weight: bold; text-align: center; padding: 10px;
+  border-radius: 6px; letter-spacing: 2px; margin: 6px 0;
+}
+.readout-label { font-size: 0.7rem; color: #90caf9; text-transform: uppercase; }
+
+/* 结果高亮 */
+.result-box {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  border-radius: 8px; padding: 12px; margin-top: 8px;
+  font-size: 0.85rem; line-height: 1.6;
+}
+.result-box .final { font-size: 1.1rem; font-weight: 700; color: #1b5e20; }
+
+/* 操作指引 */
+.guide-steps { font-size: 0.8rem; line-height: 1.7; padding-left: 18px; color: #555; }
+.guide-steps li { margin: 3px 0; }
+
+/* 提示/公式卡 */
+.formula-note {
+  font-size: 0.78rem; background: #fff8e1; border-left: 3px solid #ff8f00;
+  padding: 8px 12px; border-radius: 0 6px 6px 0; margin: 6px 0;
+  font-family: "Times New Roman", serif;
+}
+
+/* 响应式 */
+@media (max-width: 960px) {
+  .main-container { flex-direction: column; }
+  .sim-panel { min-width: auto; }
+  .ctrl-panel { flex: 1 1 auto; max-height: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>等厚干涉虚拟仿真实验</h1>
+  <div class="subtitle">劈尖干涉 &amp; 牛顿环干涉 | 钠黄光 λ = 589.3 nm</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tabWedge" onclick="switchMode('wedge')">🔬 劈尖干涉实验</button>
+  <button class="tab-btn" id="tabNewton" onclick="switchMode('newton')">🔬 牛顿环干涉实验</button>
+</div>
+
+<div class="main-container">
+  <!-- 左侧仿真区 -->
+  <div class="sim-panel">
+    <!-- 显微镜视图 -->
+    <div class="canvas-card">
+      <div class="card-label">显微镜视场（干涉图样）— 拖动鼠标移动测量光标</div>
+      <canvas id="canvasMicroscope" width="560" height="400"></canvas>
+    </div>
+    <!-- 几何示意图 -->
+    <div class="canvas-card">
+      <div class="card-label">几何结构示意图</div>
+      <canvas id="canvasGeometry" width="560" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- 右侧控制与数据区 -->
+  <div class="ctrl-panel" id="ctrlPanel">
+    <!-- 动态内容由JS填充 -->
+  </div>
+</div>
+
+<script>
+// ===================================================================
+// 等厚干涉虚拟仿真实验 — 完整物理引擎与交互测量系统
+// 基于大学物理实验教材《实验22 等厚干涉》内容开发
+// ===================================================================
+
+// ==================== 物理常量 ====================
+const LAMBDA_NM = 589.3;               // 钠黄光波长 (nm)
+const LAMBDA_MM = LAMBDA_NM * 1e-6;    // 波长 (mm)
+const LAMBDA_M  = LAMBDA_NM * 1e-9;    // 波长 (m)
+
+// ==================== 全局状态 ====================
+let currentMode = 'wedge';  // 'wedge' | 'newton'
+
+// --- 劈尖状态 ---
+const wedgeState = {
+  length: 41.655,         // 劈尖总长度 L (mm)
+  filmThickness: 0.050,   // 待测薄膜厚度 e (mm)，默认值产生清晰的干涉条纹
+  cursorPos: 6.0,        // 当前测量光标位置 (mm)，初始置于视场中央
+  readings: [],           // [{k, pos}] 已记录的暗纹位置
+  scanStart: 1.0,         // 视场起始位置 (mm)，模拟显微镜视场
+};
+
+// --- 牛顿环状态 ---
+const newtonState = {
+  curvatureR: 0.90,       // 平凸透镜曲率半径 R (m)
+  dirtA: 0.0001,          // 接触点脏物厚度 a (mm)
+  cursorLeft: -2.6,       // 左侧测量光标 (mm)
+  cursorRight: 2.6,       // 右侧测量光标 (mm)
+  readings: [],           // [{ring, leftPos, rightPos, diameter, diamSq}]
+  cursorRing: 5,          // 当前正在测量的环序数
+};
+
+// ==================== DOM 引用缓存 ====================
+const canvasMicro = document.getElementById('canvasMicroscope');
+const ctxMicro = canvasMicro.getContext('2d');
+const canvasGeo = document.getElementById('canvasGeometry');
+const ctxGeo = canvasGeo.getContext('2d');
+const ctrlPanel = document.getElementById('ctrlPanel');
+
+// 鼠标交互状态
+let isDragging = false;
+let dragTarget = null; // 'wedgeCursor' | 'newtonLeft' | 'newtonRight'
+
+// ==================== 物理计算函数 ====================
+/**
+ * 劈尖干涉：计算位置 x 处的空气膜厚度
+ * 公式：e(x) = (x / L) * e_max
+ * 其中 x 为距接触点的距离，e_max = wedgeState.filmThickness
+ */
+function wedgeThickness(x) {
+  if (x < 0) x = 0;
+  if (x > wedgeState.length) x = wedgeState.length;
+  return (x / wedgeState.length) * wedgeState.filmThickness;
+}
+
+/**
+ * 劈尖干涉：计算光程差
+ * 公式：δ = 2e + λ/2（半波损失附加光程差）
+ * 教材公式(1)(2)
+ */
+function wedgeOpticalPathDiff(x) {
+  return 2 * wedgeThickness(x) + LAMBDA_MM / 2;
+}
+
+/**
+ * 劈尖干涉：计算干涉强度（归一化 0~1）
+ * 公式：I ∝ cos²(πδ/λ)
+ * 暗纹条件：δ = (2k+1)λ/2 → cos² = 0
+ * 明纹条件：δ = kλ → cos² = 1
+ */
+function wedgeIntensity(x) {
+  const delta = wedgeOpticalPathDiff(x);
+  const phase = Math.PI * delta / LAMBDA_MM;
+  return Math.cos(phase) * Math.cos(phase);
+}
+
+/**
+ * 牛顿环：计算半径 r 处的空气膜厚度
+ * 公式：e(r) = r²/(2R) + a
+ * 教材公式(5)及脏物修正
+ * 注意单位转换：R 以 m 计，r 以 mm 计
+ */
+function newtonThickness(r_mm) {
+  const R_mm = newtonState.curvatureR * 1000; // m → mm
+  return (r_mm * r_mm) / (2 * R_mm) + newtonState.dirtA;
+}
+
+/**
+ * 牛顿环：计算光程差
+ * 公式：δ = 2(e + a) + λ/2
+ * 教材公式(6)(7)
+ */
+function newtonOpticalPathDiff(r_mm) {
+  return 2 * newtonThickness(r_mm) + LAMBDA_MM / 2;
+}
+
+/**
+ * 牛顿环：干涉强度（归一化 0~1）
+ */
+function newtonIntensity(r_mm) {
+  const delta = newtonOpticalPathDiff(r_mm);
+  const phase = Math.PI * delta / LAMBDA_MM;
+  return Math.cos(phase) * Math.cos(phase);
+}
+
+/**
+ * 劈尖：给定暗纹级数 k，计算对应的位置 x
+ * 暗纹条件：2e + λ/2 = (2k+1)λ/2 → 2e = kλ
+ * e(x) = (x/L)*e_max → x = kλL / (2*e_max)
+ */
+function wedgeDarkFringePos(k) {
+  return (k * LAMBDA_MM * wedgeState.length) / (2 * wedgeState.filmThickness);
+}
+
+/**
+ * 牛顿环：给定暗环级数 k，计算对应的半径 r (mm)
+ * 暗纹条件（考虑脏物）：r_k² = kλR - 2aR
+ * 教材公式(9)
+ */
+function newtonDarkRingRadius(k) {
+  const R_mm = newtonState.curvatureR * 1000;
+  const rSq = k * LAMBDA_MM * R_mm - 2 * newtonState.dirtA * R_mm;
+  return rSq > 0 ? Math.sqrt(rSq) : 0;
+}
+
+// ==================== Canvas 渲染函数 ====================
+
+/**
+ * 渲染劈尖干涉的显微镜视图
+ * 绘制竖直方向的等间距明暗条纹，模拟通过读数显微镜看到的视场
+ */
+function renderWedgeMicroscope() {
+  const w = canvasMicro.width;
+  const h = canvasMicro.height;
+  const ctx = ctxMicro;
+  ctx.clearRect(0, 0, w, h);
+
+  // 背景：模拟目镜暗场
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, w, h);
+
+  // 视场圆形遮罩（模拟显微镜圆形视场）
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, Math.min(w, h) / 2 - 10, 0, Math.PI * 2);
+  ctx.clip();
+
+  // 计算视场在实物上的映射范围
+  // canvas 水平方向映射劈尖长度方向上的 scanRange 范围（单位 mm）
+  const scanRange = 12; // 视场宽度 (mm)，模拟显微镜放大后的可见范围
+  const scanCenter = wedgeState.cursorPos;
+  const scanStart = scanCenter - scanRange / 2;
+  const scanEnd = scanCenter + scanRange / 2;
+  const pxPerMM = w / scanRange; // 每毫米对应像素数
+
+  // ---- 逐列绘制干涉条纹 ----
+  // 基于物理公式：I(x) = cos²(π·δ(x)/λ)
+  const imageData = ctx.createImageData(w, h);
+  for (let px = 0; px < w; px++) {
+    const x_mm = scanStart + (px / w) * scanRange; // 当前像素对应的实际位置
+    if (x_mm < 0 || x_mm > wedgeState.length) {
+      // 超出劈尖范围，填充暗色
+      for (let py = 0; py < h; py++) {
+        const idx = (py * w + px) * 4;
+        imageData.data[idx] = 5; imageData.data[idx + 1] = 5;
+        imageData.data[idx + 2] = 8; imageData.data[idx + 3] = 255;
+      }
+      continue;
+    }
+
+    const I = wedgeIntensity(x_mm);
+    // 钠黄光色彩映射：明纹偏暖黄，暗纹近黑
+    const r = Math.floor(20 + I * 235);   // 暗→黑，明→亮黄
+    const g = Math.floor(15 + I * 200);
+    const b = Math.floor(10 + I * 80);
+
+    for (let py = 0; py < h; py++) {
+      const idx = (py * w + px) * 4;
+      imageData.data[idx] = r;
+      imageData.data[idx + 1] = g;
+      imageData.data[idx + 2] = b;
+      imageData.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  // ---- 绘制测量光标（竖直亮线） ----
+  const cursorPx = ((wedgeState.cursorPos - scanStart) / scanRange) * w;
+  if (cursorPx >= 0 && cursorPx <= w) {
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(cursorPx, 0);
+    ctx.lineTo(cursorPx, h);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 光标中心十字标记
+    ctx.strokeStyle = '#ff1744';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cursorPx, h / 2 - 15);
+    ctx.lineTo(cursorPx, h / 2 + 15);
+    ctx.moveTo(cursorPx - 10, h / 2);
+    ctx.lineTo(cursorPx + 10, h / 2);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+
+  // ---- 绘制视场边框与刻度 ----
+  ctx.strokeStyle = '#37474f';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, Math.min(w, h) / 2 - 10, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 刻度标注
+  ctx.fillStyle = '#b0bec5';
+  ctx.font = '11px "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  const tickInterval = 1; // 每 1mm 一个刻度
+  for (let tick = Math.ceil(scanStart / tickInterval) * tickInterval; tick <= scanEnd; tick += tickInterval) {
+    const tx = ((tick - scanStart) / scanRange) * w;
+    const ty = h - 12;
+    ctx.fillText(tick.toFixed(1), tx, ty);
+  }
+}
+
+/**
+ * 渲染牛顿环干涉的显微镜视图
+ * 绘制同心明暗圆环，模拟通过读数显微镜看到的牛顿环图样
+ */
+function renderNewtonMicroscope() {
+  const w = canvasMicro.width;
+  const h = canvasMicro.height;
+  const ctx = ctxMicro;
+  ctx.clearRect(0, 0, w, h);
+
+  ctx.fillStyle = '#0a0a0f';
+  ctx.fillRect(0, 0, w, h);
+
+  // 圆形视场遮罩
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(w / 2, h / 2, Math.min(w, h) / 2 - 10, 0, Math.PI * 2);
+  ctx.clip();
+
+  // 显示比例：将实际 mm 映射到像素
+  // 显示最大半径约 3mm（对应第12环位置）
+  const maxDisplayR_mm = 3.2;
+  const pxPerMM = (Math.min(w, h) / 2 - 20) / maxDisplayR_mm;
+  const cx = w / 2;
+  const cy = h / 2;
+
+  // ---- 逐像素计算干涉强度 ----
+  // 牛顿环：e(r) = r²/(2R) + a，δ = 2e + λ/2
+  const imageData = ctx.createImageData(w, h);
+  for (let py = 0; py < h; py++) {
+    for (let px = 0; px < w; px++) {
+      const dx = (px - cx) / pxPerMM; // 距中心距离 (mm)
+      const dy = (py - cy) / pxPerMM;
+      const r_mm = Math.sqrt(dx * dx + dy * dy);
+
+      const I = newtonIntensity(r_mm);
+      const r = Math.floor(20 + I * 235);
+      const g = Math.floor(15 + I * 200);
+      const b = Math.floor(10 + I * 80);
+
+      const idx = (py * w + px) * 4;
+      imageData.data[idx] = r;
+      imageData.data[idx + 1] = g;
+      imageData.data[idx + 2] = b;
+      imageData.data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  ctx.restore();
+
+  // 视场边框
+  ctx.strokeStyle = '#37474f';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, Math.min(w, h) / 2 - 10, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // ---- 绘制水平直径测量线 ----
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([6, 8]);
+  ctx.beginPath();
+  ctx.moveTo(30, cy);
+  ctx.lineTo(w - 30, cy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ---- 绘制左/右测量光标 ----
+  const leftPx = cx + newtonState.cursorLeft * pxPerMM;
+  const rightPx = cx + newtonState.cursorRight * pxPerMM;
+
+  [leftPx, rightPx].forEach((px, idx) => {
+    if (px < 20 || px > w - 20) return;
+    const color = idx === 0 ? '#00e5ff' : '#ff9100';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px, cy - 18);
+    ctx.lineTo(px, cy + 18);
+    ctx.stroke();
+
+    // 三角标记
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(px, cy - 20);
+    ctx.lineTo(px - 6, cy - 28);
+    ctx.lineTo(px + 6, cy - 28);
+    ctx.closePath();
+    ctx.fill();
+
+    // 标签
+    ctx.fillStyle = color;
+    ctx.font = 'bold 12px "Microsoft YaHei"';
+    ctx.textAlign = 'center';
+    ctx.fillText(idx === 0 ? '左' : '右', px, cy - 32);
+  });
+
+  // 当前环序数标记
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 13px "Microsoft YaHei"';
+  ctx.textAlign = 'left';
+  ctx.fillText(`当前测量: 第 ${newtonState.cursorRing} 环`, 15, 25);
+}
+
+/**
+ * 渲染劈尖几何示意图（侧视图）
+ * 展示两片玻璃板形成的楔形空气膜
+ */
+function renderWedgeGeometry() {
+  const w = canvasGeo.width;
+  const h = canvasGeo.height;
+  const ctx = ctxGeo;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, w, h);
+
+  const margin = 50;
+  const glassW = w - 2 * margin;
+  const topY = h * 0.3;
+  const botY = h * 0.75;
+  const glassThick = 8; // 玻璃板厚度 (px)
+
+  // 上玻璃板（略微倾斜）
+  const angle = wedgeState.filmThickness / wedgeState.length; // 楔角
+  const rightDrop = angle * glassW; // 右端下降量 (mm)，按比例映射
+
+  // 实际绘制：上板从左到右略微向下倾斜，下端板水平
+  const topLeftY = topY;
+  const topRightY = topY + (wedgeState.filmThickness / wedgeState.length) * glassW * 1000;
+  // 放大显示薄膜厚度以便观察（视觉放大）
+  const visualExaggeration = 100; // 纵向放大倍数，使 μm 级厚度可见
+  const visualDrop = (wedgeState.filmThickness / wedgeState.length) * glassW * visualExaggeration;
+  const topRY = topY + visualDrop;
+  const botLY = botY;
+  const botRY = botY;
+
+  // 绘制下玻璃板
+  ctx.fillStyle = '#bbdefb';
+  ctx.strokeStyle = '#1565c0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(margin, botY, glassW, glassThick);
+  ctx.fill();
+  ctx.stroke();
+
+  // 绘制上玻璃板（倾斜）
+  ctx.fillStyle = '#bbdefb';
+  ctx.strokeStyle = '#1565c0';
+  ctx.beginPath();
+  ctx.moveTo(margin, topY);
+  ctx.lineTo(margin + glassW, topRY);
+  ctx.lineTo(margin + glassW, topRY + glassThick);
+  ctx.lineTo(margin, topY + glassThick);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 标注接触点（左端）
+  ctx.fillStyle = '#e53935';
+  ctx.beginPath();
+  ctx.arc(margin, topY, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#333';
+  ctx.font = '12px "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  ctx.fillText('接触点', margin, topY - 12);
+
+  // 标注待测薄膜（右端）
+  const filmX = margin + glassW;
+  const filmTopY = topRY;
+  const filmBotY = botY;
+  const filmH = filmBotY - filmTopY;
+  ctx.fillStyle = 'rgba(255,152,0,0.5)';
+  ctx.fillRect(filmX - 4, filmTopY, 8, filmH);
+  ctx.fillStyle = '#e65100';
+  ctx.font = 'bold 12px "Microsoft YaHei"';
+  ctx.textAlign = 'left';
+  ctx.fillText(`e = ${(wedgeState.filmThickness * 1000).toFixed(2)} μm`, filmX + 8, filmTopY + filmH / 2 + 4);
+
+  // 标注总长度 L
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.moveTo(margin, botY + glassThick + 20);
+  ctx.lineTo(margin + glassW, botY + glassThick + 20);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // 箭头
+  ctx.fillStyle = '#333';
+  ctx.font = '12px "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  ctx.fillText(`L = ${wedgeState.length.toFixed(1)} mm`, margin + glassW / 2, botY + glassThick + 38);
+
+  // 标注 λ/2 厚度差（在中间位置标注相邻条纹对应厚度差）
+  ctx.fillStyle = '#7b1fa2';
+  ctx.font = '11px "Microsoft YaHei"';
+  ctx.textAlign = 'left';
+  ctx.fillText('相邻条纹厚度差 = λ/2 ≈ 0.295 μm', margin + 10, topY - 16);
+
+  // 标题
+  ctx.fillStyle = '#1a237e';
+  ctx.font = 'bold 13px "Microsoft YaHei"';
+  ctx.textAlign = 'right';
+  ctx.fillText('劈尖侧视图（纵向放大100倍）', w - margin, h - 10);
+}
+
+/**
+ * 渲染牛顿环几何示意图（截面图）
+ * 展示平凸透镜与平面玻璃之间的空气膜
+ */
+function renderNewtonGeometry() {
+  const w = canvasGeo.width;
+  const h = canvasGeo.height;
+  const ctx = ctxGeo;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const baseY = h * 0.78; // 平面玻璃上表面位置
+  const margin = 40;
+  const lensSpan = w - 2 * margin;
+
+  // 牛顿环曲率半径 R（m），转换为像素时需要缩放
+  const R_m = newtonState.curvatureR;
+  const R_mm = R_m * 1000;
+  // 显示的半宽对应实际约 4mm
+  const halfWidth_mm = 3.5;
+  const pxPerMM = lensSpan / (2 * halfWidth_mm);
+
+  // 绘制平面玻璃板
+  ctx.fillStyle = '#bbdefb';
+  ctx.strokeStyle = '#1565c0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.rect(margin, baseY, lensSpan, 10);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillText('平面玻璃 B', margin + 8, baseY + 22);
+
+  // 绘制凸透镜曲面（圆弧）
+  // 圆方程：圆心在 (cx, baseY + R_mm * pxPerMM)，半径为 R_mm * pxPerMM
+  const circleCY = baseY + R_mm * pxPerMM;
+  const circleR = R_mm * pxPerMM;
+
+  ctx.strokeStyle = '#e53935';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  // 绘制圆弧（透镜下表面）
+  const arcStartX = cx - lensSpan / 2;
+  const arcEndX = cx + lensSpan / 2;
+  // 计算圆弧对应的角度
+  const startAngle = Math.asin((arcStartX - cx) / circleR);
+  const endAngle = Math.asin((arcEndX - cx) / circleR);
+  ctx.arc(cx, circleCY, circleR, startAngle, endAngle);
+  ctx.stroke();
+
+  // 绘制透镜上表面（简化为弧线略高于下表面）
+  ctx.strokeStyle = '#e57373';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(cx, circleCY, circleR + 3, startAngle, endAngle);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 填充透镜玻璃
+  ctx.fillStyle = 'rgba(255,205,210,0.3)';
+  ctx.beginPath();
+  ctx.arc(cx, circleCY, circleR, startAngle, endAngle, false);
+  ctx.arc(cx, circleCY, circleR + 8, endAngle, startAngle, true);
+  ctx.closePath();
+  ctx.fill();
+
+  // 标注曲率半径 R
+  ctx.strokeStyle = '#7b1fa2';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath();
+  ctx.moveTo(cx, baseY);
+  ctx.lineTo(cx, circleCY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#7b1fa2';
+  ctx.font = 'bold 11px "Microsoft YaHei"';
+  ctx.textAlign = 'left';
+  ctx.fillText(`R = ${R_m.toFixed(2)} m`, cx + 6, baseY + circleCY / 2 - baseY / 2);
+
+  // 标注曲率中心 C
+  ctx.fillStyle = '#7b1fa2';
+  ctx.beginPath();
+  ctx.arc(cx, circleCY, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillText('C (曲率中心)', cx + 14, circleCY + 4);
+
+  // 标注接触点 O
+  ctx.fillStyle = '#e53935';
+  ctx.beginPath();
+  ctx.arc(cx, baseY, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillText('O', cx + 10, baseY - 8);
+
+  // 标注某一环的 r 和 e
+  const demoR_mm = 2.0; // 演示用环半径
+  const demoPx = demoR_mm * pxPerMM;
+  const demoEX = cx + demoPx;
+  // 空气膜厚度
+  const e_mm = (demoR_mm * demoR_mm) / (2 * R_mm) + newtonState.dirtA;
+  const ePx = e_mm * pxPerMM * 600; // 纵向放大
+
+  // 标记 r
+  ctx.strokeStyle = '#ff6f00';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 3]);
+  ctx.beginPath();
+  ctx.moveTo(cx, baseY);
+  ctx.lineTo(demoEX, baseY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ff6f00';
+  ctx.font = '11px "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  ctx.fillText(`r = ${demoR_mm.toFixed(1)} mm`, cx + demoPx / 2, baseY - 10);
+
+  // 标记 e
+  ctx.fillStyle = '#e65100';
+  ctx.fillText(`e(r) ≈ ${(e_mm * 1000).toFixed(1)} nm`, demoEX + 25, baseY - 10);
+
+  // 标注透镜 A
+  ctx.fillStyle = '#c62828';
+  ctx.font = 'bold 13px "Microsoft YaHei"';
+  ctx.textAlign = 'center';
+  ctx.fillText('平凸透镜 A', cx, h * 0.1);
+
+  ctx.fillStyle = '#1a237e';
+  ctx.font = 'bold 13px "Microsoft YaHei"';
+  ctx.textAlign = 'right';
+  ctx.fillText('牛顿环截面示意图', w - margin, h - 10);
+}
+
+// ==================== 总渲染调度 ====================
+function renderAll() {
+  if (currentMode === 'wedge') {
+    renderWedgeMicroscope();
+    renderWedgeGeometry();
+  } else {
+    renderNewtonMicroscope();
+    renderNewtonGeometry();
+  }
+  updateReadout();
+}
+
+// ==================== 读数显示更新 ====================
+function updateReadout() {
+  const readoutEl = document.getElementById('readoutDisplay');
+  if (!readoutEl) return;
+
+  if (currentMode === 'wedge') {
+    readoutEl.innerHTML = `
+      <div class="readout-label">测微螺旋读数</div>
+      <div style="font-size:1.8rem;">${wedgeState.cursorPos.toFixed(3)}</div>
+      <div style="font-size:0.75rem;color:#90caf9;">mm &nbsp;|&nbsp; 最小刻度 0.01 mm</div>
+    `;
+  } else {
+    const d = Math.abs(newtonState.cursorRight - newtonState.cursorLeft);
+    readoutEl.innerHTML = `
+      <div class="readout-label">第 ${newtonState.cursorRing} 环测量</div>
+      <div style="font-size:1.2rem;">左: ${newtonState.cursorLeft.toFixed(3)} mm &nbsp; 右: ${newtonState.cursorRight.toFixed(3)} mm</div>
+      <div style="font-size:1.2rem;">直径 d<sub>${newtonState.cursorRing}</sub> = ${d.toFixed(3)} mm</div>
+    `;
+  }
+}
+
+/**
+ * 仅更新劈尖公式显示（不重建整个面板）
+ */
+function updateWedgeFormulaDisplay() {
+  const el = document.getElementById('wedgeFormula');
+  if (!el) return;
+  const spacing = (LAMBDA_MM * wedgeState.length) / (2 * wedgeState.filmThickness);
+  const totalFringes = Math.floor(2 * wedgeState.filmThickness / LAMBDA_MM);
+  el.innerHTML = `暗纹位置: x<sub>k</sub> = kλL/(2e)<br>
+    条纹间距: Δx = λL/(2e) = ${spacing.toFixed(3)} mm &nbsp;|&nbsp;
+    总条纹数 ≈ ${totalFringes} 条`;
+}
+
+/**
+ * 仅更新牛顿环公式显示（不重建整个面板）
+ */
+function updateNewtonFormulaDisplay() {
+  const el = document.getElementById('newtonFormula');
+  if (!el) return;
+  const r = newtonDarkRingRadius(newtonState.cursorRing);
+  el.innerHTML = `暗环半径: r<sub>k</sub>² = kλR − 2aR<br>
+    第${newtonState.cursorRing}环理论半径: ${r.toFixed(3)} mm`;
+}
+
+// ==================== 控制面板构建 ====================
+function buildControlPanel() {
+  if (currentMode === 'wedge') {
+    ctrlPanel.innerHTML = `
+      <!-- 测微读数 -->
+      <div class="ctrl-card">
+        <h3>📏 测微螺旋读数</h3>
+        <div class="readout" id="readoutDisplay"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline" onclick="nudgeCursor(-0.01)">◀ -0.01</button>
+          <button class="btn btn-outline" onclick="nudgeCursor(-0.10)">◀◀ -0.10</button>
+          <button class="btn btn-outline" onclick="nudgeCursor(0.10)">+0.10 ▶▶</button>
+          <button class="btn btn-outline" onclick="nudgeCursor(0.01)">+0.01 ▶</button>
+        </div>
+      </div>
+
+      <!-- 参数调节 -->
+      <div class="ctrl-card">
+        <h3>⚙️ 实验参数调节</h3>
+        <div class="param-row">
+          <label>薄膜厚度 e</label>
+          <input type="range" id="sliderFilm" min="0.001" max="0.15" step="0.0001"
+                 value="${wedgeState.filmThickness}"
+                 oninput="onFilmThicknessChange(this.value)">
+          <span class="val" id="valFilm">${(wedgeState.filmThickness * 1000).toFixed(2)} μm</span>
+        </div>
+        <div class="param-row">
+          <label>劈尖长度 L</label>
+          <input type="range" id="sliderLen" min="20" max="60" step="0.1"
+                 value="${wedgeState.length}"
+                 oninput="onWedgeLengthChange(this.value)">
+          <span class="val" id="valLen">${wedgeState.length.toFixed(1)} mm</span>
+        </div>
+        <div class="formula-note" id="wedgeFormula">
+          暗纹位置: x<sub>k</sub> = kλL/(2e)<br>
+          条纹间距: Δx = λL/(2e) = ${(LAMBDA_MM * wedgeState.length / (2 * wedgeState.filmThickness)).toFixed(3)} mm
+        </div>
+      </div>
+
+      <!-- 数据记录 -->
+      <div class="ctrl-card">
+        <h3>📝 数据记录（每隔10条暗纹）</h3>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="recordWedgeReading()">🔴 记录当前位置</button>
+          <button class="btn btn-outline" onclick="autoScanWedge()">🤖 自动扫描</button>
+          <button class="btn btn-warn" onclick="clearWedgeData()">🗑 清空数据</button>
+        </div>
+        <div style="font-size:0.75rem;color:#888;margin-top:4px;">
+          已记录: <span id="readingCount">${wedgeState.readings.length}</span> / 10 组
+        </div>
+        <table class="data-table" id="wedgeDataTable">
+          <thead><tr>
+            <th>i</th><th>条纹 K</th><th>位置 d/mm</th>
+            <th>Δd=|d<sub>i+5</sub>-d<sub>i</sub>|</th><th>e<sub>i</sub>/mm</th>
+          </tr></thead>
+          <tbody id="wedgeDataBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 计算结果 -->
+      <div class="ctrl-card" id="wedgeResultCard" style="display:none;">
+        <h3>📊 逐差法计算结果</h3>
+        <div class="result-box" id="wedgeResultBox"></div>
+      </div>
+
+      <!-- 操作指引 -->
+      <div class="ctrl-card">
+        <h3>📖 操作指引</h3>
+        <ol class="guide-steps">
+          <li>在显微镜视场中<strong>拖动鼠标</strong>移动测量光标对准暗纹</li>
+          <li>使用微调按钮或键盘←→键精确定位</li>
+          <li>对准一条暗纹后点击<strong>"记录当前位置"</strong></li>
+          <li>向右移动，<strong>每隔10条暗纹</strong>记录一次位置</li>
+          <li>记录10组数据后，系统自动用<strong>逐差法</strong>计算薄膜厚度e</li>
+          <li>调节上方参数可改变薄膜厚度观察条纹变化</li>
+        </ol>
+      </div>
+    `;
+  } else {
+    // 牛顿环模式
+    ctrlPanel.innerHTML = `
+      <!-- 测量读数 -->
+      <div class="ctrl-card">
+        <h3>📏 环直径测量</h3>
+        <div class="readout" id="readoutDisplay"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline" onclick="nudgeNewtonCursor('left', -0.01)">◀ 左-0.01</button>
+          <button class="btn btn-outline" onclick="nudgeNewtonCursor('right', -0.01)">右-0.01 ▶</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline" onclick="nudgeNewtonCursor('left', 0.01)">左+0.01 ◀</button>
+          <button class="btn btn-outline" onclick="nudgeNewtonCursor('right', 0.01)">▶ 右+0.01</button>
+        </div>
+        <div class="param-row" style="margin-top:8px;">
+          <label>当前环序</label>
+          <input type="range" id="sliderRing" min="1" max="15" step="1"
+                 value="${newtonState.cursorRing}"
+                 oninput="onRingNumberChange(this.value)">
+          <span class="val">第 <span id="valRing">${newtonState.cursorRing}</span> 环</span>
+        </div>
+      </div>
+
+      <!-- 参数调节 -->
+      <div class="ctrl-card">
+        <h3>⚙️ 实验参数调节</h3>
+        <div class="param-row">
+          <label>曲率半径 R</label>
+          <input type="range" id="sliderR" min="0.5" max="2.5" step="0.01"
+                 value="${newtonState.curvatureR}"
+                 oninput="onCurvatureRChange(this.value)">
+          <span class="val" id="valR">${newtonState.curvatureR.toFixed(2)} m</span>
+        </div>
+        <div class="param-row">
+          <label>脏物厚度 a</label>
+          <input type="range" id="sliderDirt" min="0" max="0.002" step="0.00001"
+                 value="${newtonState.dirtA}"
+                 oninput="onDirtChange(this.value)">
+          <span class="val" id="valDirt">${(newtonState.dirtA * 1000).toFixed(2)} μm</span>
+        </div>
+        <div class="formula-note" id="newtonFormula">
+          暗环半径: r<sub>k</sub>² = kλR − 2aR<br>
+          第${newtonState.cursorRing}环理论半径: ${newtonDarkRingRadius(newtonState.cursorRing).toFixed(3)} mm
+        </div>
+      </div>
+
+      <!-- 数据记录 -->
+      <div class="ctrl-card">
+        <h3>📝 数据记录（环直径测量）</h3>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="recordNewtonReading()">🔴 记录当前环数据</button>
+          <button class="btn btn-outline" onclick="autoScanNewton()">🤖 自动扫描</button>
+          <button class="btn btn-warn" onclick="clearNewtonData()">🗑 清空数据</button>
+        </div>
+        <div style="font-size:0.75rem;color:#888;margin-top:4px;">
+          已记录: <span id="readingCountN">${newtonState.readings.length}</span> 组 &nbsp;|&nbsp; m−n = 5
+        </div>
+        <table class="data-table" id="newtonDataTable">
+          <thead><tr>
+            <th>圈次</th><th>左读数/mm</th><th>右读数/mm</th>
+            <th>直径 d/mm</th><th>d²/mm²</th><th>d<sub>m</sub>²−d<sub>n</sub>²</th>
+          </tr></thead>
+          <tbody id="newtonDataBody"></tbody>
+        </table>
+      </div>
+
+      <!-- 计算结果 -->
+      <div class="ctrl-card" id="newtonResultCard" style="display:none;">
+        <h3>📊 逐差法计算结果</h3>
+        <div class="result-box" id="newtonResultBox"></div>
+      </div>
+
+      <!-- 操作指引 -->
+      <div class="ctrl-card">
+        <h3>📖 操作指引</h3>
+        <ol class="guide-steps">
+          <li>在视场中<strong>拖动左/右光标</strong>对准选定的暗环边缘</li>
+          <li>左侧光标对准环的<strong>左边内切</strong>处</li>
+          <li>右侧光标对准<strong>右边内切</strong>处</li>
+          <li>使用上方滑块选择当前测量的<strong>环序数</strong></li>
+          <li>点击<strong>"记录当前环数据"</strong>保存测量值</li>
+          <li>按教材要求记录第3~12环数据，系统自动计算R</li>
+        </ol>
+      </div>
+    `;
+  }
+
+  // 重建后刷新读数显示和数据表
+  updateReadout();
+  refreshDataTable();
+  refreshResultCard();
+  bindSliderEvents();
+}
+
+function bindSliderEvents() {
+  // 绑定各滑块的事件（在控件重建后）
+  if (currentMode === 'wedge') {
+    const sliderFilm = document.getElementById('sliderFilm');
+    const sliderLen = document.getElementById('sliderLen');
+  }
+}
+
+// ==================== 参数变化回调（仅更新受影响的元素，不重建面板） ====================
+function onFilmThicknessChange(val) {
+  wedgeState.filmThickness = parseFloat(val);
+  const el = document.getElementById('valFilm');
+  if (el) el.textContent = (wedgeState.filmThickness * 1000).toFixed(2) + ' μm';
+  updateWedgeFormulaDisplay();
+  renderAll();
+}
+
+function onWedgeLengthChange(val) {
+  wedgeState.length = parseFloat(val);
+  const el = document.getElementById('valLen');
+  if (el) el.textContent = wedgeState.length.toFixed(1) + ' mm';
+  updateWedgeFormulaDisplay();
+  renderAll();
+}
+
+function onCurvatureRChange(val) {
+  newtonState.curvatureR = parseFloat(val);
+  const el = document.getElementById('valR');
+  if (el) el.textContent = newtonState.curvatureR.toFixed(2) + ' m';
+  updateNewtonFormulaDisplay();
+  renderAll();
+}
+
+function onDirtChange(val) {
+  newtonState.dirtA = parseFloat(val);
+  const el = document.getElementById('valDirt');
+  if (el) el.textContent = (newtonState.dirtA * 1000).toFixed(2) + ' μm';
+  updateNewtonFormulaDisplay();
+  renderAll();
+}
+
+function onRingNumberChange(val) {
+  newtonState.cursorRing = parseInt(val);
+  const el = document.getElementById('valRing');
+  if (el) el.textContent = newtonState.cursorRing;
+  // 自动定位光标到该环的理论半径
+  const r = newtonDarkRingRadius(newtonState.cursorRing);
+  if (r > 0) {
+    newtonState.cursorLeft = -r;
+    newtonState.cursorRight = r;
+  }
+  updateNewtonFormulaDisplay();
+  renderAll();
+  updateReadout();
+}
+
+// ==================== 测量光标微调 ====================
+function nudgeCursor(delta) {
+  wedgeState.cursorPos = Math.max(0, Math.min(wedgeState.length,
+    wedgeState.cursorPos + delta));
+  renderAll();
+}
+
+function nudgeNewtonCursor(side, delta) {
+  if (side === 'left') {
+    newtonState.cursorLeft = Math.min(-0.05, newtonState.cursorLeft + delta);
+  } else {
+    newtonState.cursorRight = Math.max(0.05, newtonState.cursorRight + delta);
+  }
+  renderAll();
+  updateReadout();
+}
+
+// ==================== 数据记录 ====================
+function recordWedgeReading() {
+  const k = wedgeState.readings.length * 10; // 每隔10条：0, 10, 20, ...
+  wedgeState.readings.push({ k: k, pos: wedgeState.cursorPos });
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCount').textContent = wedgeState.readings.length;
+
+  // 自动将光标向右移动到下一个大概位置
+  const spacing = (LAMBDA_MM * wedgeState.length) / (2 * wedgeState.filmThickness);
+  wedgeState.cursorPos += spacing * 10;
+  renderAll();
+}
+
+function recordNewtonReading() {
+  const k = newtonState.cursorRing;
+  const left = newtonState.cursorLeft;
+  const right = newtonState.cursorRight;
+  const d = Math.abs(right - left);
+  const dSq = d * d;
+  // 检查是否已存在该环的记录，存在则更新
+  const existingIdx = newtonState.readings.findIndex(r => r.ring === k);
+  if (existingIdx >= 0) {
+    newtonState.readings[existingIdx] = { ring: k, leftPos: left, rightPos: right, diameter: d, diamSq: dSq };
+  } else {
+    newtonState.readings.push({ ring: k, leftPos: left, rightPos: right, diameter: d, diamSq: dSq });
+  }
+  // 按环序排序
+  newtonState.readings.sort((a, b) => a.ring - b.ring);
+  // 自动移到下一环
+  if (newtonState.cursorRing < 15) {
+    newtonState.cursorRing++;
+    const r = newtonDarkRingRadius(newtonState.cursorRing);
+    if (r > 0) { newtonState.cursorLeft = -r; newtonState.cursorRight = r; }
+    document.getElementById('sliderRing') && (document.getElementById('sliderRing').value = newtonState.cursorRing);
+    document.getElementById('valRing') && (document.getElementById('valRing').textContent = newtonState.cursorRing);
+  }
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCountN') && (document.getElementById('readingCountN').textContent = newtonState.readings.length);
+  renderAll();
+  updateReadout();
+}
+
+function clearWedgeData() {
+  wedgeState.readings = [];
+  wedgeState.cursorPos = 6.0;
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCount') && (document.getElementById('readingCount').textContent = '0');
+  renderAll();
+}
+
+function clearNewtonData() {
+  newtonState.readings = [];
+  newtonState.cursorRing = 5;
+  newtonState.cursorLeft = -newtonDarkRingRadius(5);
+  newtonState.cursorRight = newtonDarkRingRadius(5);
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCountN') && (document.getElementById('readingCountN').textContent = '0');
+  renderAll();
+}
+
+// ==================== 自动扫描（演示用） ====================
+function autoScanWedge() {
+  clearWedgeData();
+  const spacing = (LAMBDA_MM * wedgeState.length) / (2 * wedgeState.filmThickness);
+  // 找到第一个暗纹位置（从接触点开始第0级暗纹位置）
+  const x0 = wedgeDarkFringePos(0);
+  for (let i = 0; i < 10; i++) {
+    const k = i * 10;
+    const pos = wedgeDarkFringePos(k);
+    wedgeState.readings.push({ k: k, pos: pos });
+  }
+  wedgeState.cursorPos = wedgeDarkFringePos(90);
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCount') && (document.getElementById('readingCount').textContent = wedgeState.readings.length);
+  renderAll();
+}
+
+function autoScanNewton() {
+  clearNewtonData();
+  // 自动记录第3~12环
+  for (let k = 3; k <= 12; k++) {
+    const r = newtonDarkRingRadius(k);
+    if (r > 0) {
+      newtonState.readings.push({
+        ring: k, leftPos: -r, rightPos: r,
+        diameter: 2 * r, diamSq: 4 * r * r
+      });
+    }
+  }
+  newtonState.cursorRing = 12;
+  const r12 = newtonDarkRingRadius(12);
+  newtonState.cursorLeft = -r12;
+  newtonState.cursorRight = r12;
+  refreshDataTable();
+  refreshResultCard();
+  document.getElementById('readingCountN') && (document.getElementById('readingCountN').textContent = newtonState.readings.length);
+  renderAll();
+  updateReadout();
+}
+
+// ==================== 数据表刷新 ====================
+function refreshDataTable() {
+  if (currentMode === 'wedge') {
+    const tbody = document.getElementById('wedgeDataBody');
+    if (!tbody) return;
+    const rs = wedgeState.readings;
+    let html = '';
+    const deltaK = 50; // 逐差间距
+    for (let i = 0; i < rs.length; i++) {
+      const j = i + 5; // i+5 对应项
+      let deltaD = '';
+      let ei = '';
+      if (j < rs.length) {
+        deltaD = Math.abs(rs[j].pos - rs[i].pos).toFixed(3);
+        ei = ((deltaK / parseFloat(deltaD)) * wedgeState.length * LAMBDA_MM / 2).toExponential(4);
+      }
+      html += `<tr>
+        <td>${i + 1}</td>
+        <td>${rs[i].k}</td>
+        <td>${rs[i].pos.toFixed(3)}</td>
+        <td>${deltaD}</td>
+        <td>${ei}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
+  } else {
+    const tbody = document.getElementById('newtonDataBody');
+    if (!tbody) return;
+    const rs = newtonState.readings;
+    let html = '';
+    const deltaMN = 5;
+    for (let i = 0; i < rs.length; i++) {
+      const r = rs[i];
+      const j = i + deltaMN; // 相隔5圈
+      let diffSq = '';
+      if (j < rs.length) {
+        diffSq = (rs[j].diamSq - rs[i].diamSq).toFixed(5);
+      }
+      html += `<tr>
+        <td>${r.ring}</td>
+        <td>${r.leftPos.toFixed(3)}</td>
+        <td>${r.rightPos.toFixed(3)}</td>
+        <td>${r.diameter.toFixed(3)}</td>
+        <td>${r.diamSq.toFixed(4)}</td>
+        <td>${diffSq}</td>
+      </tr>`;
+    }
+    tbody.innerHTML = html;
+  }
+}
+
+// ==================== 计算结果刷新 ====================
+function refreshResultCard() {
+  if (currentMode === 'wedge') {
+    const card = document.getElementById('wedgeResultCard');
+    const box = document.getElementById('wedgeResultBox');
+    if (!card || !box) return;
+    const rs = wedgeState.readings;
+    if (rs.length < 6) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    const deltaK = 50;
+    const n = Math.min(5, rs.length - 5);
+    let sumE = 0, sumSq = 0, count = 0;
+    const eiList = [];
+    for (let i = 0; i < n; i++) {
+      const j = i + 5;
+      if (j < rs.length) {
+        const dd = Math.abs(rs[j].pos - rs[i].pos);
+        const ei = (deltaK / dd) * wedgeState.length * LAMBDA_MM / 2;
+        sumE += ei;
+        eiList.push(ei);
+        count++;
+      }
+    }
+    const avgE = sumE / count;
+    // 计算不确定度（简化版：A类 + B类合成）
+    for (let i = 0; i < count; i++) { sumSq += (eiList[i] - avgE) ** 2; }
+    const stdDev = count > 1 ? Math.sqrt(sumSq / (count * (count - 1))) : 0;
+    const deltaInst = 0.01; // 仪器误差 mm
+    const uB = (deltaInst / Math.sqrt(3)) * (deltaK / (rs[5] ? Math.abs(rs[5].pos - rs[0].pos) : 1)) * wedgeState.length * LAMBDA_MM / 2;
+    const Ue = Math.sqrt(stdDev ** 2 + uB ** 2);
+
+    box.innerHTML = `
+      <div>ΔK = ${deltaK}，L = ${wedgeState.length.toFixed(3)} mm，λ = ${LAMBDA_NM} nm</div>
+      <div>平均 Δd = ${(rs[Math.min(5, rs.length-1)] ? Math.abs(rs[Math.min(5, rs.length-1)].pos - rs[0].pos) : 0).toFixed(3)} mm</div>
+      <div style="margin-top:6px;"><strong>各次 e<sub>i</sub>:</strong> ${eiList.map(e => e.toExponential(3)).join(', ')}</div>
+      <div class="final" style="margin-top:8px;">
+        e = ē ± U<sub>e</sub> = (${avgE.toExponential(3)} ± ${Ue.toExponential(2)}) mm<br>
+        = (${(avgE*1000).toFixed(3)} ± ${(Ue*1000).toFixed(3)}) μm
+      </div>
+    `;
+  } else {
+    const card = document.getElementById('newtonResultCard');
+    const box = document.getElementById('newtonResultBox');
+    if (!card || !box) return;
+    const rs = newtonState.readings;
+    if (rs.length < 6) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+
+    const deltaMN = 5;
+    const n = Math.min(rs.length - deltaMN, 5);
+    let sumR = 0, rList = [];
+    for (let i = 0; i < n; i++) {
+      const j = i + deltaMN;
+      if (j < rs.length) {
+        const dSqDiff = rs[j].diamSq - rs[i].diamSq;
+        const Ri = dSqDiff / (4 * deltaMN * LAMBDA_MM); // mm
+        sumR += Ri;
+        rList.push(Ri);
+      }
+    }
+    const avgR_mm = sumR / rList.length;
+    const avgR_m = avgR_mm / 1000;
+    // 简化不确定度估算
+    let sumSq = 0;
+    rList.forEach(r => { sumSq += (r - avgR_mm) ** 2; });
+    const stdDev = rList.length > 1 ? Math.sqrt(sumSq / (rList.length * (rList.length - 1))) : 0;
+
+    box.innerHTML = `
+      <div>m−n = ${deltaMN}，λ = ${LAMBDA_NM} nm = ${LAMBDA_MM.toExponential(3)} mm</div>
+      <div style="margin-top:6px;"><strong>各次 R<sub>i</sub>:</strong> ${rList.map(r => (r/1000).toFixed(3)).join(', ')} m</div>
+      <div class="final" style="margin-top:8px;">
+        R = R̄ = ${avgR_m.toFixed(2)} m<br>
+        S(R̄) = ${(stdDev/1000).toFixed(4)} m
+      </div>
+    `;
+  }
+}
+
+// ==================== 模式切换 ====================
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('tabWedge').classList.toggle('active', mode === 'wedge');
+  document.getElementById('tabNewton').classList.toggle('active', mode === 'newton');
+
+  // 调整牛顿环画布为正方形
+  if (mode === 'newton') {
+    canvasMicro.height = 500;
+  } else {
+    canvasMicro.height = 400;
+  }
+
+  buildControlPanel();
+  renderAll();
+}
+
+// ==================== 鼠标交互 ====================
+canvasMicro.addEventListener('mousedown', (e) => {
+  const rect = canvasMicro.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (currentMode === 'wedge') {
+    isDragging = true;
+    dragTarget = 'wedgeCursor';
+    updateWedgeCursorFromMouse(mx);
+  } else {
+    // 牛顿环：判断用户点击的是左侧还是右侧
+    const w = canvasMicro.width;
+    const h = canvasMicro.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const maxDisplayR_mm = 3.2;
+    const pxPerMM = (Math.min(w, h) / 2 - 20) / maxDisplayR_mm;
+    const leftPx = cx + newtonState.cursorLeft * pxPerMM;
+    const rightPx = cx + newtonState.cursorRight * pxPerMM;
+
+    // 判断离哪个光标更近（在竖直方向靠近中心线时）
+    if (Math.abs(my - cy) < 60) {
+      if (Math.abs(mx - leftPx) < Math.abs(mx - rightPx)) {
+        dragTarget = 'newtonLeft';
+      } else {
+        dragTarget = 'newtonRight';
+      }
+      isDragging = true;
+      updateNewtonCursorFromMouse(mx);
+    }
+  }
+});
+
+canvasMicro.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  const rect = canvasMicro.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+
+  if (currentMode === 'wedge') {
+    updateWedgeCursorFromMouse(mx);
+  } else {
+    updateNewtonCursorFromMouse(mx);
+  }
+});
+
+canvasMicro.addEventListener('mouseup', () => { isDragging = false; dragTarget = null; });
+canvasMicro.addEventListener('mouseleave', () => { isDragging = false; dragTarget = null; });
+
+function updateWedgeCursorFromMouse(mx) {
+  const w = canvasMicro.width;
+  const scanRange = 12;
+  const scanCenter = wedgeState.cursorPos;
+  const scanStart = scanCenter - scanRange / 2;
+  wedgeState.cursorPos = scanStart + (mx / w) * scanRange;
+  wedgeState.cursorPos = Math.max(0, Math.min(wedgeState.length, wedgeState.cursorPos));
+  // 吸附到最近的暗纹：暗纹位置 x_k = kλL/(2e)
+  const spacing = (LAMBDA_MM * wedgeState.length) / (2 * wedgeState.filmThickness);
+  const nearestK = Math.round(wedgeState.cursorPos / spacing);
+  wedgeState.cursorPos = nearestK * spacing;
+  // 保留 0.01mm 精度
+  wedgeState.cursorPos = Math.round(wedgeState.cursorPos * 100) / 100;
+  renderAll();
+}
+
+function updateNewtonCursorFromMouse(mx) {
+  const w = canvasMicro.width;
+  const h = canvasMicro.height;
+  const cx = w / 2;
+  const maxDisplayR_mm = 3.2;
+  const pxPerMM = (Math.min(w, h) / 2 - 20) / maxDisplayR_mm;
+  const r_mm = (mx - cx) / pxPerMM;
+
+  if (dragTarget === 'newtonLeft') {
+    newtonState.cursorLeft = Math.min(-0.05, r_mm);
+    // 吸附到最近暗环
+    const nearest = findNearestDarkRing(Math.abs(newtonState.cursorLeft));
+    if (nearest > 0) newtonState.cursorLeft = -nearest;
+  } else if (dragTarget === 'newtonRight') {
+    newtonState.cursorRight = Math.max(0.05, r_mm);
+    const nearest = findNearestDarkRing(newtonState.cursorRight);
+    if (nearest > 0) newtonState.cursorRight = nearest;
+  }
+  newtonState.cursorLeft = Math.round(newtonState.cursorLeft * 100) / 100;
+  newtonState.cursorRight = Math.round(newtonState.cursorRight * 100) / 100;
+  renderAll();
+  updateReadout();
+}
+
+function findNearestDarkRing(r_mm) {
+  // 搜索最近的暗环半径（k=0,1,2,...）
+  let bestK = 0, bestDist = Infinity;
+  for (let k = 0; k <= 30; k++) {
+    const rk = newtonDarkRingRadius(k);
+    if (rk <= 0) continue;
+    const dist = Math.abs(r_mm - rk);
+    if (dist < bestDist) { bestDist = dist; bestK = k; }
+  }
+  return newtonDarkRingRadius(bestK);
+}
+
+// ==================== 键盘控制 ====================
+document.addEventListener('keydown', (e) => {
+  if (currentMode === 'wedge') {
+    if (e.key === 'ArrowRight') { nudgeCursor(0.01); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { nudgeCursor(-0.01); e.preventDefault(); }
+    if (e.key === 'ArrowUp') { nudgeCursor(0.10); e.preventDefault(); }
+    if (e.key === 'ArrowDown') { nudgeCursor(-0.10); e.preventDefault(); }
+    if (e.key === ' ' || e.key === 'Enter') {
+      recordWedgeReading();
+      e.preventDefault();
+    }
+  } else {
+    if (e.key === 'ArrowRight') {
+      nudgeNewtonCursor(dragTarget === 'newtonLeft' ? 'left' : 'right', 0.01);
+      e.preventDefault();
+    }
+    if (e.key === 'ArrowLeft') {
+      nudgeNewtonCursor(dragTarget === 'newtonLeft' ? 'left' : 'right', -0.01);
+      e.preventDefault();
+    }
+    if (e.key === ' ' || e.key === 'Enter') {
+      recordNewtonReading();
+      e.preventDefault();
+    }
+  }
+});
+
+// ==================== 初始化 ====================
+function init() {
+  buildControlPanel();
+  renderAll();
+}
+
+init();
+
+console.log('等厚干涉虚拟仿真实验已就绪');
+console.log('  劈尖模式：拖动竖直光标测量暗纹位置');
+console.log('  牛顿环模式：拖动左/右光标测量环直径');
+console.log('  键盘快捷键：← → 微调，空格/回车 记录数据');
+console.log('  物理引擎基于教材公式(1)-(10)实现');
+</script>
+
+</body>
+</html>

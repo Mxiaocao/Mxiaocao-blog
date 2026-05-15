@@ -1,0 +1,747 @@
+# 弦振动实验——交互式虚拟仿真实验（单文件HTML）
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>弦振动实验 - 虚拟仿真系统</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:"Microsoft YaHei",sans-serif;
+    background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
+    color:#e5e7eb;
+    overflow:hidden;
+}
+
+.container{
+    display:grid;
+    grid-template-columns: 2.2fr 1fr;
+    height:100vh;
+}
+
+.left-panel{
+    position:relative;
+    background:linear-gradient(to bottom,#0b1020,#111827);
+    border-right:1px solid rgba(255,255,255,0.08);
+}
+
+.right-panel{
+    overflow-y:auto;
+    padding:20px;
+    background:#111827;
+}
+
+.title-bar{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    padding:16px 24px;
+    background:rgba(15,23,42,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    z-index:10;
+}
+
+.title-bar h1{
+    font-size:28px;
+    color:#60a5fa;
+    letter-spacing:2px;
+}
+
+.title-bar p{
+    color:#94a3b8;
+    margin-top:5px;
+}
+
+canvas{
+    width:100%;
+    height:100%;
+    display:block;
+}
+
+.card{
+    background:rgba(30,41,59,0.9);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px;
+    padding:18px;
+    margin-bottom:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.card h2{
+    color:#60a5fa;
+    margin-bottom:14px;
+    font-size:20px;
+}
+
+.control-group{
+    margin-bottom:18px;
+}
+
+label{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+    font-size:14px;
+    color:#cbd5e1;
+}
+
+input[type=range]{
+    width:100%;
+    accent-color:#3b82f6;
+}
+
+.value{
+    color:#fbbf24;
+    font-weight:bold;
+}
+
+button{
+    border:none;
+    padding:12px 18px;
+    margin:6px 4px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:15px;
+    transition:0.25s;
+}
+
+.btn-primary{
+    background:#2563eb;
+    color:white;
+}
+
+.btn-danger{
+    background:#dc2626;
+    color:white;
+}
+
+.btn-secondary{
+    background:#334155;
+    color:white;
+}
+
+button:hover{
+    transform:translateY(-2px);
+    opacity:0.9;
+}
+
+.data-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+.data-item{
+    background:#0f172a;
+    border-radius:12px;
+    padding:12px;
+}
+
+.data-item .name{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.data-item .num{
+    font-size:22px;
+    color:#22d3ee;
+    margin-top:4px;
+}
+
+.exp-box{
+    background:#020617;
+    border-left:4px solid #3b82f6;
+    padding:12px;
+    line-height:1.8;
+    border-radius:10px;
+    color:#cbd5e1;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+.table-wrap table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+.table-wrap th,
+.table-wrap td{
+    border:1px solid rgba(255,255,255,0.08);
+    padding:8px;
+    text-align:center;
+}
+
+.table-wrap th{
+    background:#1e293b;
+    color:#93c5fd;
+}
+
+.footer-note{
+    font-size:13px;
+    color:#94a3b8;
+    line-height:1.8;
+}
+
+.badge{
+    display:inline-block;
+    background:#1d4ed8;
+    color:white;
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:12px;
+    margin-left:8px;
+}
+
+@media(max-width:1100px){
+    .container{
+        grid-template-columns:1fr;
+    }
+    .left-panel{
+        height:55vh;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="left-panel">
+        <div class="title-bar">
+            <h1>弦振动实验虚拟仿真系统</h1>
+            <p>Standing Wave Simulation · 大学物理实验</p>
+        </div>
+        <canvas id="labCanvas"></canvas>
+    </div>
+
+    <div class="right-panel">
+
+        <div class="card">
+            <h2>实验控制台 <span class="badge">Interactive</span></h2>
+
+            <div class="control-group">
+                <label>
+                    频率 f (Hz)
+                    <span class="value" id="freqValue">75</span>
+                </label>
+                <input type="range" id="freq" min="20" max="150" step="1" value="75">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    张力 T (N)
+                    <span class="value" id="tensionValue">1.00</span>
+                </label>
+                <input type="range" id="tension" min="0.2" max="5" step="0.01" value="1">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    线密度 μ (kg/m)
+                    <span class="value" id="densityValue">0.0020</span>
+                </label>
+                <input type="range" id="density" min="0.0005" max="0.01" step="0.0001" value="0.002">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    弦长 L (m)
+                    <span class="value" id="lengthValue">1.20</span>
+                </label>
+                <input type="range" id="length" min="0.5" max="2" step="0.01" value="1.2">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    驻波段数 n
+                    <span class="value" id="modeValue">2</span>
+                </label>
+                <input type="range" id="mode" min="1" max="6" step="1" value="2">
+            </div>
+
+            <button class="btn-primary" id="startBtn">开始实验</button>
+            <button class="btn-secondary" id="pauseBtn">暂停</button>
+            <button class="btn-danger" id="resetBtn">重置</button>
+
+        </div>
+
+        <div class="card">
+            <h2>实时实验数据</h2>
+            <div class="data-grid">
+
+                <div class="data-item">
+                    <div class="name">波速 v</div>
+                    <div class="num" id="speedNum">22.36</div>
+                </div>
+
+                <div class="data-item">
+                    <div class="name">波长 λ</div>
+                    <div class="num" id="lambdaNum">0.30</div>
+                </div>
+
+                <div class="data-item">
+                    <div class="name">理论共振频率</div>
+                    <div class="num" id="resonanceNum">18.63</div>
+                </div>
+
+                <div class="data-item">
+                    <div class="name">共振状态</div>
+                    <div class="num" id="statusNum">失谐</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>核心物理公式</h2>
+            <div class="exp-box">
+                波动方程：<br><br>
+                ∂²y/∂t² = (T/μ) · ∂²y/∂x²<br><br>
+
+                波速公式：<br><br>
+                v = √(T/μ)<br><br>
+
+                波速与频率关系：<br><br>
+                v = fλ<br><br>
+
+                驻波条件：<br><br>
+                L = nλ/2<br><br>
+
+                推导得到：<br><br>
+                f = (n/2L)√(T/μ)
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>实验步骤指引</h2>
+            <div class="exp-box">
+                ① 调节频率 f 与张力 T。<br>
+                ② 观察弦线上是否形成稳定驻波。<br>
+                ③ 调节驻波段数 n。<br>
+                ④ 当系统达到共振时，振幅最大。<br>
+                ⑤ 利用 λ = 2L/n 测量波长。<br>
+                ⑥ 根据 v = fλ 测定波速。<br>
+                ⑦ 根据 ρ = T(n/2Lf)^2 反推线密度。
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>实验记录表</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>f (Hz)</th>
+                            <th>T (N)</th>
+                            <th>n</th>
+                            <th>λ (m)</th>
+                            <th>v (m/s)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn-primary" id="recordBtn">记录当前数据</button>
+        </div>
+
+        <div class="card">
+            <h2>实验现象分析</h2>
+            <div class="exp-box" id="analysisBox">
+                当前未达到明显共振条件。<br>
+                请尝试调节频率或张力，使系统满足：<br>
+                f = (n/2L)√(T/μ)
+            </div>
+        </div>
+
+        <div class="card footer-note">
+            本虚拟实验基于教材《弦振动实验》建立。<br>
+            动画采用真实驻波方程驱动，并使用 Canvas 实时渲染。<br>
+            所有物理量均满足教材中的理论关系。
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+/********************************************************************
+ * 弦振动实验虚拟仿真系统
+ * --------------------------------------------------------------
+ * 本系统依据大学物理教材中的驻波理论构建。
+ *
+ * 核心理论：
+ * 1. 波速：v = √(T/μ)
+ * 2. 波长：λ = 2L/n
+ * 3. 频率关系：f = v/λ
+ * 4. 驻波方程：
+ *    y(x,t)=A·sin(nπx/L)·cos(2πft)
+ *
+ * Canvas 动画完全由真实物理方程实时驱动。
+ ********************************************************************/
+
+const canvas = document.getElementById('labCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas(){
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// =============================
+// 获取DOM元素
+// =============================
+const freqSlider = document.getElementById('freq');
+const tensionSlider = document.getElementById('tension');
+const densitySlider = document.getElementById('density');
+const lengthSlider = document.getElementById('length');
+const modeSlider = document.getElementById('mode');
+
+const freqValue = document.getElementById('freqValue');
+const tensionValue = document.getElementById('tensionValue');
+const densityValue = document.getElementById('densityValue');
+const lengthValue = document.getElementById('lengthValue');
+const modeValue = document.getElementById('modeValue');
+
+const speedNum = document.getElementById('speedNum');
+const lambdaNum = document.getElementById('lambdaNum');
+const resonanceNum = document.getElementById('resonanceNum');
+const statusNum = document.getElementById('statusNum');
+const analysisBox = document.getElementById('analysisBox');
+
+// =============================
+// 实验参数
+// =============================
+let running = true;
+let time = 0;
+
+// =============================
+// 更新界面数据
+// =============================
+function updateUI(){
+
+    const f = parseFloat(freqSlider.value);
+    const T = parseFloat(tensionSlider.value);
+    const mu = parseFloat(densitySlider.value);
+    const L = parseFloat(lengthSlider.value);
+    const n = parseInt(modeSlider.value);
+
+    freqValue.innerText = f;
+    tensionValue.innerText = T.toFixed(2);
+    densityValue.innerText = mu.toFixed(4);
+    lengthValue.innerText = L.toFixed(2);
+    modeValue.innerText = n;
+
+    /*************************************************************
+     * 根据教材公式：
+     * 波速：v = √(T/μ)
+     *************************************************************/
+    const v = Math.sqrt(T / mu);
+
+    /*************************************************************
+     * 根据驻波条件：
+     * λ = 2L/n
+     *************************************************************/
+    const lambda = 2 * L / n;
+
+    /*************************************************************
+     * 理论共振频率：
+     * f_res = v / λ
+     *************************************************************/
+    const fRes = v / lambda;
+
+    speedNum.innerText = v.toFixed(2);
+    lambdaNum.innerText = lambda.toFixed(2);
+    resonanceNum.innerText = fRes.toFixed(2);
+
+    const diff = Math.abs(f - fRes);
+
+    // 判断是否接近共振
+    if(diff < 1.5){
+        statusNum.innerText = '共振';
+        statusNum.style.color = '#22c55e';
+
+        analysisBox.innerHTML = `
+            系统已经达到明显驻波共振状态！<br><br>
+            当前频率与理论共振频率接近：<br>
+            f ≈ ${fRes.toFixed(2)} Hz<br><br>
+            波腹振幅明显增强，形成稳定驻波。<br>
+            相邻波节距离约为 λ/2 = ${(lambda/2).toFixed(2)} m
+        `;
+    }else{
+        statusNum.innerText = '失谐';
+        statusNum.style.color = '#ef4444';
+
+        analysisBox.innerHTML = `
+            当前未形成理想驻波。<br><br>
+            理论共振频率：${fRes.toFixed(2)} Hz<br>
+            当前驱动频率：${f.toFixed(2)} Hz<br><br>
+            请继续调节频率或张力，使系统满足：<br>
+            f = (n/2L)√(T/μ)
+        `;
+    }
+}
+
+// =============================
+// 驻波绘制函数
+// =============================
+function draw(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const f = parseFloat(freqSlider.value);
+    const T = parseFloat(tensionSlider.value);
+    const mu = parseFloat(densitySlider.value);
+    const L = parseFloat(lengthSlider.value);
+    const n = parseInt(modeSlider.value);
+
+    const v = Math.sqrt(T / mu);
+    const lambda = 2 * L / n;
+    const fRes = v / lambda;
+
+    const diff = Math.abs(f - fRes);
+
+    // 共振程度影响振幅
+    let resonanceFactor = Math.max(0.15,1 - diff/20);
+
+    // 实际振幅
+    let A = 60 * resonanceFactor;
+
+    const startX = 100;
+    const endX = canvas.width - 140;
+    const centerY = canvas.height * 0.52;
+
+    // 实验平台
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(60,centerY+110,canvas.width-120,18);
+
+    // 左侧振动源
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(40,centerY-40,80,80);
+
+    // 支撑刀口
+    ctx.fillStyle = '#94a3b8';
+    ctx.beginPath();
+    ctx.moveTo(canvas.width*0.55,centerY+20);
+    ctx.lineTo(canvas.width*0.55-15,centerY+60);
+    ctx.lineTo(canvas.width*0.55+15,centerY+60);
+    ctx.closePath();
+    ctx.fill();
+
+    // 右侧滑轮
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(endX+20,centerY,20,0,Math.PI*2);
+    ctx.stroke();
+
+    // 砝码
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillRect(endX+12,centerY+50,16,70);
+
+    // 绘制参考静止弦
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(startX,centerY);
+    ctx.lineTo(endX,centerY);
+    ctx.stroke();
+
+    /*************************************************************
+     * 驻波方程：
+     * y(x,t)=A·sin(nπx/L)·cos(2πft)
+     *
+     * 物理意义：
+     * sin(nπx/L) 决定空间波节与波腹分布
+     * cos(2πft) 决定时间振荡
+     *************************************************************/
+
+    ctx.beginPath();
+
+    for(let px=0; px<=800; px++){
+
+        let ratio = px / 800;
+
+        // x为实际物理坐标
+        let x = ratio * L;
+
+        // 驻波位移
+        let y = A * Math.sin(n * Math.PI * x / L)
+                  * Math.cos(2 * Math.PI * f * time);
+
+        let drawX = startX + ratio * (endX - startX);
+        let drawY = centerY + y;
+
+        if(px === 0){
+            ctx.moveTo(drawX,drawY);
+        }else{
+            ctx.lineTo(drawX,drawY);
+        }
+    }
+
+    // 共振时颜色更亮
+    if(diff < 1.5){
+        ctx.strokeStyle = '#22d3ee';
+        ctx.shadowColor = '#22d3ee';
+        ctx.shadowBlur = 20;
+    }else{
+        ctx.strokeStyle = '#60a5fa';
+        ctx.shadowBlur = 0;
+    }
+
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    // 绘制波节
+    ctx.fillStyle = '#f43f5e';
+
+    for(let k=0;k<=n;k++){
+
+        // 波节位置
+        let nodeRatio = k / n;
+        let nodeX = startX + nodeRatio * (endX-startX);
+
+        ctx.beginPath();
+        ctx.arc(nodeX,centerY,5,0,Math.PI*2);
+        ctx.fill();
+    }
+
+    // 绘制波腹
+    ctx.fillStyle = '#22c55e';
+
+    for(let k=0;k<n;k++){
+
+        let antinodeRatio = (k + 0.5)/n;
+        let antiX = startX + antinodeRatio * (endX-startX);
+
+        ctx.beginPath();
+        ctx.arc(antiX,centerY,6,0,Math.PI*2);
+        ctx.fill();
+    }
+
+    // 绘制标注
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '16px Microsoft YaHei';
+
+    ctx.fillText('振动源',40,centerY-55);
+    ctx.fillText('支撑刀口',canvas.width*0.55-25,centerY+90);
+    ctx.fillText('砝码',endX,centerY+145);
+
+    // 绘制物理信息
+    ctx.fillStyle = '#93c5fd';
+    ctx.font = '18px Microsoft YaHei';
+
+    ctx.fillText(`波速 v = ${v.toFixed(2)} m/s`,60,120);
+    ctx.fillText(`波长 λ = ${lambda.toFixed(2)} m`,60,150);
+    ctx.fillText(`共振频率 = ${fRes.toFixed(2)} Hz`,60,180);
+
+    // 共振提示
+    if(diff < 1.5){
+        ctx.fillStyle = '#22c55e';
+        ctx.font = 'bold 28px Microsoft YaHei';
+        ctx.fillText('发生共振！',canvas.width/2-80,100);
+    }
+}
+
+// =============================
+// 动画循环
+// =============================
+function animate(){
+
+    if(running){
+        time += 0.008;
+    }
+
+    draw();
+    requestAnimationFrame(animate);
+}
+
+animate();
+updateUI();
+
+// =============================
+// 监听滑块变化
+// =============================
+[freqSlider,tensionSlider,densitySlider,lengthSlider,modeSlider]
+.forEach(slider=>{
+    slider.addEventListener('input',updateUI);
+});
+
+// =============================
+// 控制按钮
+// =============================
+document.getElementById('startBtn').onclick = ()=>{
+    running = true;
+};
+
+// 暂停动画
+document.getElementById('pauseBtn').onclick = ()=>{
+    running = false;
+};
+
+// 重置参数
+document.getElementById('resetBtn').onclick = ()=>{
+
+    freqSlider.value = 75;
+    tensionSlider.value = 1;
+    densitySlider.value = 0.002;
+    lengthSlider.value = 1.2;
+    modeSlider.value = 2;
+
+    updateUI();
+};
+
+// =============================
+// 数据记录功能
+// =============================
+let recordIndex = 1;
+
+// 将当前实验数据写入表格
+document.getElementById('recordBtn').onclick = ()=>{
+
+    const f = parseFloat(freqSlider.value);
+    const T = parseFloat(tensionSlider.value);
+    const mu = parseFloat(densitySlider.value);
+    const L = parseFloat(lengthSlider.value);
+    const n = parseInt(modeSlider.value);
+
+    const v = Math.sqrt(T/mu);
+    const lambda = 2*L/n;
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+        <td>${recordIndex++}</td>
+        <td>${f.toFixed(2)}</td>
+        <td>${T.toFixed(2)}</td>
+        <td>${n}</td>
+        <td>${lambda.toFixed(3)}</td>
+        <td>${v.toFixed(3)}</td>
+    `;
+
+    document.getElementById('dataTable').appendChild(tr);
+};
+
+</script>
+
+</body>
+</html>
+```
