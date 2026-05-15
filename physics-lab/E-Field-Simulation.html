@@ -1604,6 +1604,7 @@
                         // 左键拖拽，右键弹出菜单
                         if (e.button === 2) {
                             e.preventDefault();
+                            e.stopPropagation();
                             showContextMenu(e, i);
                             return;
                         }
@@ -1638,6 +1639,7 @@
                     // 右键 → 弹出上下文菜单
                     if (e.button === 2) {
                         e.preventDefault();
+                        e.stopPropagation();
                         showContextMenu(e, i);
                         return;
                     }
@@ -1756,12 +1758,13 @@
             const item = e.target.closest('.menu-item');
             if (!item) return;
             const action = item.dataset.action;
+            // 【关键】先保存电荷索引，再隐藏菜单（hideContextMenu 会重置索引为 -1）
+            const chargeIdx = contextMenuChargeIndex;
 
             if (action === 'editCharge') {
-                // 打开电荷编辑对话框（电量+电性）
                 hideContextMenu();
-                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
-                    const c = charges[contextMenuChargeIndex];
+                if (chargeIdx >= 0 && charges[chargeIdx]) {
+                    const c = charges[chargeIdx];
                     const absQ = Math.abs(c.q);
                     editTempPolarity = c.q > 0;
                     editChargeSlider.value = absQ;
@@ -1769,26 +1772,26 @@
                     updatePolarityButtons();
                     updateEditPreview(absQ);
                     document.getElementById('editChargeLabel').textContent =
-                        '编辑：' + (c.name || ('电荷' + (contextMenuChargeIndex + 1)));
+                        '编辑：' + (c.name || ('电荷' + (chargeIdx + 1)));
                     editChargeDialog.classList.add('visible');
-                    editChargeDialog._chargeIndex = contextMenuChargeIndex;
+                    editChargeDialog._chargeIndex = chargeIdx;
                     editChargeDialog.style.left = (window.innerWidth / 2 - 140) + 'px';
                     editChargeDialog.style.top = (window.innerHeight / 2 - 100) + 'px';
                 }
             } else if (action === 'rename') {
                 hideContextMenu();
-                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
-                    const c = charges[contextMenuChargeIndex];
+                if (chargeIdx >= 0 && charges[chargeIdx]) {
+                    const c = charges[chargeIdx];
                     renameInput.value = c.name || '';
                     renameDialog.classList.add('visible');
-                    renameDialog._chargeIndex = contextMenuChargeIndex;
+                    renameDialog._chargeIndex = chargeIdx;
                     renameDialog.style.left = (window.innerWidth / 2 - 130) + 'px';
                     renameDialog.style.top = (window.innerHeight / 2 - 50) + 'px';
                     setTimeout(() => renameInput.focus(), 100);
                 }
             } else if (action === 'delete') {
-                if (contextMenuChargeIndex >= 0 && charges[contextMenuChargeIndex]) {
-                    charges.splice(contextMenuChargeIndex, 1);
+                if (chargeIdx >= 0 && charges[chargeIdx]) {
+                    charges.splice(chargeIdx, 1);
                 }
                 hideContextMenu();
             }
