@@ -222,7 +222,7 @@
         /* 模式选择按钮组 */
         .mode-buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 6px;
         }
         .mode-btn {
@@ -518,6 +518,7 @@
         <!-- 画布 -->
         <div class="canvas-wrapper" id="canvasWrapper">
             <canvas id="mainCanvas"></canvas>
+            <div id="threeContainer" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;"></div>
             <div class="mode-indicator" id="modeIndicator">电场线模式</div>
             <div class="hint-overlay" id="hintOverlay">
                 <span class="hint-close" id="hintClose" title="关闭提示">✕</span>
@@ -591,6 +592,7 @@
                 <button class="mode-btn" data-mode="vectors">🧭 矢量场</button>
                 <button class="mode-btn" data-mode="equipotential">🫧 等势线</button>
                 <button class="mode-btn" data-mode="surface3d">🏔 3D 势能面</button>
+                <button class="mode-btn" data-mode="fieldlines3d">📐 3D 电场线</button>
             </div>
 
             <div class="section-title">预设场景</div>
@@ -640,11 +642,26 @@
         </aside>
     </div>
 
-    <script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        //  Three.js 3D 电场线模块 - 先导入依赖
+        // ============================================================
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
         // ============================================================
         //  电场可视化仿真 - 主程序
         //  基于库仑定律、电场叠加原理、电势理论
-        //  支持：电场线 / 矢量场 / 等势线 / 3D势能面 四种模式
+        //  支持：电场线 / 矢量场 / 等势线 / 3D势能面 / 3D电场线 五种模式
         // ============================================================
 
         // ==================== DOM元素引用 ====================
@@ -1449,42 +1466,285 @@
             ctx.fillText('拖拽鼠标旋转视角 | 电势高处=山峰 电势低处=山谷', cx, h - 10);
         }
 
-        // ==================== 主渲染循环 ====================
-        function render() {
-            const w = canvas.width;
-            const h = canvas.height;
-            ctx.clearRect(0, 0, w, h);
+        // ==================== 渲染：3D 电场线模式 ====================
+        /**
+         * 3D电场线：将2D电场线平放在z=0平面上，对整个平面做3D旋转变换
+         * 物理意义：电场线从正电荷出发、终止于负电荷，旋转变换提供了空间透视感
+         * 相当于把前面"电场线模式"的平面图在3D空间中旋转观察
+         */
+        function render3DFieldLines(ctx, w, h) {
+            ctx.fillStyle = '#08081a';
+            ctx.fillRect(0, 0, w, h);
 
-            switch (mode) {
-                case 'fieldlines':
-                    renderFieldLines(ctx, w, h);
-                    break;
-                case 'vectors':
-                    renderVectorField(ctx, w, h);
-                    break;
-                case 'equipotential':
-                    renderEquipotential(ctx, w, h);
-                    break;
-                case 'surface3d':
-                    render3DSurface(ctx, w, h);
-                    break;
+            if (charges.length === 0) return;
+
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // ---- 第一步：追踪所有2D电场线（z=0平面） ----
+            const allLines = [];
+            for (const c of charges) {
+                const nLines = Math.max(6, Math.round(Math.abs(c.q) * linesPerUnit));
+                const direction = c.q > 0 ? 1 : -1;
+                for (let i = 0; i < nLines; i++) {
+                    const angle = (2 * Math.PI * i) / nLines;
+                    const startX = c.x + (CHARGE_RADIUS + 3) * Math.cos(angle);
+                    const startY = c.y + (CHARGE_RADIUS + 3) * Math.sin(angle);
+                    const points = traceFieldLine(startX, startY, direction);
+                    if (points.length > 1) {
+                        allLines.push({ points, chargeQ: c.q });
+                    }
+                }
             }
 
-            // 在所有模式下绘制电荷（3D模式有自己的电荷渲染）
-            if (mode !== 'surface3d') {
-                renderCharges(ctx);
+            // ---- 第二步：3D旋转矩阵（绕Y轴→绕X轴→正交投影） ----
+            const cosAz = Math.cos(azimuth);
+            const sinAz = Math.sin(azimuth);
+            const cosEl = Math.cos(elevation);
+            const sinEl = Math.sin(elevation);
+
+            function project3D(wx, wy, wz) {
+                const x1 = wx * cosAz - wz * sinAz;
+                const z1 = wx * sinAz + wz * cosAz;
+                const y2 = wy * cosEl - z1 * sinEl;
+                const z2 = wy * sinEl + z1 * cosEl;
+                return { sx: x1, sy: -y2, depth: z2 };
             }
 
-            // 如果在拖拽电荷，高亮显示
-            if (draggedCharge !== null && charges[draggedCharge]) {
-                const c = charges[draggedCharge];
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 3]);
+            // ---- 第三步：将电场线从画布坐标投影到3D屏幕空间（wz=0，平贴在底面上） ----
+            const projectedLines = [];
+            for (const line of allLines) {
+                const projPts = [];
+                for (const p of line.points) {
+                    // 所有点wz=0，即电场线完全贴在z=0平面上
+                    const proj = project3D(p.x - cx, p.y - cy, 0);
+                    proj.sx += cx;
+                    proj.sy += cy;
+                    projPts.push(proj);
+                }
+                projectedLines.push({ points: projPts, chargeQ: line.chargeQ });
+            }
+
+            // ---- 第四步：收集所有线段并按深度排序（画家算法） ----
+            const segments = [];
+            for (const line of projectedLines) {
+                const pts = line.points;
+                for (let i = 0; i < pts.length - 1; i++) {
+                    const a = pts[i];
+                    const b = pts[i + 1];
+                    const avgDepth = (a.depth + b.depth) / 2;
+                    segments.push({
+                        x1: a.sx, y1: a.sy,
+                        x2: b.sx, y2: b.sy,
+                        depth: avgDepth,
+                        chargeQ: line.chargeQ
+                    });
+                }
+            }
+            segments.sort((a, b) => a.depth - b.depth);
+
+            // ---- 第五步：绘制参考底面网格（z=0平面） ----
+            ctx.strokeStyle = 'rgba(60,60,90,0.2)';
+            ctx.lineWidth = 0.5;
+            const gridStep = 50;
+            for (let g = gridStep; g < Math.max(w, h); g += gridStep) {
+                if (g <= w) {
+                    const p1 = project3D(g - cx, 0 - cy, 0);
+                    const p2 = project3D(g - cx, h - cy, 0);
+                    ctx.beginPath();
+                    ctx.moveTo(p1.sx + cx, p1.sy + cy);
+                    ctx.lineTo(p2.sx + cx, p2.sy + cy);
+                    ctx.stroke();
+                }
+                if (g <= h) {
+                    const p1 = project3D(0 - cx, g - cy, 0);
+                    const p2 = project3D(w - cx, g - cy, 0);
+                    ctx.beginPath();
+                    ctx.moveTo(p1.sx + cx, p1.sy + cy);
+                    ctx.lineTo(p2.sx + cx, p2.sy + cy);
+                    ctx.stroke();
+                }
+            }
+
+            // ---- 第六步：绘制3D电场线（远→近），颜色根据源电荷 ----
+            for (const seg of segments) {
+                // 颜色：正电荷→暖金，负电荷→冷蓝
+                const isPositive = seg.chargeQ > 0;
+                const r = isPositive ? 255 : 80;
+                const g = isPositive ? 180 : 160;
+                const b = isPositive ? 50 : 255;
+                // 深度雾化
+                const depthFade = 0.35 + 0.65 / (1 + Math.exp((seg.depth - 120) / 80));
+                ctx.strokeStyle = `rgba(${r},${g},${b},${depthFade.toFixed(2)})`;
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
-                ctx.arc(c.x, c.y, CHARGE_RADIUS + 5, 0, Math.PI * 2);
+                ctx.moveTo(seg.x1, seg.y1);
+                ctx.lineTo(seg.x2, seg.y2);
                 ctx.stroke();
-                ctx.setLineDash([]);
+            }
+
+            // ---- 第七步：收集并绘制方向箭头（沿电场线等距放置） ----
+            for (const line of projectedLines) {
+                const pts = line.points;
+                const arrowInterval = Math.max(10, Math.floor(pts.length / 5));
+                const isPositive = line.chargeQ > 0;
+                const colR = isPositive ? 255 : 80;
+                const colG = isPositive ? 200 : 180;
+                const colB = isPositive ? 60 : 255;
+                for (let i = arrowInterval; i < pts.length - 2; i += arrowInterval) {
+                    const a = pts[i];
+                    const b = pts[Math.min(i + 3, pts.length - 1)];
+                    const angle = Math.atan2(b.sy - a.sy, b.sx - a.sx);
+                    const tipLen = 5;
+                    ctx.fillStyle = `rgba(${colR},${colG},${colB},0.8)`;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        a.sx + tipLen * 0.5 * Math.cos(angle),
+                        a.sy + tipLen * 0.5 * Math.sin(angle)
+                    );
+                    ctx.lineTo(
+                        a.sx - tipLen * Math.cos(angle - 0.55),
+                        a.sy - tipLen * Math.sin(angle - 0.55)
+                    );
+                    ctx.lineTo(
+                        a.sx - tipLen * Math.cos(angle + 0.55),
+                        a.sy - tipLen * Math.sin(angle + 0.55)
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+
+            // ---- 第八步：在3D空间绘制电荷（wz=0平面） ----
+            for (const c of charges) {
+                const proj = project3D(c.x - cx, c.y - cy, 0);
+                const sx = proj.sx + cx;
+                const sy = proj.sy + cy;
+
+                // 外发光
+                const glowGrad = ctx.createRadialGradient(sx, sy, 2, sx, sy, 16);
+                if (c.q > 0) {
+                    glowGrad.addColorStop(0, 'rgba(255,180,80,0.9)');
+                    glowGrad.addColorStop(0.4, 'rgba(255,70,30,0.35)');
+                    glowGrad.addColorStop(1, 'rgba(255,70,30,0)');
+                } else {
+                    glowGrad.addColorStop(0, 'rgba(130,190,255,0.9)');
+                    glowGrad.addColorStop(0.4, 'rgba(40,110,255,0.35)');
+                    glowGrad.addColorStop(1, 'rgba(40,110,255,0)');
+                }
+                ctx.fillStyle = glowGrad;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 球体主体
+                const bodyGrad = ctx.createRadialGradient(sx - 2, sy - 2, 1, sx, sy, 7);
+                if (c.q > 0) {
+                    bodyGrad.addColorStop(0, '#ffccaa');
+                    bodyGrad.addColorStop(0.5, '#ff5530');
+                    bodyGrad.addColorStop(1, '#aa2000');
+                } else {
+                    bodyGrad.addColorStop(0, '#ccddff');
+                    bodyGrad.addColorStop(0.5, '#4080ff');
+                    bodyGrad.addColorStop(1, '#0030aa');
+                }
+                ctx.fillStyle = bodyGrad;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 电荷符号
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 13px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(c.q > 0 ? '+' : '−', sx, sy);
+
+                // 名称标签
+                if (c.name) {
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.font = 'bold 10px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+                    ctx.fillText(c.name, sx, sy - 15);
+                }
+            }
+
+            // 提示
+            ctx.fillStyle = 'rgba(200,200,220,0.5)';
+            ctx.font = '11px "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('拖拽旋转视角 | 电场线平贴于底面 → 3D透视观察 | 暖色线=正电荷 冷色线=负电荷',
+                cx, h - 10);
+        }
+
+        // ==================== 主渲染循环 ====================
+        const threeContainer = document.getElementById('threeContainer');
+        let lastMode = mode;
+
+        function render() {
+            // ---- 模式切换：管理Canvas 2D 与 Three.js WebGL 的显隐 ----
+            if (mode !== lastMode) {
+                if (mode === 'fieldlines3d') {
+                    // 进入3D电场线模式：隐藏2D画布，显示Three.js
+                    canvas.style.display = 'none';
+                    threeContainer.style.display = 'block';
+                    initThreeJS();
+                    resizeThreeJS();
+                    threeJSDirty = true;
+                } else if (lastMode === 'fieldlines3d') {
+                    // 离开3D电场线模式：显示2D画布，隐藏Three.js
+                    canvas.style.display = 'block';
+                    threeContainer.style.display = 'none';
+                    disposeThreeJS();
+                }
+                lastMode = mode;
+            }
+
+            if (mode === 'fieldlines3d') {
+                // ---- Three.js 3D 电场线渲染 ----
+                if (threeJSDirty) {
+                    rebuildThreeJSScene();
+                    threeJSDirty = false;
+                }
+                // 拖拽电荷时更新电荷球位置（无需重建电场线）
+                if (draggedCharge !== null && charges[draggedCharge] && threeChargeSpheres) {
+                    updateChargeSpherePosition(draggedCharge);
+                }
+                renderThreeJS();
+            } else {
+                // ---- Canvas 2D 渲染（原有四种模式） ----
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                switch (mode) {
+                    case 'fieldlines':
+                        renderFieldLines(ctx, w, h);
+                        break;
+                    case 'vectors':
+                        renderVectorField(ctx, w, h);
+                        break;
+                    case 'equipotential':
+                        renderEquipotential(ctx, w, h);
+                        break;
+                    case 'surface3d':
+                        render3DSurface(ctx, w, h);
+                        break;
+                }
+
+                if (mode !== 'surface3d') {
+                    renderCharges(ctx);
+                }
+
+                if (draggedCharge !== null && charges[draggedCharge]) {
+                    const c = charges[draggedCharge];
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 3]);
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, CHARGE_RADIUS + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
             }
 
             // 更新实时数据面板
@@ -1493,6 +1753,340 @@
             time += 0.016;
             animFrameId = requestAnimationFrame(render);
         }
+
+        // ============================================================
+        //  Three.js 3D 电场线引擎
+        //  电场线从电荷球面沿所有3D方向（斐波那契球面分布）发出
+        //  在三维空间中基于库仑定律追踪，正电荷→暖金色，负电荷→冷蓝色
+        // ============================================================
+
+        // ---- Three.js 核心对象 ----
+        let threeJSDirty = true;
+        let threeRenderer = null;
+        let threeScene = null;
+        let threeCamera = null;
+        let threeControls = null;
+        let threeChargeGroup = null;
+        let threeFieldLineGroup = null;
+        let threeChargeSpheres = []; // { mesh, glowSprite } 数组
+
+        // ---- 3D坐标系参数 ----
+        const K_3D = 6000; // 3D空间中的库仑常数
+        const SMOOTHING_3D = 300; // 3D平滑参数（防奇点）
+        const STEP_3D = 4; // 3D追踪步长
+        const MAX_STEPS_3D = 500; // 最大步数
+        const MIN_FIELD_3D = 0.002; // 最小场强阈值
+        const MAX_RADIUS_3D = 700; // 最大追踪距离
+        const CHARGE_R_3D = 10; // 3D电荷球体半径
+        const SEEDS_PER_UNIT = 20; // 每单位电荷的种子点数（斐波那契球面）
+
+        // ---- 坐标转换：Canvas 2D → Three.js 3D ----
+        function canvasToThree(cx, cy) {
+            // Canvas: x=[0,w], y=[0,h] (y↓)
+            // Three.js: X→右, Y→上, Z→前
+            // 电荷平铺在 Three.js 的 XZ 平面上（水平面），Y 轴朝上
+            const w = canvas.logicalWidth || 900;
+            const h = canvas.logicalHeight || 600;
+            return {
+                x: cx - w / 2,
+                y: 0,
+                z: -(cy - h / 2)
+            };
+        }
+
+        // ---- 斐波那契球面：在单位球面上均匀分布N个点 ----
+        function fibonacciSphere(n) {
+            const points = [];
+            const phi = Math.PI * (3 - Math.sqrt(5));
+            for (let i = 0; i < n; i++) {
+                const y = 1 - (i / (n - 1)) * 2;
+                const radiusAtY = Math.sqrt(1 - y * y);
+                const theta = phi * i;
+                points.push({
+                    x: Math.cos(theta) * radiusAtY,
+                    y: y,
+                    z: Math.sin(theta) * radiusAtY
+                });
+            }
+            return points;
+        }
+
+        // ---- 3D电场计算 ----
+        function electricField3D(x, y, z) {
+            let ex = 0, ey = 0, ez = 0;
+            for (const c of charges) {
+                const c3 = canvasToThree(c.x, c.y);
+                const dx = x - c3.x;
+                const dy = y - c3.y;
+                const dz = z - c3.z;
+                const r2 = dx * dx + dy * dy + dz * dz;
+                const r2s = r2 + SMOOTHING_3D;
+                const r = Math.sqrt(r2s);
+                const factor = K_3D * c.q / (r2s * r);
+                ex += factor * dx;
+                ey += factor * dy;
+                ez += factor * dz;
+            }
+            const mag = Math.sqrt(ex * ex + ey * ey + ez * ez);
+            return { ex, ey, ez, mag };
+        }
+
+        // ---- 3D电场线追踪 ----
+        function traceFieldLine3D(startX, startY, startZ, directionSign) {
+            const pts = [];
+            let x = startX, y = startY, z = startZ;
+            for (let i = 0; i < MAX_STEPS_3D; i++) {
+                const { ex, ey, ez, mag } = electricField3D(x, y, z);
+                if (mag < MIN_FIELD_3D) break;
+                const ds = directionSign * STEP_3D;
+                x += (ex / mag) * ds;
+                y += (ey / mag) * ds;
+                z += (ez / mag) * ds;
+                const dist = Math.sqrt(x * x + y * y + z * z);
+                if (dist > MAX_RADIUS_3D) break;
+                // 检查是否被异号电荷吸收
+                let absorbed = false;
+                for (const c of charges) {
+                    const c3 = canvasToThree(c.x, c.y);
+                    const dx2 = x - c3.x, dy2 = y - c3.y, dz2 = z - c3.z;
+                    const d = Math.sqrt(dx2 * dx2 + dy2 * dy2 + dz2 * dz2);
+                    if (d < CHARGE_R_3D + 4) {
+                        if ((directionSign > 0 && c.q < 0) || (directionSign < 0 && c.q > 0)) {
+                            pts.push(new THREE.Vector3(c3.x, c3.y, c3.z));
+                            absorbed = true;
+                            break;
+                        }
+                    }
+                }
+                if (absorbed) break;
+                pts.push(new THREE.Vector3(x, y, z));
+            }
+            return pts;
+        }
+
+        // ---- Three.js 初始化 ----
+        function initThreeJS() {
+            if (threeRenderer) return; // 已初始化
+
+            const container = document.getElementById('threeContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            threeRenderer.setSize(w, h);
+            threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            threeRenderer.setClearColor(0x08081a, 1);
+            container.appendChild(threeRenderer.domElement);
+
+            threeScene = new THREE.Scene();
+
+            threeCamera = new THREE.PerspectiveCamera(50, w / h, 10, 3000);
+            threeCamera.position.set(350, 280, 550);
+            threeCamera.lookAt(0, 0, 0);
+
+            threeControls = new OrbitControls(threeCamera, threeRenderer.domElement);
+            threeControls.enableDamping = true;
+            threeControls.dampingFactor = 0.12;
+            threeControls.target.set(0, 0, 0);
+            threeControls.update();
+
+            // 光照
+            const ambientLight = new THREE.AmbientLight(0x333355, 3);
+            threeScene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+            dirLight.position.set(1, 1, 1);
+            threeScene.add(dirLight);
+
+            // 参考网格（XZ平面）
+            const gridHelper = new THREE.PolarGridHelper(400, 32, 24, 64, 0x3a3a60, 0x2a2a45);
+            threeScene.add(gridHelper);
+
+            // 电荷容器
+            threeChargeGroup = new THREE.Group();
+            threeScene.add(threeChargeGroup);
+
+            // 电场线容器
+            threeFieldLineGroup = new THREE.Group();
+            threeScene.add(threeFieldLineGroup);
+
+            // 环境星点（装饰）
+            const starsGeo = new THREE.BufferGeometry();
+            const starsCount = 300;
+            const starsPos = new Float32Array(starsCount * 3);
+            for (let i = 0; i < starsCount; i++) {
+                starsPos[i * 3] = (Math.random() - 0.5) * 1600;
+                starsPos[i * 3 + 1] = (Math.random() - 0.5) * 800;
+                starsPos[i * 3 + 2] = (Math.random() - 0.5) * 1000;
+            }
+            starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
+            const starsMat = new THREE.PointsMaterial({ color: 0x6666aa, size: 1.5, transparent: true, opacity: 0.6 });
+            threeScene.add(new THREE.Points(starsGeo, starsMat));
+        }
+
+        function resizeThreeJS() {
+            if (!threeRenderer) return;
+            const container = document.getElementById('threeContainer');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            if (w > 0 && h > 0) {
+                threeCamera.aspect = w / h;
+                threeCamera.updateProjectionMatrix();
+                threeRenderer.setSize(w, h);
+            }
+        }
+
+        function disposeThreeJS() {
+            if (!threeRenderer) return;
+            // 清除电场线
+            while (threeFieldLineGroup.children.length > 0) {
+                const child = threeFieldLineGroup.children[0];
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) child.material.dispose();
+                threeFieldLineGroup.remove(child);
+            }
+            // 清除电荷
+            threeChargeSpheres = [];
+            while (threeChargeGroup.children.length > 0) {
+                const child = threeChargeGroup.children[0];
+                if (child.geometry) child.geometry.dispose();
+                if (child.material) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(m => m.dispose());
+                    } else {
+                        child.material.dispose();
+                    }
+                }
+                threeChargeGroup.remove(child);
+            }
+        }
+
+        // ---- 重建3D场景 ----
+        function rebuildThreeJSScene() {
+            if (!threeScene) return;
+            disposeThreeJS();
+
+            // 重建电荷球体
+            threeChargeSpheres = [];
+            for (const c of charges) {
+                const pos = canvasToThree(c.x, c.y);
+                const color = c.q > 0 ? 0xff5530 : 0x4080ff;
+                const emissive = c.q > 0 ? 0x992000 : 0x002099;
+
+                // 主体球
+                const sphereGeo = new THREE.SphereGeometry(CHARGE_R_3D, 32, 32);
+                const sphereMat = new THREE.MeshStandardMaterial({
+                    color: color,
+                    emissive: emissive,
+                    roughness: 0.3,
+                    metalness: 0.1
+                });
+                const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+                sphere.position.set(pos.x, pos.y, pos.z);
+                threeChargeGroup.add(sphere);
+
+                // 发光光晕(Sprite)
+                const glowTex = createGlowTexture(c.q > 0 ? '#ff4422' : '#4488ff');
+                const glowMat = new THREE.SpriteMaterial({
+                    map: glowTex,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    transparent: true,
+                    opacity: 0.7
+                });
+                const glowSprite = new THREE.Sprite(glowMat);
+                glowSprite.scale.set(50, 50, 1);
+                glowSprite.position.copy(sphere.position);
+                threeChargeGroup.add(glowSprite);
+
+                threeChargeSpheres.push({ sphere, glowSprite });
+            }
+
+            if (charges.length === 0) return;
+
+            // 重建3D电场线
+            for (let ci = 0; ci < charges.length; ci++) {
+                const c = charges[ci];
+                const nSeeds = Math.max(10, Math.round(Math.abs(c.q) * SEEDS_PER_UNIT));
+                const seeds = fibonacciSphere(nSeeds);
+                const directionSign = c.q > 0 ? 1 : -1;
+                const pos3 = canvasToThree(c.x, c.y);
+                const lineColor = c.q > 0 ? 0xffaa33 : 0x55aaff;
+
+                for (const seed of seeds) {
+                    const startX = pos3.x + seed.x * (CHARGE_R_3D + 3);
+                    const startY = pos3.y + seed.y * (CHARGE_R_3D + 3);
+                    const startZ = pos3.z + seed.z * (CHARGE_R_3D + 3);
+                    const pts3D = traceFieldLine3D(startX, startY, startZ, directionSign);
+                    if (pts3D.length < 2) continue;
+
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts3D);
+                    // 使用顶点颜色：从电荷色渐变为半透明
+                    const colors = new Float32Array(pts3D.length * 3);
+                    const baseColor = new THREE.Color(lineColor);
+                    for (let j = 0; j < pts3D.length; j++) {
+                        const t = j / pts3D.length;
+                        const fade = 1 - t * 0.7;
+                        colors[j * 3] = baseColor.r * fade;
+                        colors[j * 3 + 1] = baseColor.g * fade;
+                        colors[j * 3 + 2] = baseColor.b * fade;
+                    }
+                    lineGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                    const lineMat = new THREE.LineBasicMaterial({
+                        vertexColors: true,
+                        transparent: true,
+                        opacity: 0.75,
+                        depthWrite: true
+                    });
+                    const lineObj = new THREE.Line(lineGeo, lineMat);
+                    threeFieldLineGroup.add(lineObj);
+                }
+            }
+        }
+
+        // ---- 拖拽时实时更新电荷球位置 ----
+        function updateChargeSpherePosition(index) {
+            if (!threeChargeSpheres[index]) return;
+            const c = charges[index];
+            const pos = canvasToThree(c.x, c.y);
+            threeChargeSpheres[index].sphere.position.set(pos.x, pos.y, pos.z);
+            threeChargeSpheres[index].glowSprite.position.copy(threeChargeSpheres[index].sphere.position);
+        }
+
+        // ---- 渲染一帧 ----
+        function renderThreeJS() {
+            if (!threeRenderer || !threeScene || !threeCamera) return;
+            threeControls.update();
+            threeRenderer.render(threeScene, threeCamera);
+        }
+
+        // ---- 生成发光纹理（Canvas离屏绘制） ----
+        function createGlowTexture(colorStr) {
+            const size = 64;
+            const half = size / 2;
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = size;
+            offCanvas.height = size;
+            const octx = offCanvas.getContext('2d');
+            const gradient = octx.createRadialGradient(half, half, 1, half, half, half);
+            gradient.addColorStop(0, colorStr);
+            gradient.addColorStop(0.2, colorStr);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            octx.fillStyle = gradient;
+            octx.fillRect(0, 0, size, size);
+            const tex = new THREE.CanvasTexture(offCanvas);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        // ---- 窗口大小响应 ----
+        window.addEventListener('resize', () => {
+            if (mode === 'fieldlines3d') {
+                resizeThreeJS();
+            }
+        });
+
+        // 在3D模式下，画布的mousemove需要映射到Three.js的交互
+        // 但Three.js的OrbitControls已经处理了鼠标交互，无需额外处理
 
         // ==================== 实时数据面板更新 ====================
         function updateDataPanel() {
@@ -1593,8 +2187,8 @@
             const x = pos.x;
             const y = pos.y;
 
-            // 3D模式：拖拽旋转
-            if (mode === 'surface3d') {
+            // 3D模式（势能面 / 3D电场线）：支持拖拽旋转视角
+            if (mode === 'surface3d' || mode === 'fieldlines3d') {
                 // 检查是否点击到了电荷
                 for (let i = charges.length - 1; i >= 0; i--) {
                     const c = charges[i];
@@ -1620,6 +2214,7 @@
                 if (e.button === 2) {
                     e.preventDefault();
                     charges.push(new Charge(x, y, newChargeQ < 0 ? newChargeQ : -Math.abs(newChargeQ)));
+                    threeJSDirty = true;
                     return;
                 }
                 // 否则为3D旋转
@@ -1657,10 +2252,12 @@
             if (e.button === 0) {
                 // 左键：正电荷
                 charges.push(new Charge(x, y, newChargeQ > 0 ? newChargeQ : Math.abs(newChargeQ)));
+                threeJSDirty = true;
             } else if (e.button === 2) {
                 // 右键：负电荷
                 e.preventDefault();
                 charges.push(new Charge(x, y, newChargeQ < 0 ? newChargeQ : -Math.abs(newChargeQ)));
+                threeJSDirty = true;
             }
         });
 
@@ -1697,6 +2294,7 @@
                 isDragging = false;
                 draggedCharge = null;
                 wrapper.classList.remove('dragging');
+                threeJSDirty = true; // 拖拽结束，重建电场线
             }
             if (is3DRotating) {
                 is3DRotating = false;
@@ -1709,6 +2307,7 @@
                 isDragging = false;
                 draggedCharge = null;
                 wrapper.classList.remove('dragging');
+                threeJSDirty = true;
             }
             if (is3DRotating) {
                 is3DRotating = false;
@@ -1792,6 +2391,7 @@
             } else if (action === 'delete') {
                 if (chargeIdx >= 0 && charges[chargeIdx]) {
                     charges.splice(chargeIdx, 1);
+                    threeJSDirty = true;
                 }
                 hideContextMenu();
             }
@@ -1849,6 +2449,7 @@
             const absQ = parseFloat(editChargeSlider.value);
             if (idx !== undefined && idx >= 0 && charges[idx] && absQ > 0) {
                 charges[idx].q = editTempPolarity ? absQ : -absQ;
+                threeJSDirty = true;
             }
             editChargeDialog.classList.remove('visible');
             editChargeDialog._chargeIndex = -1;
@@ -1905,6 +2506,7 @@
                 const dy = pos.y - c.y;
                 if (Math.sqrt(dx * dx + dy * dy) < CHARGE_RADIUS + 5) {
                     charges.splice(i, 1);
+                    threeJSDirty = true;
                     return;
                 }
             }
@@ -1964,7 +2566,8 @@
                 'fieldlines': '电场线模式',
                 'vectors': '矢量场模式',
                 'equipotential': '等势线模式',
-                'surface3d': '3D 势能面模式'
+                'surface3d': '3D 势能面模式',
+                'fieldlines3d': '3D 电场线模式'
             };
             modeIndicator.textContent = modeNames[mode] || '';
 
@@ -2015,6 +2618,7 @@
                     charges.push(new Charge(cx, cy, -8, '负电荷'));
                     break;
             }
+            threeJSDirty = true;
         });
 
         // 电量滑块
@@ -2040,6 +2644,7 @@
         document.getElementById('clearBtn').addEventListener('click', () => {
             charges = [];
             surfaceGridRes = 50;
+            threeJSDirty = true;
         });
 
         // 重置按钮
@@ -2050,6 +2655,7 @@
                 new Charge(cx - 120, cy, 5, '正电荷A'),
                 new Charge(cx + 120, cy, -5, '负电荷B')
             ];
+            threeJSDirty = true;
             newChargeQ = 5;
             linesPerUnit = 8;
             vectorScale = 1;
@@ -2070,6 +2676,7 @@
             vectorScaleGroup.style.display = 'none';
             // 重新显示操作提示
             document.getElementById('hintOverlay').classList.remove('hint-fade');
+            initThreeJS(); // 预初始化Three.js
         });
 
         // ==================== 键盘快捷键 ====================
@@ -2087,9 +2694,13 @@
                 case '4':
                     mode = 'surface3d';
                     break;
+                case '5':
+                    mode = 'fieldlines3d';
+                    break;
                 case 'c':
                     charges = [];
                     surfaceGridRes = 50;
+                    threeJSDirty = true;
                     break;
                 case 'r':
                     document.getElementById('resetBtn').click();
@@ -2105,7 +2716,8 @@
                 'fieldlines': '电场线模式',
                 'vectors': '矢量场模式',
                 'equipotential': '等势线模式',
-                'surface3d': '3D 势能面模式'
+                'surface3d': '3D 势能面模式',
+                'fieldlines3d': '3D 电场线模式'
             };
             modeIndicator.textContent = modeNames[mode] || '';
             vectorScaleGroup.style.display = (mode === 'vectors') ? 'flex' : 'none';
@@ -2124,6 +2736,7 @@
                 new Charge(cx - 120, cy, 5, '正电荷A'),
                 new Charge(cx + 120, cy, -5, '负电荷B')
             ];
+            threeJSDirty = true;
             vectorScaleGroup.style.display = 'none';
             render();
         }
@@ -2131,14 +2744,15 @@
         init();
 
         console.log('⚡ 电场可视化仿真已就绪');
-        console.log('  模式切换: 按键 1/2/3/4');
+        console.log('  模式切换: 按键 1/2/3/4/5');
         console.log('  清除电荷: 按键 C');
         console.log('  重置场景: 按键 R');
-        console.log('  支持四种可视化模式：');
-        console.log('    1. 电场线 - 基于库仑定律的电场线追踪');
+        console.log('  支持五种可视化模式：');
+        console.log('    1. 电场线 - 基于库仑定律的2D电场线追踪');
         console.log('    2. 矢量场 - 显示空间各点的电场矢量');
         console.log('    3. 等势线 - Marching Squares算法绘制等势面');
         console.log('    4. 3D势能面 - 电势的三维曲面可视化');
+        console.log('    5. 3D电场线 - Three.js空间电场线(球面种子点+3D库仑积分)');
     </script>
 </body>
 </html>
