@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三维函数图像生成器 - 微积分学习工具</title>
+<style>
+    :root {
+        --bg: #0c0c1a;
+        --panel-bg: #12122e;
+        --text: #c8c8e0;
+        --text2: #8888b0;
+        --accent: #5b9bd5;
+        --accent2: #e8734a;
+        --border: #2a2a50;
+        --btn-bg: #1a1a3a;
+        --btn-hover: #282858;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        background: var(--bg);
+        font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+        color: var(--text);
+        height: 100vh; overflow: hidden;
+        display: flex; flex-direction: column;
+        user-select: none; -webkit-user-select: none;
+    }
+
+    /* 顶部栏 */
+    .header {
+        background: var(--panel-bg);
+        border-bottom:1px solid var(--border);
+        padding: 8px 20px;
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0; z-index: 10;
+    }
+    .header h1 {
+        font-size: 18px; font-weight: 700;
+        background: linear-gradient(135deg, #5b9bd5, #a78bfa);
+        -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .header .subtitle { font-size:12px; color:var(--text2); margin-left:12px; }
+
+    /* 主体 */
+    .main { display:flex; flex:1; overflow:hidden; }
+
+    /* 3D视口 */
+    .viewport {
+        flex:1; position:relative; cursor:grab; min-width:0;
+    }
+    .viewport:active { cursor:grabbing; }
+    .viewport canvas { display:block; }
+
+    /* 信息叠加 */
+    .info-overlay {
+        position:absolute; top:12px; left:14px;
+        font-size:12px; color:var(--text2);
+        pointer-events:none;
+    }
+    .info-overlay .func-display {
+        font-size:15px; color:#ffcc55; font-weight:600;
+        font-family: 'Consolas','Fira Code','PingFang SC',monospace;
+        margin-bottom:4px;
+    }
+
+    /* 图例条 */
+    .colorbar {
+        position:absolute; right:14px; top:60px; bottom:60px;
+        width:16px; border-radius:8px;
+        pointer-events:none; opacity:0.85;
+    }
+
+    /* 右侧面板 */
+    .panel {
+        width:350px; background:var(--panel-bg);
+        border-left:1px solid var(--border);
+        display:flex; flex-direction:column;
+        flex-shrink:0; overflow-y:auto; overflow-x:hidden;
+        padding:14px 16px; gap:12px; z-index:5;
+    }
+    .panel::-webkit-scrollbar { width:4px; }
+    .panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+    .sec-title {
+        font-size:10px; font-weight:700; letter-spacing:1.5px;
+        color:var(--text2); text-transform:uppercase;
+        padding-bottom:4px; border-bottom:1px solid var(--border);
+    }
+
+    /* 输入区 */
+    .func-input-row {
+        display:flex; gap:6px;
+    }
+    .func-input {
+        flex:1; padding:8px 10px; font-size:14px;
+        background:#0a0a22; border:1px solid var(--border);
+        border-radius:6px; color:#ffcc55;
+        font-family:'Consolas','Fira Code','PingFang SC',monospace;
+        outline:none;
+    }
+    .func-input:focus { border-color:var(--accent); box-shadow:0 0 8px rgba(91,155,213,0.2); }
+    .btn-go {
+        padding:8px 14px; font-size:13px; font-weight:600;
+        background:var(--accent); color:#fff;
+        border:none; border-radius:6px; cursor:pointer;
+        transition: all 0.15s;
+    }
+    .btn-go:hover { filter:brightness(1.15); }
+
+    /* 预设 */
+    .preset-grid {
+        display:grid; grid-template-columns:1fr 1fr; gap:5px;
+    }
+    .preset-btn {
+        padding:7px 8px; font-size:11px;
+        border:1px solid var(--border); border-radius:6px;
+        background:var(--btn-bg); color:var(--text);
+        cursor:pointer; transition:all 0.15s;
+        text-align:left; overflow:hidden;
+        white-space:nowrap; text-overflow:ellipsis;
+    }
+    .preset-btn:hover { background:var(--btn-hover); border-color:var(--accent); }
+    .preset-btn .preset-name { font-weight:600; color:#ffcc55; display:block; font-size:11px; }
+    .preset-btn .preset-fn { font-size:10px; color:var(--text2); display:block; margin-top:1px; }
+
+    /* 滑块 */
+    .slider-group { display:flex; flex-direction:column; gap:3px; }
+    .slider-label { display:flex; justify-content:space-between; font-size:11px; }
+    .slider-label span:last-child { color:var(--accent); font-weight:600; }
+    input[type="range"] {
+        -webkit-appearance:none; width:100%; height:5px;
+        border-radius:3px; background:var(--border); outline:none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance:none; width:16px; height:16px;
+        border-radius:50%; background:var(--accent);
+        cursor:pointer; border:2px solid #fff;
+    }
+
+    /* 开关 */
+    .toggle-row {
+        display:flex; align-items:center; justify-content:space-between;
+        gap:8px; font-size:12px;
+    }
+    .toggle-switch {
+        width:40px; height:22px; border-radius:11px;
+        background:#2a2a50; cursor:pointer; position:relative;
+        transition:background 0.2s; flex-shrink:0;
+    }
+    .toggle-switch.on { background:var(--accent); }
+    .toggle-switch::after {
+        content:''; position:absolute; top:3px; left:3px;
+        width:16px; height:16px; border-radius:50%;
+        background:#fff; transition:left 0.2s;
+    }
+    .toggle-switch.on::after { left:21px; }
+
+    /* 提示 */
+    .tip-text {
+        font-size:10px; color:var(--text2); line-height:1.6;
+    }
+    .tip-text kbd {
+        display:inline-block; background:#1a1a3a;
+        border:1px solid #3a3a60; border-radius:3px;
+        padding:0 4px; font-size:10px; font-family:inherit;
+    }
+
+    @media (max-width:768px) {
+        .main { flex-direction:column; }
+        .panel { width:100%; max-height:38vh; }
+        .viewport { flex:1; min-height:50vh; }
+    }
+</style>
+</head>
+<body>
+
+<header class="header">
+    <div style="display:flex;align-items:baseline;">
+        <h1>📐 三维函数图像生成器</h1>
+        <span class="subtitle">Multivariable Function Visualizer</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+        <span class="badge" style="font-size:10px;padding:3px 10px;border-radius:10px;background:#1a1a3a;border:1px solid var(--border);color:var(--text2);">二重积分</span>
+        <span class="badge" style="font-size:10px;padding:3px 10px;border-radius:10px;background:#1a1a3a;border:1px solid var(--border);color:var(--text2);">三重积分</span>
+        <span class="badge" style="font-size:10px;padding:3px 10px;border-radius:10px;background:#1a1a3a;border:1px solid var(--border);color:var(--text2);">偏导数</span>
+    </div>
+</header>
+
+<div class="main">
+    <!-- 3D视口 -->
+    <div class="viewport" id="viewport">
+        <div class="info-overlay" id="infoOverlay">
+            <div class="func-display" id="funcDisplay">z = x² + y²</div>
+            <div id="coordDisplay">x=0.00  y=0.00  z=0.00</div>
+        </div>
+        <div class="colorbar" id="colorbar"></div>
+    </div>
+
+    <!-- 控制面板 -->
+    <aside class="panel">
+        <div class="sec-title">函数输入 z = f(x, y)</div>
+        <div class="func-input-row">
+            <input class="func-input" id="funcInput" value="x^2 + y^2" placeholder="z = f(x,y)">
+            <button class="btn-go" id="btnGo">绘制</button>
+        </div>
+
+        <div class="sec-title">预设函数</div>
+        <div class="preset-grid" id="presetGrid">
+            <!-- JS动态生成 -->
+        </div>
+
+        <div class="sec-title">X 范围</div>
+        <div class="slider-group">
+            <div class="slider-label"><span>最小值</span><span id="xMinVal">-5</span></div>
+            <input type="range" id="xMinSlider" min="-10" max="0" value="-5" step="0.5">
+        </div>
+        <div class="slider-group">
+            <div class="slider-label"><span>最大值</span><span id="xMaxVal">5</span></div>
+            <input type="range" id="xMaxSlider" min="0" max="10" value="5" step="0.5">
+        </div>
+
+        <div class="sec-title">Y 范围</div>
+        <div class="slider-group">
+            <div class="slider-label"><span>最小值</span><span id="yMinVal">-5</span></div>
+            <input type="range" id="yMinSlider" min="-10" max="0" value="-5" step="0.5">
+        </div>
+        <div class="slider-group">
+            <div class="slider-label"><span>最大值</span><span id="yMaxVal">5</span></div>
+            <input type="range" id="yMaxSlider" min="0" max="10" value="5" step="0.5">
+        </div>
+
+        <div class="sec-title">显示选项</div>
+        <div class="toggle-row">
+            <span>🏔 实体表面</span>
+            <div class="toggle-switch on" id="toggleSolid" data-key="showSolid"></div>
+        </div>
+        <div class="toggle-row">
+            <span>🔗 线框网格</span>
+            <div class="toggle-switch" id="toggleWireframe" data-key="showWireframe"></div>
+        </div>
+        <div class="toggle-row">
+            <span>🫧 等高线投影</span>
+            <div class="toggle-switch on" id="toggleContour" data-key="showContour"></div>
+        </div>
+        <div class="toggle-row">
+            <span>📐 截面曲线</span>
+            <div class="toggle-switch" id="toggleCrossSection" data-key="showCrossSection"></div>
+        </div>
+        <div class="toggle-row">
+            <span>🎯 坐标轴</span>
+            <div class="toggle-switch on" id="toggleAxes" data-key="showAxes"></div>
+        </div>
+        <div class="toggle-row">
+            <span>⬜ 底面参考网格</span>
+            <div class="toggle-switch on" id="toggleGrid" data-key="showGrid"></div>
+        </div>
+        <div class="toggle-row">
+            <span>📐 显示积分区域</span>
+            <div class="toggle-switch on" id="toggleRegion" data-key="showRegion"></div>
+        </div>
+
+        <div class="sec-title">📐 积分区域预设（考试常考）</div>
+        <div class="preset-grid" id="regionPresetGrid">
+            <!-- JS动态生成 -->
+        </div>
+        <div class="tip-text" id="regionTip" style="margin-top:4px;"></div>
+
+        <div class="sec-title">截面位置</div>
+        <div class="slider-group">
+            <div class="slider-label"><span>截面 X = const</span><span id="crossXVal">0</span></div>
+            <input type="range" id="crossXSlider" min="-5" max="5" value="0" step="0.1">
+        </div>
+        <div class="slider-group">
+            <div class="slider-label"><span>截面 Y = const</span><span id="crossYVal">0</span></div>
+            <input type="range" id="crossYSlider" min="-5" max="5" value="0" step="0.1">
+        </div>
+
+        <div class="sec-title">网格精度</div>
+        <div class="slider-group">
+            <div class="slider-label"><span>网格分辨率</span><span id="resVal">60</span></div>
+            <input type="range" id="resSlider" min="20" max="120" value="60" step="5">
+        </div>
+
+        <div class="sec-title">操作提示</div>
+        <div class="tip-text">
+            <kbd>左键拖拽</kbd> 旋转 &nbsp;
+            <kbd>滚轮</kbd> 缩放 &nbsp;
+            <kbd>右键拖拽</kbd> 平移<br>
+            <kbd>Enter</kbd> 绘制函数 &nbsp;
+            <kbd>R</kbd> 重置视角
+        </div>
+    </aside>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ============================================================
+//  三维函数图像生成器
+//  功能：z=f(x,y) 曲面绘制 + 等高线 + 截面曲线 + 可调域范围
+//  适用于：二重积分区域可视化、空间曲面理解、偏导数几何意义
+// ============================================================
+
+// ---- DOM 引用 ----
+const viewport = document.getElementById('viewport');
+const funcInput = document.getElementById('funcInput');
+const funcDisplay = document.getElementById('funcDisplay');
+const coordDisplay = document.getElementById('coordDisplay');
+const colorbar = document.getElementById('colorbar');
+
+// ---- 显示选项状态 ----
+const displayOptions = {
+    showSolid: true,
+    showWireframe: false,
+    showContour: true,
+    showCrossSection: false,
+    showAxes: true,
+    showGrid: true,
+    showRegion: true
+};
+
+// ---- 域范围 ----
+let xMin = -5, xMax = 5;
+let yMin = -5, yMax = 5;
+let gridRes = 60;
+let crossX = 0, crossY = 0;
+
+// ---- Three.js ----
+let renderer, scene, camera, controls;
+let surfaceMesh = null;
+let wireframeMesh = null;
+let contourGroup = null;
+let crossSectionGroup = null;
+let axesGroup = null;
+let gridGroup = null;
+let domainPlane = null;
+let regionGroup = null;
+
+// ---- 当前函数 ----
+let currentFunc = null;
+let currentExpr = 'x^2 + y^2';
+let currentRegion = null;
+
+// ============================================================
+//  函数编译：将用户输入的表达式编译为可调用的函数
+//  支持：sin/cos/tan/exp/log/sqrt/abs/PI/E 及 ^ 幂运算
+// ============================================================
+function compileFunction(expr) {
+    // 替换 ^ 为 **
+    let s = expr.replace(/\^/g, '**');
+    // 为常见数学函数加上 Math. 前缀
+    s = s.replace(/\b(sin|cos|tan|exp|log|sqrt|abs|pow|ceil|floor|round|max|min|PI|E)\b/g, (m) => {
+        if (m === 'PI') return 'Math.PI';
+        if (m === 'E') return 'Math.E';
+        return 'Math.' + m;
+    });
+    // 处理隐式乘法：2x → 2*x, x y → x*y, )( → )*(
+    s = s.replace(/(\d)([xy])/g, '$1*$2');
+    s = s.replace(/([xy])(\d)/g, '$1*$2');
+    s = s.replace(/\)\(/g, ')*(');
+    s = s.replace(/\)([xy\d])/g, ')*$1');
+    s = s.replace(/([xy\d])\(/g, '$1*(');
+    try {
+        return new Function('x', 'y', 'return ' + s + ';');
+    } catch (e) {
+        return null;
+    }
+}
+
+// ============================================================
+//  颜色映射：z值 → RGB（蓝→青→绿→黄→红，类Jet配色）
+//  输入z已归一化到[0,1]
+// ============================================================
+function getColor(t) {
+    t = Math.max(0, Math.min(1, t));
+    let r, g, b;
+    if (t < 0.125) {
+        const s = t / 0.125;
+        r = 0; g = 0; b = 128 + s * 127;
+    } else if (t < 0.375) {
+        const s = (t - 0.125) / 0.25;
+        r = 0; g = s * 255; b = 255;
+    } else if (t < 0.625) {
+        const s = (t - 0.375) / 0.25;
+        r = s * 255; g = 255; b = 255 - s * 255;
+    } else if (t < 0.875) {
+        const s = (t - 0.625) / 0.25;
+        r = 255; g = 255 - s * 255; b = 0;
+    } else {
+        const s = (t - 0.875) / 0.125;
+        r = 255 - s * 127; g = 0; b = 0;
+    }
+    return new THREE.Color(r / 255, g / 255, b / 255);
+}
+
+// ============================================================
+//  生成曲面几何体
+//  在 [xMin,xMax]×[yMin,yMax] 网格上采样 z=f(x,y)
+//  每个网格单元生成两个三角形，逐顶点着色
+// ============================================================
+function buildSurfaceGeometry() {
+    if (!currentFunc) return null;
+
+    const nx = gridRes;
+    const ny = gridRes;
+    const dx = (xMax - xMin) / (nx - 1);
+    const dy = (yMax - yMin) / (ny - 1);
+
+    // 顶点数组：位置 + 颜色
+    const vertices = [];
+    const colors = [];
+    let zMinAll = Infinity, zMaxAll = -Infinity;
+
+    // 第一遍：采样所有z值以确定颜色映射范围
+    const zGrid = [];
+    for (let i = 0; i < nx; i++) {
+        const row = [];
+        const x = xMin + i * dx;
+        for (let j = 0; j < ny; j++) {
+            const y = yMin + j * dy;
+            let z;
+            try { z = currentFunc(x, y); } catch (e) { z = NaN; }
+            if (isNaN(z) || !isFinite(z)) z = 0;
+            row.push(z);
+            if (z < zMinAll) zMinAll = z;
+            if (z > zMaxAll) zMaxAll = z;
+        }
+        zGrid.push(row);
+    }
+
+    const zRange = zMaxAll - zMinAll || 1;
+
+    // 第二遍：构建顶点和颜色
+    for (let i = 0; i < nx; i++) {
+        const x = xMin + i * dx;
+        for (let j = 0; j < ny; j++) {
+            const y = yMin + j * dy;
+            const z = zGrid[i][j];
+            // Three.js 坐标系: X=mathX, Y=mathZ(高度), Z=mathY(深度)
+            vertices.push(x, z, y);
+            const t = (z - zMinAll) / zRange;
+            const col = getColor(t);
+            colors.push(col.r, col.g, col.b);
+        }
+    }
+
+    // 索引数组：每个格子两个三角形
+    const indices = [];
+    for (let i = 0; i < nx - 1; i++) {
+        for (let j = 0; j < ny - 1; j++) {
+            const a = i * ny + j;
+            const b = a + 1;
+            const c = a + ny;
+            const d = c + 1;
+            indices.push(a, b, d);
+            indices.push(a, d, c);
+        }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    return { geometry: geo, zMin: zMinAll, zMax: zMaxAll };
+}
+
+// ============================================================
+//  构建线框几何体（与曲面共用顶点）
+// ============================================================
+function buildWireframeGeometry(surfaceGeo) {
+    if (!surfaceGeo) return null;
+    const wireGeo = new THREE.WireframeGeometry(surfaceGeo, 1);
+    return wireGeo;
+}
+
+// ============================================================
+//  构建等高线（在z=zMin底面上投影）
+//  使用简化的Marching Squares在XZ平面绘制等值线
+// ============================================================
+function buildContourLines(zMin, zMax) {
+    if (!currentFunc) return null;
+    const group = new THREE.Group();
+
+    const zRange = zMax - zMin || 1;
+    const nLevels = 15;
+    const levels = [];
+    for (let k = 0; k < nLevels; k++) {
+        levels.push(zMin + zRange * (k + 0.5) / nLevels);
+    }
+
+    const cRes = 80;
+    const dx = (xMax - xMin) / cRes;
+    const dy = (yMax - yMin) / cRes;
+
+    // 采样z值
+    const zGrid = [];
+    for (let i = 0; i <= cRes; i++) {
+        const row = [];
+        const x = xMin + i * dx;
+        for (let j = 0; j <= cRes; j++) {
+            const y = yMin + j * dy;
+            let z;
+            try { z = currentFunc(x, y); } catch (e) { z = NaN; }
+            if (isNaN(z) || !isFinite(z)) z = zMin;
+            row.push(z);
+        }
+        zGrid.push(row);
+    }
+
+    for (const level of levels) {
+        const pts = [];
+        for (let i = 0; i < cRes; i++) {
+            for (let j = 0; j < cRes; j++) {
+                const v00 = zGrid[i][j];
+                const v10 = zGrid[i + 1][j];
+                const v11 = zGrid[i + 1][j + 1];
+                const v01 = zGrid[i][j + 1];
+
+                const b = (v00 > level ? 1 : 0) | (v10 > level ? 2 : 0) |
+                         (v11 > level ? 4 : 0) | (v01 > level ? 8 : 0);
+                if (b === 0 || b === 15) continue;
+
+                const ix = (vA, vB, pA, pB) => {
+                    if (Math.abs(vB - vA) < 1e-10) return (pA + pB) / 2;
+                    return pA + (pB - pA) * (level - vA) / (vB - vA);
+                };
+
+                const x0 = xMin + i * dx, x1 = xMin + (i + 1) * dx;
+                const y0 = yMin + j * dy, y1 = yMin + (j + 1) * dy;
+
+                const top = ix(v00, v10, x0, x1);
+                const bottom = ix(v01, v11, x0, x1);
+                const left = ix(v00, v01, y0, y1);
+                const right = ix(v10, v11, y0, y1);
+
+                const addSeg = (ax, ay, bx, by) => {
+                    pts.push(new THREE.Vector3(ax, zMin - 0.02, ay));
+                    pts.push(new THREE.Vector3(bx, zMin - 0.02, by));
+                };
+
+                switch (b) {
+                    case 1: case 14: addSeg(x0, left, top, y0); break;
+                    case 2: case 13: addSeg(top, y0, x1, right); break;
+                    case 3: case 12: addSeg(x0, left, x1, right); break;
+                    case 4: case 11: addSeg(x1, right, bottom, y1); break;
+                    case 5: addSeg(x0, left, top, y0); addSeg(x1, right, bottom, y1); break;
+                    case 6: case 9: addSeg(top, y0, bottom, y1); break;
+                    case 7: case 8: addSeg(x0, left, bottom, y1); break;
+                    case 10: addSeg(top, y0, x1, right); addSeg(x0, left, bottom, y1); break;
+                }
+            }
+        }
+        if (pts.length >= 2) {
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+            const lineMat = new THREE.LineBasicMaterial({
+                color: 0x44aa88, transparent: true, opacity: 0.5, depthTest: true
+            });
+            group.add(new THREE.LineSegments(lineGeo, lineMat));
+        }
+    }
+    return group;
+}
+
+// ============================================================
+//  构建截面曲线（x=const 和 y=const 的曲线）
+// ============================================================
+function buildCrossSections(zMin) {
+    if (!currentFunc) return null;
+    const group = new THREE.Group();
+    const nPts = 200;
+
+    // X = crossX 截面（沿Y方向）
+    {
+        const pts = [];
+        const dy = (yMax - yMin) / nPts;
+        for (let j = 0; j <= nPts; j++) {
+            const y = yMin + j * dy;
+            let z;
+            try { z = currentFunc(crossX, y); } catch (e) { z = NaN; }
+            if (isNaN(z) || !isFinite(z)) z = zMin;
+            pts.push(new THREE.Vector3(crossX, z, y));
+        }
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color: 0xffaa00, linewidth: 2, depthTest: true });
+        group.add(new THREE.Line(geo, mat));
+    }
+
+    // Y = crossY 截面（沿X方向）
+    {
+        const pts = [];
+        const dx = (xMax - xMin) / nPts;
+        for (let i = 0; i <= nPts; i++) {
+            const x = xMin + i * dx;
+            let z;
+            try { z = currentFunc(x, crossY); } catch (e) { z = NaN; }
+            if (isNaN(z) || !isFinite(z)) z = zMin;
+            pts.push(new THREE.Vector3(x, z, crossY));
+        }
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color: 0xff66cc, linewidth: 2, depthTest: true });
+        group.add(new THREE.Line(geo, mat));
+    }
+
+    return group;
+}
+
+// ============================================================
+//  构建坐标轴
+// ============================================================
+function buildAxes() {
+    const group = new THREE.Group();
+    const len = 6.5;
+    const origin = new THREE.Vector3(0, 0, 0);
+
+    const makeAxis = (dir, color, label) => {
+        const pts = [origin.clone(), dir.clone().multiplyScalar(len)];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color, linewidth: 1 });
+        group.add(new THREE.Line(geo, mat));
+        // 反向延长
+        const pts2 = [origin.clone(), dir.clone().multiplyScalar(-len * 0.4)];
+        const geo2 = new THREE.BufferGeometry().setFromPoints(pts2);
+        const mat2 = new THREE.LineBasicMaterial({ color, linewidth: 1, transparent: true, opacity: 0.4 });
+        group.add(new THREE.Line(geo2, mat2));
+    };
+
+    makeAxis(new THREE.Vector3(1, 0, 0), 0xff4444, 'X');
+    makeAxis(new THREE.Vector3(0, 1, 0), 0x44ff44, 'Z');
+    makeAxis(new THREE.Vector3(0, 0, 1), 0x4488ff, 'Y');
+
+    return group;
+}
+
+// ============================================================
+//  构建底面参考网格
+// ============================================================
+function buildBaseGrid(zMin) {
+    const group = new THREE.Group();
+    const yBase = zMin - 0.05;
+    const step = 0.5;
+    const range = 6;
+
+    const makeLine = (x1, z1, x2, z2) => {
+        const pts = [
+            new THREE.Vector3(x1, yBase, z1),
+            new THREE.Vector3(x2, yBase, z2)
+        ];
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const mat = new THREE.LineBasicMaterial({ color: 0x3a3a60, transparent: true, opacity: 0.4 });
+        return new THREE.Line(geo, mat);
+    };
+
+    for (let v = -range; v <= range; v += step) {
+        group.add(makeLine(v, -range, v, range));
+        group.add(makeLine(-range, v, range, v));
+    }
+
+    // 域范围高亮矩形
+    const rectPts = [
+        new THREE.Vector3(xMin, yBase, yMin),
+        new THREE.Vector3(xMax, yBase, yMin),
+        new THREE.Vector3(xMax, yBase, yMax),
+        new THREE.Vector3(xMin, yBase, yMax),
+        new THREE.Vector3(xMin, yBase, yMin),
+    ];
+    const rectGeo = new THREE.BufferGeometry().setFromPoints(rectPts);
+    const rectMat = new THREE.LineBasicMaterial({ color: 0x8899cc, transparent: true, opacity: 0.7 });
+    group.add(new THREE.Line(rectGeo, rectMat));
+
+    return group;
+}
+
+// ============================================================
+//  构建域平面（底面半透明区域）
+// ============================================================
+function buildDomainPlane(zMin) {
+    const w = xMax - xMin;
+    const h = yMax - yMin;
+    const cx = (xMax + xMin) / 2;
+    const cz = (yMax + yMin) / 2;
+    const geo = new THREE.PlaneGeometry(w, h);
+    // 平面在XZ平面（Y=zMin）
+    const mat = new THREE.MeshBasicMaterial({
+        color: 0x334466,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.2,
+        depthWrite: false
+    });
+    const plane = new THREE.Mesh(geo, mat);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.set(cx, zMin - 0.03, cz);
+    return plane;
+}
+
+// ============================================================
+//  构建积分区域
+//  二重积分：在底面上方绘制半透明区域（圆、矩形、三角形、环形）
+//  三重积分：绘制半透明立体体积（球、柱、锥、抛物体、椭球）
+// ============================================================
+function buildIntegrationRegion(zMin, zMax) {
+    if (!currentRegion) return null;
+    const group = new THREE.Group();
+    const col = 0x4488ff;
+    const opacity = 0.3;
+
+    if (currentRegion.regionType === 'double') {
+        buildDoubleRegion(group, currentRegion, zMin, col, opacity);
+    } else {
+        buildTripleRegion(group, currentRegion, zMin, zMax, col, opacity);
+    }
+    return group;
+}
+
+function buildDoubleRegion(group, region, zMin, col, opacity) {
+    const y = zMin - 0.015;
+    const { shape, params } = region;
+
+    if (shape === 'circle') {
+        const r = params.radius;
+        const geo = new THREE.CylinderGeometry(r, r, 0.015, 80);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = y;
+        group.add(mesh);
+        // 边界线
+        const pts = [];
+        for (let i = 0; i <= 128; i++) {
+            const a = 2 * Math.PI * i / 128;
+            pts.push(new THREE.Vector3(r * Math.cos(a), y + 0.01, r * Math.sin(a)));
+        }
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x6699ff, linewidth: 1.5 })));
+    }
+    else if (shape === 'annulus') {
+        const { innerR, outerR } = params;
+        const geo = new THREE.RingGeometry(innerR, outerR, 80);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.y = y;
+        group.add(mesh);
+    }
+    else if (shape === 'rectangle') {
+        const { x1, x2, y1, y2: yy2 } = params;
+        const w = x2 - x1, h = yy2 - y1;
+        const geo = new THREE.PlaneGeometry(w, h);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.set((x1 + x2) / 2, y, (y1 + yy2) / 2);
+        group.add(mesh);
+        // 边界框
+        const bx = [new THREE.Vector3(x1, y + 0.01, y1), new THREE.Vector3(x2, y + 0.01, y1),
+                    new THREE.Vector3(x2, y + 0.01, yy2), new THREE.Vector3(x1, y + 0.01, yy2), new THREE.Vector3(x1, y + 0.01, y1)];
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(bx), new THREE.LineBasicMaterial({ color: 0x6699ff, linewidth: 1.5 })));
+    }
+    else if (shape === 'triangle') {
+        const [a, b, c] = params.vertices;
+        const shape2 = new THREE.Shape();
+        shape2.moveTo(a[0], a[1]);
+        shape2.lineTo(b[0], b[1]);
+        shape2.lineTo(c[0], c[1]);
+        shape2.closePath();
+        const geo = new THREE.ShapeGeometry(shape2);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.position.y = y;
+        group.add(mesh);
+        // 边界线
+        const triPts = [new THREE.Vector3(a[0], y + 0.01, a[1]), new THREE.Vector3(b[0], y + 0.01, b[1]),
+                        new THREE.Vector3(c[0], y + 0.01, c[1]), new THREE.Vector3(a[0], y + 0.01, a[1])];
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(triPts), new THREE.LineBasicMaterial({ color: 0x6699ff, linewidth: 1.5 })));
+    }
+}
+
+function buildTripleRegion(group, region, zMin, zMax, col, opacity) {
+    const { shape, params } = region;
+
+    if (shape === 'sphere') {
+        const r = params.radius;
+        const geo = new THREE.SphereGeometry(r, 64, 40);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false });
+        group.add(new THREE.Mesh(geo, mat));
+        const wireGeo = new THREE.SphereGeometry(r * 1.005, 32, 20);
+        group.add(new THREE.Mesh(wireGeo, new THREE.MeshBasicMaterial({ color: 0x6699ff, wireframe: true, transparent: true, opacity: 0.2, depthTest: true })));
+        // 赤道圈
+        const eqPts = [];
+        for (let i = 0; i <= 128; i++) {
+            const a = 2 * Math.PI * i / 128;
+            eqPts.push(new THREE.Vector3(r * Math.cos(a), 0, r * Math.sin(a)));
+        }
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(eqPts), new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.5 })));
+    }
+    else if (shape === 'cylinder') {
+        const { radius, zMin: czMin, zMax: czMax } = params;
+        const h = czMax - czMin;
+        const geo = new THREE.CylinderGeometry(radius, radius, h, 64, 1, true);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.y = (czMin + czMax) / 2;
+        group.add(mesh);
+        // 顶盖 + 底盖
+        [czMin, czMax].forEach(cz => {
+            const capGeo = new THREE.CylinderGeometry(radius, radius, 0.02, 64);
+            const cap = new THREE.Mesh(capGeo, mat.clone());
+            cap.position.y = cz;
+            group.add(cap);
+        });
+        // 线框
+        const wireGeo = new THREE.CylinderGeometry(radius * 1.005, radius * 1.005, h, 32, 4, true);
+        const wire = new THREE.Mesh(wireGeo, new THREE.MeshBasicMaterial({ color: 0x6699ff, wireframe: true, transparent: true, opacity: 0.18, depthTest: true }));
+        wire.position.y = (czMin + czMax) / 2;
+        group.add(wire);
+    }
+    else if (shape === 'cone') {
+        const { radius: r, height: h } = params;
+        // ConeGeometry: wide base at y=-h/2, apex at y=+h/2
+        // We need apex at math z=0 (Three.js y=0), base at z=h (y=h)
+        // → flip 180° so apex points down, then position at h/2
+        const geo = new THREE.ConeGeometry(r, h, 64, 1, true);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = Math.PI; // flip: apex→bottom, base→top
+        mesh.position.y = h / 2;
+        group.add(mesh);
+        // 顶盖
+        const capGeo = new THREE.CylinderGeometry(r, r, 0.02, 64);
+        const cap = new THREE.Mesh(capGeo, mat.clone());
+        cap.position.y = h;
+        group.add(cap);
+        // 线框
+        const wireGeo = new THREE.ConeGeometry(r * 1.005, h, 32, 4, true);
+        const wire = new THREE.Mesh(wireGeo, new THREE.MeshBasicMaterial({ color: 0x6699ff, wireframe: true, transparent: true, opacity: 0.18, depthTest: true }));
+        wire.rotation.x = Math.PI;
+        wire.position.y = h / 2;
+        group.add(wire);
+        // 顶圈（z=h 处，半径=r）
+        const topRing = [];
+        for (let i = 0; i <= 128; i++) {
+            const a = 2 * Math.PI * i / 128;
+            topRing.push(new THREE.Vector3(r * Math.cos(a), h + 0.01, r * Math.sin(a)));
+        }
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(topRing), new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.5 })));
+    }
+    else if (shape === 'paraboloid') {
+        const { zMax: pzMax } = params;
+        const rMax = Math.sqrt(pzMax);
+        const rSteps = 40, tSteps = 72;
+        const verts = [], idxs = [];
+        // 抛物体侧面
+        for (let i = 0; i <= rSteps; i++) {
+            const r = rMax * i / rSteps;
+            for (let j = 0; j <= tSteps; j++) {
+                const theta = 2 * Math.PI * j / tSteps;
+                verts.push(r * Math.cos(theta), r * r, r * Math.sin(theta));
+            }
+        }
+        for (let i = 0; i < rSteps; i++) {
+            for (let j = 0; j < tSteps; j++) {
+                const a = i * (tSteps + 1) + j, b = a + 1, c = a + tSteps + 1, d = c + 1;
+                idxs.push(a, b, d, a, d, c);
+            }
+        }
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+        geo.setIndex(idxs);
+        geo.computeVertexNormals();
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.25, side: THREE.DoubleSide, depthWrite: false });
+        group.add(new THREE.Mesh(geo, mat));
+        // 顶盖
+        const capGeo = new THREE.CylinderGeometry(rMax, rMax, 0.02, 64);
+        const cap = new THREE.Mesh(capGeo, mat.clone());
+        cap.position.y = pzMax;
+        group.add(cap);
+        // 顶圈
+        const topPts = [];
+        for (let i = 0; i <= 128; i++) {
+            const a = 2 * Math.PI * i / 128;
+            topPts.push(new THREE.Vector3(rMax * Math.cos(a), pzMax + 0.01, rMax * Math.sin(a)));
+        }
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(topPts), new THREE.LineBasicMaterial({ color: 0x88aaff, transparent: true, opacity: 0.5 })));
+    }
+    else if (shape === 'ellipsoid') {
+        const { rx, ry, rz } = params;
+        const geo = new THREE.SphereGeometry(1, 64, 40);
+        const mat = new THREE.MeshPhongMaterial({ color: col, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.scale.set(rx, rz, ry);
+        group.add(mesh);
+        const wireGeo = new THREE.SphereGeometry(1.005, 32, 20);
+        const wire = new THREE.Mesh(wireGeo, new THREE.MeshBasicMaterial({ color: 0x6699ff, wireframe: true, transparent: true, opacity: 0.2, depthTest: true }));
+        wire.scale.set(rx, rz, ry);
+        group.add(wire);
+    }
+}
+
+// ============================================================
+//  清除场景中的动态对象
+// ============================================================
+function clearDynamicObjects() {
+    const removeFromScene = (obj) => {
+        if (!obj) return;
+        scene.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => m.dispose());
+            } else {
+                obj.material.dispose();
+            }
+        }
+        if (obj.children && obj.children.length > 0) {
+            [...obj.children].forEach(c => removeFromScene(c));
+        }
+    };
+
+    removeFromScene(surfaceMesh);
+    removeFromScene(wireframeMesh);
+    removeFromScene(contourGroup);
+    removeFromScene(crossSectionGroup);
+    removeFromScene(axesGroup);
+    removeFromScene(gridGroup);
+    removeFromScene(domainPlane);
+    removeFromScene(regionGroup);
+
+    surfaceMesh = null;
+    wireframeMesh = null;
+    contourGroup = null;
+    crossSectionGroup = null;
+    axesGroup = null;
+    gridGroup = null;
+    domainPlane = null;
+    regionGroup = null;
+}
+
+// ============================================================
+//  重建整个场景
+// ============================================================
+function rebuildScene() {
+    clearDynamicObjects();
+
+    const result = buildSurfaceGeometry();
+    if (!result) return;
+    const { geometry, zMin, zMax } = result;
+
+    // 实体表面
+    if (displayOptions.showSolid) {
+        const mat = new THREE.MeshPhongMaterial({
+            vertexColors: true,
+            side: THREE.DoubleSide,
+            shininess: 30,
+            specular: 0x111111,
+            transparent: true,
+            opacity: 0.9,
+            depthWrite: true
+        });
+        surfaceMesh = new THREE.Mesh(geometry, mat);
+        scene.add(surfaceMesh);
+    }
+
+    // 线框
+    if (displayOptions.showWireframe) {
+        const wireGeo = buildWireframeGeometry(geometry);
+        if (wireGeo) {
+            const wireMat = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: false });
+            wireframeMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+                color: 0x111122,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3,
+                depthTest: true
+            }));
+            scene.add(wireframeMesh);
+        }
+    }
+
+    // 等高线投影
+    if (displayOptions.showContour) {
+        contourGroup = buildContourLines(zMin, zMax);
+        if (contourGroup) scene.add(contourGroup);
+    }
+
+    // 截面曲线
+    if (displayOptions.showCrossSection) {
+        crossSectionGroup = buildCrossSections(zMin);
+        if (crossSectionGroup) scene.add(crossSectionGroup);
+    }
+
+    // 坐标轴
+    if (displayOptions.showAxes) {
+        axesGroup = buildAxes();
+        scene.add(axesGroup);
+    }
+
+    // 底面网格
+    if (displayOptions.showGrid) {
+        gridGroup = buildBaseGrid(zMin);
+        scene.add(gridGroup);
+    }
+
+    // 域平面
+    domainPlane = buildDomainPlane(zMin);
+    scene.add(domainPlane);
+
+    // 积分区域
+    if (displayOptions.showRegion && currentRegion) {
+        regionGroup = buildIntegrationRegion(zMin, zMax);
+        if (regionGroup) scene.add(regionGroup);
+    }
+
+    // 更新图例
+    updateColorbar(zMin, zMax);
+
+    // 存储z范围
+    scene.userData = { zMin, zMax };
+}
+
+// ============================================================
+//  更新颜色图例
+// ============================================================
+function updateColorbar(zMin, zMax) {
+    const steps = 40;
+    let html = '';
+    const zRange = zMax - zMin || 1;
+    for (let i = 0; i < steps; i++) {
+        const t = i / (steps - 1);
+        const col = getColor(t);
+        const r = Math.floor(col.r * 255);
+        const g = Math.floor(col.g * 255);
+        const b = Math.floor(col.b * 255);
+        html += `<div style="height:${100/steps}%;background:rgb(${r},${g},${b});"></div>`;
+    }
+    colorbar.innerHTML = html;
+    colorbar.title = `z ∈ [${zMin.toFixed(2)}, ${zMax.toFixed(2)}]`;
+}
+
+// ============================================================
+//  初始化Three.js场景
+// ============================================================
+function initThreeJS() {
+    const vw = viewport.clientWidth;
+    const vh = viewport.clientHeight;
+
+    // 渲染器
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(vw, vh);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x0c0c1a, 1);
+    renderer.shadowMap.enabled = true;
+    viewport.appendChild(renderer.domElement);
+
+    // 场景
+    scene = new THREE.Scene();
+
+    // 相机
+    camera = new THREE.PerspectiveCamera(48, vw / vh, 0.5, 100);
+    camera.position.set(8, 7, 10);
+    camera.lookAt(0, 0, 0);
+
+    // OrbitControls
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.15;
+    controls.target.set(0, 0, 0);
+    controls.update();
+    controls.minDistance = 2;
+    controls.maxDistance = 40;
+
+    // 光照
+    const ambient = new THREE.AmbientLight(0x445566, 4);
+    scene.add(ambient);
+    const dir1 = new THREE.DirectionalLight(0xffffff, 3);
+    dir1.position.set(1, 1, 0.6);
+    scene.add(dir1);
+    const dir2 = new THREE.DirectionalLight(0x8899cc, 1.5);
+    dir2.position.set(-0.8, 0.3, -1);
+    scene.add(dir2);
+}
+
+// ============================================================
+//  动画循环
+// ============================================================
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+
+    // 更新截面曲线（如果开启，实时更新以提高交互性）
+    if (displayOptions.showCrossSection && scene.userData) {
+        // 每5帧更新一次截面（性能优化）
+        if (Math.floor(Date.now() / 100) % 5 === 0) {
+            // 仅当截面滑块改变时更新，这里简化处理
+        }
+    }
+}
+
+// ============================================================
+//  响应窗口大小变化
+// ============================================================
+window.addEventListener('resize', () => {
+    if (!renderer) return;
+    const vw = viewport.clientWidth;
+    const vh = viewport.clientHeight;
+    camera.aspect = vw / vh;
+    camera.updateProjectionMatrix();
+    renderer.setSize(vw, vh);
+});
+
+// ============================================================
+//  绘制函数
+// ============================================================
+function drawFunction(expr) {
+    const fn = compileFunction(expr);
+    if (!fn) {
+        funcInput.style.borderColor = '#ff4444';
+        setTimeout(() => { funcInput.style.borderColor = ''; }, 1000);
+        return;
+    }
+    funcInput.style.borderColor = '';
+    currentFunc = fn;
+    currentExpr = expr;
+    funcDisplay.textContent = 'z = ' + expr.replace(/\^/g, '^').replace(/\*\*/g, '^');
+    rebuildScene();
+}
+
+// ============================================================
+//  面板事件绑定
+// ============================================================
+
+// 绘制按钮
+document.getElementById('btnGo').addEventListener('click', () => {
+    drawFunction(funcInput.value.trim());
+});
+
+// 回车键绘制
+funcInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') drawFunction(funcInput.value.trim());
+});
+
+// 域范围滑块
+function bindSlider(id, setter, valId) {
+    const slider = document.getElementById(id);
+    slider.addEventListener('input', () => {
+        const val = parseFloat(slider.value);
+        setter(val);
+        document.getElementById(valId).textContent = val;
+        updateCrossSectionSliderRanges();
+        rebuildScene();
+    });
+}
+bindSlider('xMinSlider', v => { xMin = v; }, 'xMinVal');
+bindSlider('xMaxSlider', v => { xMax = v; }, 'xMaxVal');
+bindSlider('yMinSlider', v => { yMin = v; }, 'yMinVal');
+bindSlider('yMaxSlider', v => { yMax = v; }, 'yMaxVal');
+
+// 网格分辨率
+document.getElementById('resSlider').addEventListener('input', () => {
+    gridRes = parseInt(document.getElementById('resSlider').value);
+    document.getElementById('resVal').textContent = gridRes;
+    rebuildScene();
+});
+
+// 截面位置滑块
+document.getElementById('crossXSlider').addEventListener('input', () => {
+    crossX = parseFloat(document.getElementById('crossXSlider').value);
+    document.getElementById('crossXVal').textContent = crossX.toFixed(1);
+    rebuildScene();
+});
+document.getElementById('crossYSlider').addEventListener('input', () => {
+    crossY = parseFloat(document.getElementById('crossYSlider').value);
+    document.getElementById('crossYVal').textContent = crossY.toFixed(1);
+    rebuildScene();
+});
+
+// 开关切换
+document.querySelectorAll('.toggle-switch').forEach(el => {
+    el.addEventListener('click', () => {
+        el.classList.toggle('on');
+        const key = el.dataset.key;
+        displayOptions[key] = el.classList.contains('on');
+        rebuildScene();
+    });
+});
+
+// ============================================================
+//  预设函数
+// ============================================================
+const presets = [
+    { name: '椭圆抛物面', fn: 'x^2 + y^2', desc: 'z = x² + y²' },
+    { name: '双曲抛物面(马鞍面)', fn: 'x^2 - y^2', desc: 'z = x² − y²' },
+    { name: '正弦波曲面', fn: 'sin(x) * cos(y)', desc: 'z = sin(x)·cos(y)' },
+    { name: '墨西哥帽(高斯)', fn: 'exp(-(x^2+y^2))', desc: 'z = e^{-(x²+y²)}' },
+    { name: '圆锥面', fn: 'sqrt(x^2 + y^2)', desc: 'z = √(x²+y²)' },
+    { name: '涟漪波纹', fn: 'sin(sqrt(x^2+y^2))', desc: 'z = sin(√(x²+y²))' },
+    { name: '鞍形曲面', fn: 'x*y', desc: 'z = xy' },
+    { name: '有理函数', fn: '(x^2-y^2)/(x^2+y^2+1)', desc: 'z=(x²−y²)/(x²+y²+1)' },
+    { name: '余弦绝对值', fn: 'cos(abs(x)+abs(y))', desc: 'z=cos(|x|+|y|)' },
+    { name: '三次曲面', fn: 'x^3 - 3*x*y^2', desc: 'z=x³−3xy²' },
+];
+const presetGrid = document.getElementById('presetGrid');
+presets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.innerHTML = `<span class="preset-name">${p.name}</span><span class="preset-fn">${p.desc}</span>`;
+    btn.addEventListener('click', () => {
+        funcInput.value = p.fn;
+        currentRegion = null;
+        document.getElementById('regionTip').textContent = '';
+        drawFunction(p.fn);
+    });
+    presetGrid.appendChild(btn);
+});
+
+// ============================================================
+//  积分区域预设
+// ============================================================
+const regionPresets = [
+    // ---- 二重积分 ----
+    {
+        name: '圆域 + 抛物面',
+        desc: 'D: x²+y²≤4,  f=x²+y²',
+        funcExpr: 'x^2 + y^2',
+        regionType: 'double', shape: 'circle',
+        params: { radius: 2 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∬_D (x²+y²) dσ\n极坐标: r∈[0,2] θ∈[0,2π]\n= ∫₀²π ∫₀² r²·r dr dθ'
+    },
+    {
+        name: '圆域 + 指数衰减',
+        desc: 'D: x²+y²≤2,  f=e^{-(x²+y²)}',
+        funcExpr: 'exp(-(x^2+y^2))',
+        regionType: 'double', shape: 'circle',
+        params: { radius: 2 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∬_D e^{-(x²+y²)} dσ\n极坐标: r∈[0,2] θ∈[0,2π]\n= ∫₀²π ∫₀² e^{-r²}·r dr dθ\n= π(1-e^{-4})'
+    },
+    {
+        name: '矩形域 + 乘积函数',
+        desc: 'D: [0,1]×[0,2],  f=xy',
+        funcExpr: 'x*y',
+        regionType: 'double', shape: 'rectangle',
+        params: { x1: 0, x2: 1, y1: 0, y2: 2 },
+        domainX: [-0.3, 1.5], domainY: [-0.3, 2.5],
+        tip: '∬_D xy dσ = ∫₀¹ ∫₀² xy dy dx\n= ∫₀¹ x·[y²/2]₀² dx = ∫₀¹ 2x dx = 1'
+    },
+    {
+        name: '三角域 + 线性函数',
+        desc: 'D: x≥0,y≥0,x+y≤1,  f=x+y',
+        funcExpr: 'x + y',
+        regionType: 'double', shape: 'triangle',
+        params: { vertices: [[0,0],[1,0],[0,1]] },
+        domainX: [-0.2, 1.2], domainY: [-0.2, 1.2],
+        tip: '∬_D (x+y) dσ\n= ∫₀¹ ∫₀^{1-x} (x+y) dy dx\n积分次序交换练习'
+    },
+    {
+        name: '环形区域',
+        desc: 'D: 1≤x²+y²≤4,  f=1/(x²+y²)',
+        funcExpr: '1/(x^2+y^2+0.01)',
+        regionType: 'double', shape: 'annulus',
+        params: { innerR: 1, outerR: 2 },
+        domainX: [-2.3, 2.3], domainY: [-2.3, 2.3],
+        tip: '∬_D 1/(x²+y²) dσ\n极坐标: r∈[1,2] θ∈[0,2π]\n= ∫₀²π ∫₁² 1/r dr dθ'
+    },
+    // ---- 三重积分 ----
+    {
+        name: '球体体积',
+        desc: 'Ω: x²+y²+z²≤4,  f=1',
+        funcExpr: '0',
+        regionType: 'triple', shape: 'sphere',
+        params: { radius: 2 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∭_Ω 1 dV = 球体积\n球坐标: ρ∈[0,2] φ∈[0,π] θ∈[0,2π]\n= 4πR³/3 = 32π/3 ≈ 33.51'
+    },
+    {
+        name: '球体 + ρ²',
+        desc: 'Ω: x²+y²+z²≤4,  f=x²+y²+z²',
+        funcExpr: 'x^2 + y^2',
+        regionType: 'triple', shape: 'sphere',
+        params: { radius: 2 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∭_Ω (x²+y²+z²) dV\n球坐标: ρ∈[0,2] φ∈[0,π] θ∈[0,2π]\ndV = ρ² sinφ dρ dφ dθ\n注意: 被积函数=ρ², 而不是只写x²+y²'
+    },
+    {
+        name: '柱体 + 平方和',
+        desc: 'Ω: x²+y²≤4, 0≤z≤3,  f=x²+y²',
+        funcExpr: 'x^2 + y^2',
+        regionType: 'triple', shape: 'cylinder',
+        params: { radius: 2, zMin: 0, zMax: 3 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∭_Ω (x²+y²) dV\n柱坐标: r∈[0,2] θ∈[0,2π] z∈[0,3]\n= ∫₀²π ∫₀² ∫₀³ r²·r dz dr dθ\n= 2π · 4 · 3 = 24π'
+    },
+    {
+        name: '锥体体积',
+        desc: 'Ω: √(x²+y²) ≤ z ≤ 3',
+        funcExpr: '0',
+        regionType: 'triple', shape: 'cone',
+        params: { radius: 3, height: 3 },
+        domainX: [-3.2, 3.2], domainY: [-3.2, 3.2],
+        tip: '∭_Ω 1 dV = 锥体积\n柱坐标: r∈[0,3] θ∈[0,2π] z∈[r,3]\n= ∫₀²π ∫₀³ (3-r)·r dr dθ\n= πR²h/3 = 9π'
+    },
+    {
+        name: '抛物体区域',
+        desc: 'Ω: x²+y² ≤ z ≤ 4',
+        funcExpr: '0',
+        regionType: 'triple', shape: 'paraboloid',
+        params: { zMax: 4 },
+        domainX: [-2.2, 2.2], domainY: [-2.2, 2.2],
+        tip: '∭_Ω 1 dV\n柱坐标: r∈[0,2] θ∈[0,2π] z∈[r²,4]\n= ∫₀²π ∫₀² (4-r²)·r dr dθ\n= 2π·[2r²-r⁴/4]₀² = 8π'
+    },
+    {
+        name: '椭球区域',
+        desc: 'Ω: x²/4 + y²/9 + z²/1 ≤ 1',
+        funcExpr: '0',
+        regionType: 'triple', shape: 'ellipsoid',
+        params: { rx: 2, ry: 3, rz: 1 },
+        domainX: [-2.2, 2.2], domainY: [-3.2, 3.2],
+        tip: '∭_Ω 1 dV = 椭球体积\n令 u=x/2 v=y/3 w=z 则 u²+v²+w²≤1\n= (4π/3)·2·3·1 = 8π\n雅可比行列式 = abc'
+    },
+];
+
+const regionPresetGrid = document.getElementById('regionPresetGrid');
+regionPresets.forEach((rp, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    const icon = rp.regionType === 'double' ? '∬' : '∭';
+    btn.innerHTML = `<span class="preset-name">${icon} ${rp.name}</span><span class="preset-fn">${rp.desc}</span>`;
+    btn.style.borderLeft = rp.regionType === 'triple' ? '2px solid #e8734a' : '2px solid #5b9bd5';
+    btn.addEventListener('click', () => {
+        currentRegion = rp;
+        funcInput.value = rp.funcExpr;
+        document.getElementById('regionTip').textContent = rp.tip || '';
+
+        // 更新域范围滑块
+        xMin = rp.domainX[0]; xMax = rp.domainX[1];
+        yMin = rp.domainY[0]; yMax = rp.domainY[1];
+        document.getElementById('xMinSlider').value = xMin;
+        document.getElementById('xMaxSlider').value = xMax;
+        document.getElementById('yMinSlider').value = yMin;
+        document.getElementById('yMaxSlider').value = yMax;
+        document.getElementById('xMinVal').textContent = xMin;
+        document.getElementById('xMaxVal').textContent = xMax;
+        document.getElementById('yMinVal').textContent = yMin;
+        document.getElementById('yMaxVal').textContent = yMax;
+
+        // 更新截面滑块范围
+        updateCrossSectionSliderRanges();
+
+        // 确保区域显示开关打开
+        if (!displayOptions.showRegion) {
+            displayOptions.showRegion = true;
+            document.getElementById('toggleRegion').classList.add('on');
+        }
+
+        drawFunction(rp.funcExpr);
+    });
+    regionPresetGrid.appendChild(btn);
+});
+
+// 更新截面滑块范围以匹配当前域设置
+function updateCrossSectionSliderRanges() {
+    const cxSlider = document.getElementById('crossXSlider');
+    const cySlider = document.getElementById('crossYSlider');
+    cxSlider.min = xMin; cxSlider.max = xMax;
+    cySlider.min = yMin; cySlider.max = yMax;
+    crossX = Math.max(xMin, Math.min(xMax, crossX));
+    crossY = Math.max(yMin, Math.min(yMax, crossY));
+    cxSlider.value = crossX;
+    cySlider.value = crossY;
+    document.getElementById('crossXVal').textContent = crossX.toFixed(1);
+    document.getElementById('crossYVal').textContent = crossY.toFixed(1);
+}
+
+// ============================================================
+//  键盘快捷键
+// ============================================================
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'r' || e.key === 'R') {
+        if (document.activeElement === funcInput) return;
+        camera.position.set(8, 7, 10);
+        controls.target.set(0, 0, 0);
+        controls.update();
+    }
+});
+
+// ============================================================
+//  启动
+// ============================================================
+initThreeJS();
+drawFunction('x^2 + y^2');
+animate();
+
+console.log('📐 三维函数图像生成器已就绪');
+console.log('  支持函数: sin, cos, tan, exp, log, sqrt, abs, PI, E');
+console.log('  支持运算: + - * / ^ ( )');
+console.log('  操作: 左键旋转 | 滚轮缩放 | 右键平移 | R 重置视角');
+</script>
+</body>
+</html>
