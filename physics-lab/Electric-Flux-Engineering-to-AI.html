@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电通量的力量：从经典工程到 AI 前沿计算</title>
+<style>
+/* ============================================================
+   CSS 变量 & 全局样式
+   ============================================================ */
+:root {
+    --bg: #080c1a; --bg2: #0e1330; --card-bg: #111640;
+    --text: #c8c8e0; --text2: #8488a8; --text3: #5a5e80;
+    --elec: #b44dff; --elec-glow: rgba(180,77,255,0.25);
+    --elec2: #7c3aed;
+    --gold: #f0c060;
+    --border: #1e2250; --radius: 12px;
+    --font: 'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font); line-height: 1.65; overflow-x: hidden;
+}
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius:3px; }
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero {
+    position:relative; height:100vh; min-height:620px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+}
+.hero canvas { position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; }
+.hero-content { position:relative; z-index:1; text-align:center; max-width:800px; padding:0 24px; }
+.hero h1 {
+    font-size:clamp(28px,5vw,52px); font-weight:800;
+    background:linear-gradient(135deg,#a78bfa 0%,#b44dff 40%,#f0c060 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; line-height:1.25; margin-bottom:16px;
+}
+.hero .subtitle {
+    font-size:clamp(14px,2vw,18px); color:var(--text2);
+    font-weight:400; letter-spacing:0.5px; margin-bottom:32px;
+}
+.hero .scroll-hint {
+    position:absolute; bottom:32px; left:50%; transform:translateX(-50%);
+    color:var(--text3); font-size:12px; z-index:1;
+    animation:bounce 2s ease-in-out infinite;
+}
+@keyframes bounce {
+    0%,100% { opacity:0.4; transform:translateX(-50%) translateY(0); }
+    50% { opacity:1; transform:translateX(-50%) translateY(-12px); }
+}
+.flux-symbol {
+    position:absolute; font-size:200px; font-weight:900;
+    color:rgba(255,255,255,0.012); pointer-events:none; z-index:0; user-select:none;
+}
+.flux-symbol.top-right { top:-30px; right:-30px; }
+.flux-symbol.bottom-left { bottom:-50px; left:-20px; }
+
+/* ============================================================
+   Section 通用
+   ============================================================ */
+.section { padding:80px 24px; max-width:1200px; margin:0 auto; }
+.section-header { text-align:center; margin-bottom:56px; }
+.section-header h2 {
+    font-size:clamp(24px,3.5vw,36px); font-weight:700; letter-spacing:1px; margin-bottom:8px;
+}
+.section-header .divider { width:60px; height:3px; border-radius:2px; margin:12px auto; }
+.section-header p { font-size:14px; color:var(--text2); max-width:600px; margin:0 auto; }
+
+.section.classical h2 { color:var(--elec); }
+.section.classical .divider { background:var(--elec); }
+.section.frontier h2 { color:var(--gold); }
+.section.frontier .divider { background:var(--gold); }
+
+/* ============================================================
+   卡片网格（经典应用）
+   ============================================================ */
+.card-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:18px;
+}
+.classic-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:var(--radius); padding:22px 20px;
+    cursor:pointer; position:relative; overflow:hidden;
+    opacity:0; transform:translateY(30px);
+    transition:opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.classic-card.visible { opacity:1; transform:translateY(0); }
+.classic-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--elec), #7c3aed);
+    border-radius:3px 3px 0 0;
+}
+.classic-card:hover {
+    border-color:var(--elec); box-shadow:0 4px 28px var(--elec-glow); transform:translateY(-3px);
+}
+.classic-card.visible:hover { transform:translateY(-3px); }
+.classic-card .card-icon { font-size:32px; margin-bottom:8px; }
+.classic-card .card-title { font-size:16px; font-weight:700; color:#e0e8ff; margin-bottom:10px; }
+.classic-card .card-row { font-size:12px; line-height:1.6; margin-bottom:6px; }
+.classic-card .card-row .label {
+    color:var(--text3); font-weight:600; text-transform:uppercase;
+    font-size:10px; letter-spacing:1px; display:inline-block; width:52px; flex-shrink:0;
+}
+.classic-card .card-row .val { color:var(--text2); }
+.classic-card .click-hint {
+    position:absolute; bottom:10px; right:14px; font-size:10px;
+    color:var(--elec); opacity:0; transition:opacity 0.3s;
+}
+.classic-card:hover .click-hint { opacity:1; }
+
+/* ============================================================
+   前沿 AI 大卡片
+   ============================================================ */
+.elec-cards { display:flex; flex-direction:column; gap:32px; }
+.elec-card {
+    display:flex; gap:40px; align-items:center;
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:var(--radius); padding:32px;
+    cursor:pointer; position:relative; overflow:hidden;
+    opacity:0; transform:translateY(30px);
+    transition:opacity 0.6s ease, transform 0.6s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.elec-card.visible { opacity:1; transform:translateY(0); }
+.elec-card::after {
+    content:''; position:absolute; top:0; right:0; width:120px; height:120px;
+    background:radial-gradient(circle, var(--elec-glow) 0%, transparent 70%); pointer-events:none;
+}
+.elec-card:nth-child(even)::after { right:auto; left:0; }
+.elec-card:hover {
+    border-color:var(--elec); box-shadow:0 4px 32px var(--elec-glow); transform:translateY(-3px);
+}
+.elec-card.visible:hover { transform:translateY(-3px); }
+.elec-card .card-visual {
+    flex-shrink:0; width:150px; height:150px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:56px; position:relative; z-index:1;
+}
+.elec-card .card-visual.bio { background:radial-gradient(circle, rgba(180,77,255,0.15) 0%, transparent 70%); }
+.elec-card .card-visual.shield { background:radial-gradient(circle, rgba(240,192,96,0.15) 0%, transparent 70%); }
+.elec-card .card-visual.lightning { background:radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%); }
+.elec-card .card-body { flex:1; position:relative; z-index:1; }
+.elec-card .card-body .card-num {
+    font-size:11px; font-weight:700; letter-spacing:3px;
+    color:var(--elec); text-transform:uppercase; margin-bottom:6px;
+}
+.elec-card .card-body h3 { font-size:20px; font-weight:700; margin-bottom:8px; color:#e0e0f8; }
+.elec-card .card-body .core-tools { font-size:12px; color:var(--gold); font-weight:600; margin-bottom:12px; }
+.elec-card .card-body p { font-size:13px; color:var(--text2); line-height:1.7; }
+.elec-card .click-hint-ai {
+    position:absolute; bottom:14px; right:22px; font-size:11px;
+    color:var(--gold); opacity:0; transition:opacity 0.3s; z-index:2;
+}
+.elec-card:hover .click-hint-ai { opacity:1; }
+.elec-card:nth-child(even) { flex-direction:row-reverse; }
+
+/* ============================================================
+   详情弹窗 Modal
+   ============================================================ */
+.modal-overlay {
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(4,6,14,0.88); z-index:1000;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.35s ease;
+    backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+}
+.modal-overlay.active { opacity:1; pointer-events:auto; }
+.modal-panel {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:16px; max-width:720px; width:92vw; max-height:85vh;
+    overflow-y:auto; padding:36px 32px;
+    position:relative;
+    transform:translateY(24px) scale(0.96);
+    transition:transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    box-shadow:0 24px 80px rgba(0,0,0,0.6);
+}
+.modal-overlay.active .modal-panel { transform:translateY(0) scale(1); }
+.modal-panel::-webkit-scrollbar { width:4px; }
+.modal-panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+.modal-close {
+    position:sticky; top:0; float:right;
+    width:36px; height:36px; border-radius:50%;
+    background:var(--border); border:none; color:var(--text2);
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s; z-index:10;
+}
+.modal-close:hover { background:var(--elec); color:#fff; }
+
+.modal-icon { font-size:48px; margin-bottom:12px; }
+.modal-title { font-size:24px; font-weight:700; color:#e0e8ff; margin-bottom:6px; }
+.modal-formula {
+    display:inline-block; padding:6px 14px; margin:8px 0 16px;
+    background:rgba(180,77,255,0.08); border:1px solid rgba(180,77,255,0.2);
+    border-radius:6px; font-size:15px; color:var(--gold);
+    font-family:'Cascadia Code','Fira Code',monospace;
+}
+.modal-section { margin-top:24px; }
+.modal-section h4 {
+    font-size:13px; font-weight:700; letter-spacing:2px; color:var(--elec);
+    text-transform:uppercase; margin-bottom:10px;
+}
+.modal-section p { font-size:13px; color:var(--text2); line-height:1.8; }
+
+.modal-scenario {
+    background:rgba(255,255,255,0.02); border-left:3px solid var(--elec);
+    padding:12px 16px; margin-bottom:12px; border-radius:0 6px 6px 0;
+}
+.modal-scenario .scenario-tag { font-size:10px; color:var(--elec); font-weight:700; letter-spacing:1px; }
+.modal-scenario .scenario-text { font-size:13px; color:var(--text2); margin-top:4px; line-height:1.7; }
+
+/* 弹窗顶部统一动画配图（标题下方） */
+.modal-anim {
+    width:100%; height:170px; margin:14px 0 6px;
+    border-radius:8px; overflow:hidden;
+    background:rgba(0,0,0,0.3); position:relative;
+    animation:modalFadeUp 0.5s ease 0.16s both;
+}
+.modal-anim canvas { width:100%; height:100%; display:block; }
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer { padding:100px 24px 80px; text-align:center; max-width:700px; margin:0 auto; }
+.footer .flux-formula {
+    font-size:clamp(20px,3vw,28px); color:var(--gold);
+    margin-bottom:24px; letter-spacing:1px;
+}
+.footer .quote { font-size:clamp(15px,2vw,18px); color:var(--text2); line-height:1.9; font-style:italic; }
+.footer .quote strong { color:#e0e0f8; font-style:normal; }
+.footer .attribution { margin-top:32px; font-size:12px; color:var(--text3); }
+
+/* ============================================================
+   响应式
+   ============================================================ */
+@media (max-width:768px) {
+    .section { padding:48px 16px; }
+    .card-grid { grid-template-columns:1fr; }
+    .elec-card, .elec-card:nth-child(even) {
+        flex-direction:column; text-align:center; padding:24px 20px;
+    }
+    .elec-card .card-visual { width:100px; height:100px; font-size:40px; }
+    .hero h1 { font-size:26px; }
+    .modal-panel { padding:24px 18px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     Hero
+     ============================================================ -->
+<section class="hero" id="hero">
+    <canvas id="heroCanvas"></canvas>
+    <div class="flux-symbol top-right">Φ</div>
+    <div class="flux-symbol bottom-left">Φ<sub>E</sub></div>
+    <div class="hero-content">
+        <h1>电通量的力量<br>从经典工程到 AI 前沿计算</h1>
+        <p class="subtitle">
+            探索穿过空间的无形之手——电场线如何穿越曲面，<br>以及电通量 Φ<sub>E</sub> 如何塑造现代科技与人工智能的未来
+        </p>
+    </div>
+    <div class="scroll-hint">▼ 向下滚动探索</div>
+</section>
+
+<!-- ============================================================
+     模块二：电通量经典工程应用
+     ============================================================ -->
+<section class="section classical" id="classical">
+    <div class="section-header">
+        <h2>经典工程：电通量 Φ<sub>E</sub> 的七大应用</h2>
+        <div class="divider"></div>
+        <p>从高斯定理出发——Φ<sub>E</sub> = ∮ E·dA = Q<sub>enc</sub>/ε₀，电场穿过闭合曲面的通量正比于内部净电荷。点击卡片查看真实场景。</p>
+    </div>
+    <div class="card-grid" id="classicGrid"></div>
+</section>
+
+<!-- ============================================================
+     模块三：电通量 + AI 前沿
+     ============================================================ -->
+<section class="section frontier" id="frontier">
+    <div class="section-header">
+        <h2>前沿探索：当电通量 Φ<sub>E</sub> 遇见图神经网络</h2>
+        <div class="divider"></div>
+        <p>AI 抛弃了传统有限元方法的慢速迭代——从秒级逆向设计到万次虚拟演化，深度学习正在重新定义电场工程的边界。点击卡片查看详细场景。</p>
+    </div>
+    <div class="elec-cards" id="elecCards"></div>
+</section>
+
+<!-- ============================================================
+     Footer
+     ============================================================ -->
+<section class="footer" id="footer">
+    <div class="flux-formula">Φ<sub>E</sub> = ∮<sub>S</sub> <strong>E</strong> · d<strong>A</strong> = Q<sub>enc</sub> / ε<sub>0</sub></div>
+    <p class="quote">
+        无论是你指尖触碰的<strong>手机屏幕</strong>，还是天上飞行的<strong>自动驾驶无人机</strong>，<br>
+        它们的底层运行逻辑都建立在<strong>"电场穿过特定面积"</strong>这一朴素的数学思想上。<br><br>
+        工具在变，从库仑的扭秤变成了图神经网络的张量计算，<br>
+        但 <strong>Φ<sub>E</sub> = ∮ E·dA</strong> 的宇宙规律未曾改变。
+    </p>
+    <div class="attribution">科普交互网页 &nbsp;|&nbsp; 电通量的力量 &nbsp;|&nbsp; 2026</div>
+</section>
+
+<!-- ============================================================
+     Modal 弹窗
+     ============================================================ -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-panel" id="modalPanel"></div>
+</div>
+
+<script>
+// ============================================================
+//  Hero Canvas：场线穿越曲面（电通量主题，紫金色调）
+//  隐喻 —— Φ_E = ∮ E·dA：电场线穿过闭合曲面
+// ============================================================
+(function() {
+    const canvas = document.getElementById('heroCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    function resize() {
+        W = canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+        H = canvas.height = canvas.offsetHeight * (window.devicePixelRatio || 1);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const LINES = 24;
+    const PARTICLES_PER = 8;
+    const SURF_RX = 1.5, SURF_RY = 2.0;
+    const TILT_X = 0.45, TILT_Y = 0.25;
+
+    // 3D 旋转矩阵
+    function rotX(x, y, z, a) { const c=Math.cos(a),s=Math.sin(a); return [x, y*c-z*s, y*s+z*c]; }
+    function rotY(x, y, z, a) { const c=Math.cos(a),s=Math.sin(a); return [x*c+z*s, y, -x*s+z*c]; }
+    // 透视投影：世界坐标 → 屏幕坐标
+    function project(wx, wy, wz) {
+        const d = 4.5, scale = d / (d + wz);
+        return [W/2 + wx*scale*W/5, H/2 - wy*scale*H/5];
+    }
+
+    // 场线类
+    class FieldLine {
+        constructor(index) {
+            this.t = Math.random();
+            this.offset = Math.random() * Math.PI * 2;
+            this.speed = 0.3 + Math.random() * 0.6;
+            this.amplitude = 0.3 + Math.random() * 0.8;
+            this.particles = [];
+            for (let i = 0; i < PARTICLES_PER; i++) {
+                this.particles.push({ s: i/PARTICLES_PER, size: 1.2+Math.random()*2.0 });
+            }
+        }
+        getPoint3D(s) {
+            const u = this.t*2 - 1;
+            const v = (s - 0.5) * 4;
+            const surfX = u * SURF_RX;
+            const surfY = Math.sin(u*Math.PI) * 0.5 * SURF_RY;
+            const bend = this.amplitude * Math.sin(s*Math.PI) * 2.0;
+            const surfZ = v + bend*(1 - Math.abs(v)/2);
+            let wx=surfX, wy=surfY, wz=surfZ;
+            [wx,wy,wz] = rotY(wx,wy,wz,TILT_Y);
+            [wx,wy,wz] = rotX(wx,wy,wz,TILT_X);
+            return [wx,wy,wz];
+        }
+        update(dt) {
+            for (const p of this.particles) {
+                p.s += this.speed * dt * 0.15;
+                if (p.s > 1) p.s -= 1;
+                if (p.s < 0) p.s += 1;
+            }
+        }
+        draw(ctx) {
+            // 场线轨迹（紫金色调——电通量）
+            ctx.beginPath();
+            let first = true;
+            for (let i=0; i<=60; i++) {
+                const [wx,wy,wz] = this.getPoint3D(i/60);
+                const [px,py] = project(wx,wy,wz);
+                if(first){ctx.moveTo(px,py);first=false;} else ctx.lineTo(px,py);
+            }
+            ctx.strokeStyle = 'rgba(160,100,220,0.16)';
+            ctx.lineWidth = 1; ctx.stroke();
+
+            // 粒子
+            for (const p of this.particles) {
+                const [wx,wy,wz] = this.getPoint3D(p.s);
+                const [px,py] = project(wx,wy,wz);
+                const alpha = 0.5 + 0.5*Math.sin(p.s*Math.PI*2 + this.offset);
+                ctx.beginPath();
+                ctx.arc(px, py, p.size, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(190,130,255,${alpha})`;
+                ctx.fill();
+                const grd = ctx.createRadialGradient(px,py,0, px,py, p.size*2.5);
+                grd.addColorStop(0, 'rgba(180,77,255,0.25)');
+                grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.beginPath(); ctx.arc(px,py,p.size*2.5,0,Math.PI*2); ctx.fillStyle=grd; ctx.fill();
+            }
+        }
+    }
+
+    function drawSurface(ctx) {
+        const corners = [];
+        for (const sx of [-1,1]) for (const sy of [-1,1]) {
+            let x=sx*SURF_RX, y=sy*SURF_RY, z=0;
+            [x,y,z] = rotX(x,y,z,TILT_X);
+            const [px,py] = project(x,y,z);
+            corners.push({sx,sy,px,py});
+        }
+        corners.sort((a,b)=>(a.sy!==b.sy?a.sy-b.sy:a.sx-b.sx));
+
+        // 曲面填充
+        ctx.beginPath();
+        ctx.moveTo(corners[0].px,corners[0].py);
+        ctx.lineTo(corners[1].px,corners[1].py);
+        ctx.lineTo(corners[3].px,corners[3].py);
+        ctx.lineTo(corners[2].px,corners[2].py);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(40,25,70,0.25)'; ctx.fill();
+
+        // 网格线（面积微元 dA 暗示）
+        ctx.strokeStyle = 'rgba(140,110,200,0.22)'; ctx.lineWidth=0.8;
+        for (let i=0; i<=8; i++) {
+            const t = -1+2*i/8;
+            // 水平
+            ctx.beginPath();
+            for(let j=0;j<=8;j++){
+                const u=-1+2*j/8;
+                let x=u*SURF_RX,y=t*SURF_RY,z=0;
+                [x,y,z]=rotY(x,y,z,TILT_Y);[x,y,z]=rotX(x,y,z,TILT_X);
+                const[p]=project(x,y,z);
+                j===0?ctx.moveTo(p,project(x,y,z)[1]):ctx.lineTo(p,project(x,y,z)[1]);
+            }
+            ctx.stroke();
+            // 竖直
+            ctx.beginPath();
+            for(let j=0;j<=8;j++){
+                const u=-1+2*j/8;
+                let x=t*SURF_RX,y=u*SURF_RY,z=0;
+                [x,y,z]=rotY(x,y,z,TILT_Y);[x,y,z]=rotX(x,y,z,TILT_X);
+                const[p]=project(x,y,z);
+                j===0?ctx.moveTo(p,project(x,y,z)[1]):ctx.lineTo(p,project(x,y,z)[1]);
+            }
+            ctx.stroke();
+        }
+
+        // 边框
+        ctx.beginPath();
+        ctx.moveTo(corners[0].px,corners[0].py);
+        ctx.lineTo(corners[1].px,corners[1].py);
+        ctx.lineTo(corners[3].px,corners[3].py);
+        ctx.lineTo(corners[2].px,corners[2].py);
+        ctx.closePath();
+        ctx.strokeStyle='rgba(170,140,220,0.45)'; ctx.lineWidth=1.5; ctx.stroke();
+
+        // 法向量 n̂
+        const [cpx,cpy]=project(0,0,0);
+        let nx=0,ny=0,nz=0.35;
+        [nx,ny,nz]=rotY(nx,ny,nz,TILT_Y);[nx,ny,nz]=rotX(nx,ny,nz,TILT_X);
+        const [npx,npy]=project(nx,ny,nz);
+        ctx.beginPath(); ctx.moveTo(cpx,cpy); ctx.lineTo(npx,npy);
+        ctx.strokeStyle='rgba(255,200,100,0.7)'; ctx.lineWidth=2; ctx.stroke();
+        const ang=Math.atan2(npy-cpy,npx-cpx);
+        ctx.beginPath(); ctx.moveTo(npx,npy);
+        ctx.lineTo(npx-8*Math.cos(ang-0.6),npy-8*Math.sin(ang-0.6));
+        ctx.lineTo(npx-8*Math.cos(ang+0.6),npy-8*Math.sin(ang+0.6));
+        ctx.closePath(); ctx.fillStyle='rgba(255,200,100,0.7)'; ctx.fill();
+    }
+
+    const fieldLines = Array.from({length:LINES}, (_,i)=>new FieldLine(i));
+    const stars = Array.from({length:80}, ()=>({
+        x:Math.random()*1920, y:Math.random()*1080,
+        r:0.3+Math.random()*1.0, twinkle:Math.random()*Math.PI*2,
+        speed:0.3+Math.random()*1.5
+    }));
+
+    let lastTime = performance.now();
+    function animate(time) {
+        const dt = Math.min((time-lastTime)/1000, 0.1);
+        lastTime = time;
+        ctx.clearRect(0,0,W,H);
+        const bgGrd = ctx.createRadialGradient(W/2,H/2,0, W/2,H/2, Math.max(W,H)*0.7);
+        bgGrd.addColorStop(0,'#0e1535'); bgGrd.addColorStop(1,'#060a18');
+        ctx.fillStyle=bgGrd; ctx.fillRect(0,0,W,H);
+
+        for(const s of stars){
+            const alpha=0.25+0.25*Math.sin(time*s.speed*0.001+s.twinkle);
+            ctx.beginPath(); ctx.arc(s.x%W, s.y%H, s.r, 0, Math.PI*2);
+            ctx.fillStyle=`rgba(200,180,240,${alpha})`; ctx.fill();
+        }
+        drawSurface(ctx);
+        for(const fl of fieldLines){ fl.update(dt); fl.draw(ctx); }
+
+        // 公式水印
+        const [fcx,fcy]=project(0,0,0);
+        ctx.font=`${Math.max(14,Math.floor(W/58))}px "Segoe UI","PingFang SC",sans-serif`;
+        ctx.fillStyle='rgba(240,192,96,0.5)'; ctx.textAlign='center';
+        ctx.fillText('Φ_E = ∮ E · dA', fcx, fcy-SURF_RY*H/5*1.25);
+
+        requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+    window.addEventListener('resize',()=>{resize();stars.forEach(s=>{s.x=Math.random()*W;s.y=Math.random()*H;});});
+})();
+
+// ============================================================
+//  电通量经典应用数据（7 大场景，可点击展开详情）
+// ============================================================
+const classicApps = [
+    {
+        icon:'⚡', title:'电容器与储能', animId:'capacitor',
+        hardware:'平行金属极板、介电材料（陶瓷/聚合物薄膜）',
+        principle:'根据高斯定理 Φ<sub>E</sub> = ∮E·dA = Q/ε₀，两极板间的均匀电场 E 垂直穿过极板面积 A，储存的电场能量 U = ½CV² = ½ε₀E²·(Ad)。',
+        effect:'实现电荷与电场能量的可控储存与快速释放，是现代电子电路中最基础的被动元件。',
+        formula:'C = ε₀A/d，U = ½CV²',
+        scenarios:[
+            {tag:'智能手机快充', text:'超级电容在手机充电头中充当"电力缓冲池"——利用高介电常数材料在极小体积内储存大量电荷，在快充握手协议期间平滑 120W 级功率脉冲，保护锂电池免受浪涌冲击。其核心是最大化 Φ<sub>E</sub> 即单位面积电场通量。'},
+            {tag:'电动汽车再生制动', text:'当电动车减速时，驱动电机反转成为发电机，产生的瞬时大电流无法直接充入锂电池。超级电容组以秒级速度吸收制动能量（约 50-200 kJ），利用高电通量密度暂存电荷，随后再缓慢释放给电池充电，能量回收效率可达 70%。'},
+            {tag:'电网调峰储能', text:'百兆瓦级超级电容阵列为城市电网提供毫秒级频率调节。当风电或光伏输出突然波动时，电容阵列以极高 Φ<sub>E</sub> 吞吐电荷，在 20 毫秒内注入或吸收有功功率，维持电网 50Hz 频率稳定，避免大面积停电。'}
+        ]
+    },
+    {
+        icon:'🏭', title:'静电除尘', animId:'precipitator',
+        hardware:'放电电极（电晕线）、集尘极板、高压直流电源（50-100 kV）',
+        principle:'放电电极附近电场强度极高（尖端效应使局部 Φ<sub>E</sub> 密度极大），空气被击穿电离产生大量自由电子。粉尘颗粒捕获电子后带负电，在电场力 F = qE 作用下向带正电的集尘板迁移并沉积。',
+        effect:'工业烟气粉尘去除率可达 99.9% 以上，处理风量可达数百万 m³/h。',
+        formula:'η = 1 − exp(−A·w/Q) （Deutsch-Anderson 效率方程）',
+        scenarios:[
+            {tag:'火力发电厂烟气净化', text:'一座 1000MW 燃煤电厂每天排放约 50,000 m³ 烟气，含有大量飞灰颗粒（PM2.5-PM100）。静电除尘器内部数百条电晕线在 80kV 高压下产生强电场，使飞灰带电后被 3m×15m 的集尘板捕获。除尘效率 99.8%，年回收粉煤灰可达百万吨（用于水泥生产）。'},
+            {tag:'水泥厂回转窑除尘', text:'水泥窑尾气温度高达 350°C，含尘浓度可达 100g/m³。高温静电除尘器使用宽极距（400-600mm）设计降低火花放电风险，在高温下维持稳定电通量分布，回收的碱性粉尘可回用为水泥原料，实现零固废排放。'},
+            {tag:'室内空气净化', text:'家用静电集尘净化器（如部分品牌空气净化器）利用 6-12kV 直流高压产生电晕，使空气中的 PM0.1-PM2.5 微粒带电后被收集极捕获。与 HEPA 滤网不同，静电集尘无需更换耗材，只需定期清洗收集极板，且气流阻力极低、噪音更小。'}
+        ]
+    },
+    {
+        icon:'🎨', title:'静电喷涂', animId:'spray',
+        hardware:'高压静电喷枪（60-100 kV）、带电涂料粉末/漆雾、接地工件',
+        principle:'喷枪尖端使涂料颗粒带电（电晕充电或摩擦充电）。带电颗粒沿电场线运动——电场线从喷枪指向接地工件，涂料颗粒在电场力引导下自动包裹工件背面（"静电环抱效应"），涂料利用率从传统喷涂的 30-40% 提升至 80-95%。',
+        effect:'涂层均匀、无死角，VOC 排放大幅降低，涂料节省 50% 以上。',
+        formula:'颗粒受力：F = qE，迁移速度 v = qE/(6πηr)',
+        scenarios:[
+            {tag:'汽车整车自动喷涂', text:'汽车制造厂涂装车间内，机械臂搭载静电旋杯喷枪以 40,000 rpm 高速旋转将涂料雾化为直径 20-50μm 的带电微滴。车身接地后，电场线从喷枪指向车身每一处表面——包括车门内侧、引擎盖边缘等隐蔽位置，带电微滴自动绕到背面附着，涂层厚度均匀（±2μm），涂料利用率高达 93%。'},
+            {tag:'家具粉末涂装', text:'金属办公家具（文件柜、桌腿）悬挂在接地的自动输送链上，通过静电喷粉室。热固性聚酯粉末经摩擦充电后带 10-50μC/g 电荷量，在 70kV 静电场中均匀吸附于工件表面。随后进入 200°C 烘道固化成膜，全程无溶剂、零 VOC 排放，粉末过喷部分可回收再用。'},
+            {tag:'3D 打印后处理上色', text:'FDM 3D 打印件表面通常粗糙且有层纹。静电喷涂可让导电底涂处理后的打印件带上极性，使带电色漆微滴深入填充层纹凹陷，形成平滑均匀的彩色涂层——这对 cosplay 道具、模型手办和医疗教学模型的表面处理尤为重要。'}
+        ]
+    },
+    {
+        icon:'🖨️', title:'静电复印与激光打印', animId:'xerography',
+        hardware:'光电导鼓（OPC）、充电电晕、激光扫描单元、碳粉显影辊',
+        principle:'（1）电晕对鼓表面均匀充电，建立均匀 Φ<sub>E</sub>；（2）激光照射处光电导层导通→该处电荷泄漏→形成"电通量分布潜像"（即静电潜像）；（3）带电碳粉在电场力下选择性吸附于带电区域；（4）碳粉热压转移到纸张定影。整个过程是电场通量的精确定义与操控。',
+        effect:'数字化静电成像，分辨率可达 1200 dpi，打印速度 100+ 页/分钟。',
+        formula:'表面电位 V = σd/ε（σ 为面电荷密度）',
+        scenarios:[
+            {tag:'办公室激光打印机', text:'桌面激光打印机内部 OPC 鼓在黑暗中由充电辊充至 -600V 均匀电位。半导体激光束（780nm 红外）扫描鼓面，被照射区域的电荷通过接地的导电基层泄漏——曝光处电位降至 -50V，形成文字/图像的"电通量潜像"。带负电的碳粉（约 5-10μm 粒径）在显影辊电场力下跳向电位更高的曝光区域，经 180°C 热辊加压熔化渗入纸张纤维。'},
+            {tag:'数码印刷机高速输出', text:'商业数码印刷机（如 HP Indigo）采用液体电子油墨替代干式碳粉。光电成像板（PIP）充电后经激光扫描形成 Φ<sub>E</sub> 潜像，带电荷的液体油墨颗粒（1-2μm，比干式碳粉细 5 倍）在显影电场中精确附着，一次可转印全部六色，以每分钟 200+ 页 A4 的速度输出胶印级画质。'},
+            {tag:'PCB 光刻掩模', text:'在印刷电路板（PCB）制造中，激光光绘机利用静电成像原理在感光胶片上以 25400 dpi 的超高精度绘制电路掩模。精确控制每一点的曝光电荷量（即 Φ<sub>E</sub> 的局域密度），确保 0.05mm 线宽的微细走线边缘锐利——这对于手机主板和芯片封装基板等高密度互连板至关重要。'}
+        ]
+    },
+    {
+        icon:'⚛️', title:'范德格拉夫起电机', animId:'vandegraaff',
+        hardware:'绝缘传送带（橡胶/硅胶）、高压金属球壳、电晕放电梳、驱动电机',
+        principle:'底部电晕针将电荷喷射到移动的绝缘带上；绝缘带将电荷机械运送至顶部球壳内部；顶部收集针将电荷转移至球壳外表面。根据高斯定理，球壳内部电场为零——电荷全部分布于外表面，球壳电位 V = Q/(4πε₀R) 可持续升高至数百万伏。',
+        effect:'产生稳定直流超高压，用于粒子加速器注入级与核物理实验。',
+        formula:'V = Q/(4πε₀R)，E<sub>max</sub> ≈ 3×10⁶ V/m（空气击穿阈值）',
+        scenarios:[
+            {tag:'粒子加速器高压注入', text:'在静电串列加速器（如 15UD Pelletron）中，范德格拉夫起电机产生 15-25 MV 超高电压。负离子从离子源被注入到高压端，在电场力下加速穿过剥离器变成正离子后再次加速——两次利用同一 Φ<sub>E</sub> 梯度，使质子或重离子获得 MeV 级动能，用于材料辐照改性、碳-14 年代测定和核天体物理实验。'},
+            {tag:'核物理实验室离子源', text:'小型范德格拉夫起电机（0.5-5 MV）广泛用于大学核物理教学实验室。它为学生提供稳定的直流高压来加速电子或质子束流，演示卢瑟福散射实验——用加速的 α 粒子轰击金箔，测量散射角分布，验证原子核模型的正确性。每次实验前需校准球壳表面的 Φ<sub>E</sub> 值以推算束流能量。'},
+            {tag:'科学博物馆经典演示', text:'全球几乎所有科学博物馆（如波士顿科学博物馆、上海科技馆）都有范德格拉夫起电机演示。参观者手触球壳时，头发因同种电荷排斥而根根竖起——电荷沿身体表面分布，每根头发末端的 Φ<sub>E</sub> 密度足以克服重力将发丝推开。这是高斯定理最直观的"人体体验式"证明。'}
+        ]
+    },
+    {
+        icon:'🌩️', title:'避雷与闪电防护', animId:'lightning-rod',
+        hardware:'避雷针（接闪器）、导电引下线、接地网、浪涌保护器（SPD）',
+        principle:'雷雨云底部负电荷通过静电感应在建筑物顶部诱导出正电荷。避雷针尖端曲率半径极小→局域电荷面密度 σ 极大→尖端附近 Φ<sub>E</sub> 极高→优先击穿空气形成上行先导→引导雷电流沿安全路径入地，保护建筑本体不受直接雷击。',
+        effect:'将雷电流（峰值可达 200 kA）安全泄放入大地，保护建筑、设备和人员安全。',
+        formula:'尖端场强 E ≈ V/r（r 为尖端曲率半径），保护角 ≈ 45°-60°',
+        scenarios:[
+            {tag:'建筑群防雷保护', text:'超高层建筑（如上海中心 632m）的避雷系统远不止一根针。建筑顶部布置多根接闪器形成"保护网"，利用滚球法（rolling sphere method）计算保护范围——等效一个半径 45m 的球体滚过建筑表面，所有接触到球的区域都需布置接闪器。每根接闪器的尖端 Φ<sub>E</sub> 密度设计要保证在雷暴电场（约 10 kV/m）下率先电离空气形成上行先导。'},
+            {tag:'飞机复合材料防雷', text:'现代客机（如波音 787）机身大量使用碳纤维复合材料（CFRP）替代铝合金，但 CFRP 导电性仅为铝的 1/1000。工程师在复合材料中嵌入超薄铜网或镍涂层导电层，确保机身表面形成连续等电位面——使得雷击时电流沿机身外部 Φ<sub>E</sub> 最小路径（法拉第笼效应）流过，保护内部油箱、航电系统和乘客安全。每架客机平均每年遭遇 1-2 次雷击。'},
+            {tag:'高压输电线路防雷', text:'500 kV 超高压输电线路上方架设两条架空地线（避雷线），它们位于相导线之上，在几何上形成保护角（< 20°）。雷击时率先接闪，通过杆塔接地网将电流泄放。同时安装线路避雷器（氧化锌 ZnO 阀片），利用 ZnO 的非线性电阻特性——正常 Φ<sub>E</sub> 下呈高阻，雷击过电压下瞬间变为低阻，将雷电能量箝制在绝缘子安全范围内。'}
+        ]
+    },
+    {
+        icon:'📱', title:'电容式触摸传感', animId:'touchscreen',
+        hardware:'ITO 透明电极网格、触控 IC 芯片、互电容/自电容检测电路',
+        principle:'手指（人体为导体）接近屏幕表面时，改变了局域电场的空间分布。手指与下方 ITO 电极之间形成耦合电容，导致该位置的 Φ<sub>E</sub> 重分布——部分电场线从电极指向手指而非相邻电极。触控 IC 以每秒 120+ 次扫描检测每个节点的电容变化 ΔC，据此定位触摸坐标。',
+        effect:'实现多点触控、手势识别、压力感应，支撑现代智能手机核心交互。',
+        formula:'ΔC ≈ ε₀·A/d（手指→电极耦合），Φ<sub>E</sub> = ∮ΔE·dA',
+        scenarios:[
+            {tag:'智能手机多点触控', text:'最新手机屏幕（如 iPhone、旗舰 Android）采用互电容式触控：驱动层和感应层 ITO 透明电极正交排列，形成数千个交叉节点。每个节点都是一个小"电容器"。手指靠近时，节点处电场从"电极→电极"变为"电极→手指"，电容降低约 0.5-2 pF。触控 IC（如 Apple Taptic Engine 驱动芯片）以 240 Hz 频率扫描全屏 1000+ 个节点，将微弱的 Φ<sub>E</sub> 变化转化为精确的 (x,y) 坐标和接触面积。'},
+            {tag:'汽车中控触摸屏', text:'车载触屏需应对极寒（-30°C）、酷暑（+85°C）、电磁干扰及戴手套操作。高灵敏互电容方案通过增大感应电极面积和优化 Φ<sub>E</sub> 耦合路径，使 3mm 厚的皮革手套下也能检测到手指位置。同时，在 ITO 层下方增加屏蔽层，阻断来自车载电机、逆变器的电磁噪声干扰，保证触控信噪比 > 30 dB。'},
+            {tag:'工业 HMI 防水触控', text:'工业现场触摸屏（如数控机床面板、户外充电桩屏幕）需在淋雨、油污、作业手套等恶劣条件下可靠运行。采用"自电容+互电容"双模检测：自电容模式检测大面积水滴的电容变化并滤除（防误触），互电容模式在水膜下仍能分辨手指精确位置。核心算法利用 Φ<sub>E</sub> 在介质界面（水/玻璃/空气）的折射规律来区分手指和水滴的电容特征。'}
+        ]
+    }
+];
+
+// ============================================================
+//  电通量 + AI 前沿数据（3 大场景，可点击展开详情）
+// ============================================================
+const frontierApps = [
+    {
+        num:'01', icon:'🧬', visualClass:'bio', animId:'bioelectric',
+        title:'极微弱生物电测量',
+        subtitle:'医疗与可穿戴设备',
+        core:'AI 代理模型 / 图神经网络 (GNN)',
+        shortDesc:'人体靠近会改变局域电场分布。AI 抛弃了传统有限元方法的慢速数值计算，通过学习海量电场模拟数据，只需几秒钟即可根据目标电通量变化率 Φ<sub>E</sub> = ∮ E·dA，逆向推理生成最优的不规则传感器电极图案。',
+        formula:'优化目标：max SNR(Φ<sub>E</sub>) = max ∮_sensor E_bio·dA / ∮_sensor E_noise·dA',
+        scenarios:[
+            {tag:'脑机接口 (BCI)', text:'高位截瘫患者的大脑运动皮层神经元放电产生约 10-100μV 的微弱头皮电位。传统的 EEG 电极布局（10-20 系统）使用均匀分布的 21 个电极，信噪比极低。图神经网络（GNN）以百万组模拟电场数据为训练集，将电极形状和位置作为可优化参数，搜索使 Φ<sub>E</sub>（生物电场通量）最大化、Φ<sub>E_noise</sub> 最小化的最优非均匀布局——电极可能是蜿蜒的树枝状而非圆形，以贴合颅骨曲率并避开肌电干扰源。信噪比提升 3-8 倍，使患者"意念打字"速度从每分钟 5 字符提升至 30 字符。'},
+            {tag:'孕妇胎儿心电监测', text:'胎儿心电图（FECG）信号强度仅 1-50μV，淹没在母亲 1000μV 级的心电信号中。AI 代理模型在孕妇腹部皮肤模型上模拟数十万个随机电极布局，计算每个布局下穿过各电极的 Φ<sub>E</sub>（来自胎儿心脏的时变电场）与来自母体的串扰通量之比。优化出的同心多环电极组可在空间上解耦两个电场源——类似波束成形，使临床级 FECG 提取成为可能，替代侵入式头皮电极。'},
+            {tag:'智能手表健康监测', text:'智能手表 PPG（光电心率）传感器在运动伪影下精度骤降。新一代"电场心率监测"利用手腕内侧电极阵列感知心脏搏动引起的皮下组织介电常数周期变化（Δε/ε ≈ 0.1-0.5%）。AI 优化电极几何形状使 Φ<sub>E</sub> 尽可能集中在桡动脉上方，配合运动传感器数据实时自适应滤波，在跑步、游泳等场景下心率精度达到 ±2 bpm——与胸带式 ECG 持平。'}
+        ]
+    },
+    {
+        num:'02', icon:'🛡️', visualClass:'shield', animId:'shielding',
+        title:'复杂环境电磁屏蔽网络',
+        subtitle:'航天器与自动驾驶车辆',
+        core:'生成式设计 (Generative Design) / 强化学习 (RL)',
+        shortDesc:'设备开孔散热与电磁屏蔽是一对天然矛盾。强化学习 AI 通过数万次虚拟迭代试错，以最小化腔内总电通量 Φ<sub>E</sub> 为目标，演化出打破人类工程直觉的仿生学拓扑开孔方案。',
+        formula:'min Φ<sub>E_leak</sub> = min ∮_aperture E·dA  s.t.  Q_air ≥ Q_min',
+        scenarios:[
+            {tag:'航天器电子舱屏蔽', text:'卫星电子舱需要散热孔让热量辐射到太空，但每个开孔都会让外部宇宙射线和太阳风暴产生的强电场渗透入舱内——可能造成单粒子翻转（SEU）烧毁芯片。强化学习 AI 将开孔形状作为"基因"，在数万次电磁仿真中变异、交叉、选择：最终演化出类似蝴蝶翅膀鳞片的多层交错微孔结构，每层孔的 Φ<sub>E</sub> 泄漏方向与下层错位 45°，在保证 85% 散热流量的同时将漏电场强度降低 42%。NASA 已在部分 CubeSat 项目中验证该方案。'},
+            {tag:'自动驾驶域控制器', text:'L4 级自动驾驶域控制器（如 NVIDIA Orin 平台）功耗高达 200W+，需要强力风冷，但同时必须屏蔽来自电机驱动器和 DC-DC 转换器的强烈电磁干扰（10 kHz-1 GHz）。强化学习 AI 在域控制器壳体的 3D 模型上搜索最优开孔拓扑——演化结果类似白蚁巢穴的通气结构：入口处有一系列微小的螺旋状导流片，气流通过时几乎无阻，但每片导流片同时形成局域电场"驻波陷阱"——入射电磁波在片间多次反射衰减，使 Φ<sub>E</sub> 泄漏比传统圆孔阵列低 35dB。'},
+            {tag:'5G 基站射频隔离', text:'Massive MIMO 5G 基站（64T64R）天线阵列间距仅 λ/2 ≈ 5cm。64 个发射通道同时工作时，天线间串扰会导致波束赋形失真。AI 生成式设计在天线罩内部"雕刻"出仿生珊瑚状的隔离结构——利用周期性凹凸表面使串扰电场在结构间经历多次吸收和散射，将相邻天线单元间的 Φ<sub>E</sub> 耦合降低 25dB 以上，等效于增大了天线隔离度而不增加物理间距。'}
+        ]
+    },
+    {
+        num:'03', icon:'🌩️', visualClass:'lightning', animId:'lightning-predict',
+        title:'极端气候雷电预警',
+        subtitle:'气象监测与基建安全',
+        core:'时序预测大模型 / 时空图网络',
+        shortDesc:'雷暴云发展会引发大范围大气电通量激增。AI 从数千个城市地面电场传感器的嘈杂信号中，精准剥离地形导致的局域电场畸变噪点，提前 30 分钟锁定雷击高发区域。',
+        formula:'预警信号：∂Φ<sub>E</sub>/∂t > 阈值（大气电场突变率监测）',
+        scenarios:[
+            {tag:'城市电网雷电预警', text:'城市配电网（10kV/35kV）跨越数百平方公里，雷击可造成绝缘子闪络、变压器烧毁和区域停电。传统雷电预测依赖多普勒雷达（仅探测已形成的降水区），对"干雷暴"（无降雨但闪电频繁）完全失效。时序大模型（如基于 Transformer 的时空预测网络）接入全市 200+ 地面电场仪（场磨计 mill）的实时数据，每 10 秒更新一次 Φ<sub>E</sub> 空间分布图，利用自注意力机制学习各站点电场变化的时空相关性——可在强电场信号出现 30 分钟前预测雷击高概率区域（空间精度 1km²），电力调度中心提前切换供电线路，将雷击停电时长缩短 60%。'},
+            {tag:'航天发射场气象保障', text:'火箭发射（如 SpaceX Falcon 9、中国长征系列）对雷电极度敏感——发射升空过程中如果穿越强电场区域，可能触发"火箭引雷"（火箭尾焰电离大气形成导电通道，人工诱发闪电），后果是灾难性的。发射场周边部署 31 个地面电场监测站形成三维 Φ<sub>E</sub> 监测网。AI 大模型整合电场数据、卫星云图、大气探空资料和邻近的闪电定位数据（LLS），在发射窗口前 2 小时判定大气电场是否满足发射准则（场强 < 3kV/m）。2024 年某次发射中，AI 提前 35 分钟识别出一片即将增强的电场异常区，发射倒计时因此推迟 22 分钟，成功避开一次潜在的火箭引雷事件。'},
+            {tag:'风电场叶片防雷', text:'现代风电机组高度超 200m，叶片长达 100m+，自身就是一座"移动避雷针"。海上风电场（如英国 Dogger Bank 3.6GW 项目）每台机组每年遭受 10-50 次雷击，叶片损坏维修成本单次可达 50 万美元。时空图网络学习数百台风机内置电场传感器的时空关联模式，识别出哪些云团可能发展成雷暴单体（Φ<sub>E</sub> 增长率 > 500 V/m/min），在雷击前 15 分钟向单台风机发出变桨降速指令，将雷击概率降低约 40%，叶片寿命延长 3-5 年。'}
+        ]
+    }
+];
+
+// ============================================================
+//  生成经典应用卡片
+// ============================================================
+const classicGrid = document.getElementById('classicGrid');
+classicApps.forEach((app, i) => {
+    const card = document.createElement('div');
+    card.className = 'classic-card';
+    card.style.transitionDelay = `${i*0.06}s`;
+    card.innerHTML = `
+        <div class="card-icon">${app.icon}</div>
+        <div class="card-title">${app.title}</div>
+        <div class="card-row"><span class="label">硬件</span><span class="val">${app.hardware}</span></div>
+        <div class="card-row"><span class="label">原理</span><span class="val">${app.principle}</span></div>
+        <div class="card-row"><span class="label">效果</span><span class="val">${app.effect}</span></div>
+        <div class="click-hint">点击查看真实场景 →</div>
+    `;
+    card.addEventListener('click', () => openClassicModal(app));
+    classicGrid.appendChild(card);
+});
+
+// ============================================================
+//  生成前沿 AI 卡片
+// ============================================================
+const elecCards = document.getElementById('elecCards');
+frontierApps.forEach((app, i) => {
+    const card = document.createElement('div');
+    card.className = 'elec-card';
+    card.style.transitionDelay = `${i*0.1}s`;
+    card.innerHTML = `
+        <div class="card-visual ${app.visualClass}">${app.icon}</div>
+        <div class="card-body">
+            <div class="card-num">前沿 ${app.num}</div>
+            <h3>${app.title} <span style="font-size:14px;color:var(--text3);font-weight:400;">— ${app.subtitle}</span></h3>
+            <div class="core-tools">核心工具：${app.core}</div>
+            <p>${app.shortDesc}</p>
+        </div>
+        <div class="click-hint-ai">点击展开详细场景 →</div>
+    `;
+    card.addEventListener('click', () => openFrontierModal(app));
+    elecCards.appendChild(card);
+});
+
+// ============================================================
+//  Modal 系统
+// ============================================================
+const modalOverlay = document.getElementById('modalOverlay');
+const modalPanel = document.getElementById('modalPanel');
+
+function openModal(html) {
+    modalPanel.innerHTML = html;
+    modalOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    modalOverlay.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
+});
+
+// 构建经典应用弹窗内容
+function openClassicModal(app) {
+    const scenariosWithDelay = app.scenarios.map((s, i) => `
+        <div class="modal-scenario" style="animation-delay:${0.32 + i*0.08}s">
+            <div class="scenario-tag">▸ ${s.tag}</div>
+            <div class="scenario-text">${s.text}</div>
+        </div>
+    `).join('');
+
+    const html = `
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-icon-wrap"><div class="modal-icon">${app.icon}</div></div>
+        <div class="modal-title-wrap"><div class="modal-title">${app.title}</div></div>
+        <div class="modal-formula-wrap"><div class="modal-formula">${app.formula}</div></div>
+        <div class="modal-anim"><canvas class="modal-canvas" data-anim="${app.animId||''}"></canvas></div>
+        <div class="modal-section" style="animation-delay:0.20s">
+            <h4>物理原理</h4>
+            <p>${app.principle}</p>
+        </div>
+        <div class="modal-section" style="animation-delay:0.28s">
+            <h4>真实应用场景</h4>
+            ${scenariosWithDelay}
+        </div>
+    `;
+    openModal(html);
+    initScenarioCanvases();
+}
+
+// 构建前沿 AI 弹窗内容
+function openFrontierModal(app) {
+    const scenariosWithDelay = app.scenarios.map((s, i) => `
+        <div class="modal-scenario" style="animation-delay:${0.38 + i*0.08}s">
+            <div class="scenario-tag">▸ ${s.tag}</div>
+            <div class="scenario-text">${s.text}</div>
+        </div>
+    `).join('');
+
+    const html = `
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-icon-wrap"><div class="modal-icon">${app.icon}</div></div>
+        <div class="modal-title-wrap"><div class="modal-title">${app.title} — ${app.subtitle}</div></div>
+        <div class="modal-formula-wrap"><div class="modal-formula">${app.formula}</div></div>
+        <div class="modal-anim"><canvas class="modal-canvas" data-anim="${app.animId||''}"></canvas></div>
+        <div class="modal-section" style="animation-delay:0.20s">
+            <h4>核心工具</h4>
+            <p>${app.core}</p>
+        </div>
+        <div class="modal-section" style="animation-delay:0.28s">
+            <h4>物理原理与技术路线</h4>
+            <p>${app.shortDesc}</p>
+        </div>
+        <div class="modal-section" style="animation-delay:0.36s">
+            <h4>真实应用场景</h4>
+            ${scenariosWithDelay}
+        </div>
+    `;
+    openModal(html);
+    initScenarioCanvases();
+}
+
+// 暴露 closeModal 到全局作用域（供 onclick 使用）
+window.closeModal = closeModal;
+
+// ============================================================
+//  场景配图动画系统
+//  10 个主题动画，对应 10 张卡片的物理概念
+//  每个 Canvas 独立 rAF 循环，按需启停
+// ============================================================
+const activeAnims = new Map();
+
+// 动画主题函数 (ctx, w, h, t) — t 为秒
+const animThemes = {
+    // 1. 电容器充电：平行极板 + 积累电荷 + 场线
+    capacitor(ctx, w, h, t) {
+        const cx = w/2, cy = h/2;
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        // 极板
+        const plateW = w*0.7, plateX = cx - plateW/2;
+        ctx.fillStyle = '#667'; ctx.fillRect(plateX, cy-28, plateW, 3);
+        ctx.fillStyle = '#667'; ctx.fillRect(plateX, cy+25, plateW, 3);
+        // 场线（竖直，随 t 增强）
+        const strength = Math.min(1, t*0.8);
+        for (let i=0; i<9; i++) {
+            const px = plateX + plateW*(i/8);
+            const alpha = 0.2 + 0.5*strength*(1 - Math.abs(i-4)/5);
+            ctx.strokeStyle = `rgba(180,140,255,${alpha})`;
+            ctx.lineWidth = 1; ctx.beginPath();
+            ctx.moveTo(px, cy-22); ctx.lineTo(px, cy+19);
+            ctx.stroke();
+            // 箭头
+            if (i%2===0) {
+                ctx.fillStyle = `rgba(200,170,255,${alpha})`;
+                ctx.beginPath(); ctx.moveTo(px, cy+14); ctx.lineTo(px-4, cy+8); ctx.lineTo(px+4, cy+8); ctx.fill();
+            }
+        }
+        // 电荷积累（+ 在上极板，- 在下极板）
+        const nCharges = Math.floor(2 + strength*10);
+        for (let i=0; i<nCharges; i++) {
+            const px = plateX + 6 + (plateW-12)*(i/nCharges);
+            ctx.fillStyle = '#ff6644'; ctx.beginPath(); ctx.arc(px, cy-32, 2.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillText('+', px-3, cy-30);
+            ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(px+5, cy+30, 2.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.fillText('−', px+2, cy+32);
+        }
+        ctx.font = '9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle = '#888'; ctx.fillText('Φ_E = ∮E·dA = Q/ε₀', cx, h-8);
+    },
+
+    // 2. 静电除尘：中心电晕线 + 粉尘漂移
+    precipitator(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w*0.25, cy = h/2;
+        // 电晕线
+        ctx.strokeStyle = '#557'; ctx.lineWidth=2; ctx.beginPath();
+        ctx.moveTo(cx, cy-30); ctx.lineTo(cx, cy+30); ctx.stroke();
+        // 电晕发光
+        const glow = 0.4+0.3*Math.sin(t*8);
+        const grd=ctx.createRadialGradient(cx,cy,3, cx,cy,18);
+        grd.addColorStop(0,`rgba(180,140,255,${glow})`); grd.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=grd; ctx.fillRect(cx-20,cy-20,40,40);
+        // 集尘板（右侧）
+        ctx.fillStyle='#445'; ctx.fillRect(w-18, cy-35, 6, 70);
+        // 粉尘颗粒从电晕线向外漂移
+        for (let i=0; i<15; i++) {
+            const phase = (i/15 + t*0.25) % 1;
+            const px = cx + phase*(w-cx-24);
+            const py = cy-25 + (i%5)*12 + 3*Math.sin(phase*Math.PI*3);
+            const alpha = 0.6+0.4*Math.sin(phase*Math.PI);
+            ctx.fillStyle = `rgba(200,180,200,${alpha})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('电晕放电 → 粉尘迁移', cx+60, h-8);
+    },
+
+    // 3. 静电喷涂：喷枪 + 带电雾滴沿场线飞行
+    spray(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const nx=w*0.15, ny=h/2;
+        // 喷枪
+        ctx.fillStyle='#556'; ctx.fillRect(0, ny-6, nx, 12);
+        ctx.fillStyle='#778'; ctx.fillRect(nx-4, ny-3, 8, 6);
+        // 目标工件
+        ctx.fillStyle='#334'; ctx.strokeStyle='#556'; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.roundRect(w*0.7, ny-25, w*0.25, 50, 8); ctx.fill(); ctx.stroke();
+        // 场线（从喷嘴到工件，弧线包裹背面）
+        for (let i=0; i<7; i++) {
+            const yOff = (i-3)*10;
+            const cpY = ny + yOff*0.5 + 10*Math.sin(t*2+i);
+            ctx.strokeStyle = `rgba(160,130,220,0.3)`;
+            ctx.lineWidth=0.8; ctx.beginPath();
+            ctx.moveTo(nx, ny+yOff*0.3);
+            ctx.quadraticCurveTo(w*0.4, cpY, w*0.7+Math.abs(yOff)*1.5, ny+yOff*0.6);
+            ctx.stroke();
+        }
+        // 带电雾滴
+        for (let i=0; i<12; i++) {
+            const phase = ((i/12) + t*0.35) % 1;
+            const px = nx + phase*(w*0.7-nx);
+            const py = ny + 15*Math.sin(phase*Math.PI*2 + i) * (1-phase*0.5);
+            ctx.fillStyle = `rgba(200,170,255,${0.7+0.3*Math.sin(phase*10)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.6, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('F=qE → 静电环抱效应', w*0.42, h-8);
+    },
+
+    // 4. 静电复印：光导鼓 + 激光扫描 + 碳粉显影
+    xerography(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const drumX=w*0.15, drumY=h/2, drumR=28;
+        // 光导鼓
+        ctx.fillStyle='#2a2a3a'; ctx.beginPath(); ctx.arc(drumX, drumY, drumR, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#556'; ctx.lineWidth=1.5; ctx.stroke();
+        // 旋转标记
+        const rot = t*1.5;
+        for (let i=0; i<6; i++) {
+            const a = rot + i*Math.PI/3;
+            ctx.fillStyle='#444'; ctx.beginPath();
+            ctx.arc(drumX+Math.cos(a)*drumR*0.7, drumY+Math.sin(a)*drumR*0.7, 3, 0, Math.PI*2); ctx.fill();
+        }
+        // 激光束（从上方扫描）
+        const laserPhase = (t*0.6)%1;
+        const lx = drumX - drumR*0.8 + laserPhase*drumR*1.6;
+        ctx.strokeStyle = `rgba(255,60,60,${0.6+0.4*Math.sin(t*12)})`; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(lx, drumY-drumR-10); ctx.lineTo(lx, drumY-drumR+2); ctx.stroke();
+        // 碳粉颗粒（从下方跳向鼓面）
+        for (let i=0; i<8; i++) {
+            const phase = (i/8 + t*0.3) % 1;
+            const tx = drumX-drumR*0.6 + phase*drumR*1.2;
+            const ty = drumY+drumR+5 - phase*12;
+            ctx.fillStyle = `rgba(80,80,90,${0.5+phase})`;
+            ctx.beginPath(); ctx.arc(tx, ty, 1.5, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('激光消电 → 静电潜像 → 碳粉显影', w*0.55, h-8);
+    },
+
+    // 5. 范德格拉夫起电机：球壳 + 传送带 + 电荷 + 火花
+    vandegraaff(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const sx=w/2, sy=h*0.35, sr=26;
+        // 球壳
+        const grd=ctx.createRadialGradient(sx-5,sy-5,sr*0.2, sx,sy,sr);
+        grd.addColorStop(0,'#556'); grd.addColorStop(0.7,'#334'); grd.addColorStop(1,'#223');
+        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#778'; ctx.lineWidth=1.5; ctx.stroke();
+        // 传送带
+        ctx.fillStyle='#3a3a3a'; ctx.fillRect(sx-4, sy+sr, 8, h-sy-sr-5);
+        // 带上电荷
+        for (let i=0; i<8; i++) {
+            const phase = (i/8 + t*0.5) % 1;
+            const py = sy+sr + phase*(h-sy-sr-5);
+            ctx.fillStyle = i%2===0?'#ff6644':'#4488ff';
+            ctx.beginPath(); ctx.arc(sx, py, 2.2, 0, Math.PI*2); ctx.fill();
+        }
+        // 表面电荷积累
+        for (let i=0; i<12; i++) {
+            const a = i*Math.PI*2/12 + t*0.3;
+            ctx.fillStyle='#ff6644'; ctx.beginPath();
+            ctx.arc(sx+Math.cos(a)*sr*0.9, sy+Math.sin(a)*sr*0.9, 1.8, 0, Math.PI*2); ctx.fill();
+        }
+        // 火花放电（间歇）
+        if (Math.sin(t*3.5) > 0.85) {
+            const sparkLen = 6+Math.random()*10;
+            ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(sx+sr*0.7, sy); ctx.lineTo(sx+sr*0.7+sparkLen, sy-sparkLen*0.6); ctx.stroke();
+            ctx.strokeStyle='#fff'; ctx.lineWidth=1;
+            ctx.beginPath(); ctx.moveTo(sx+sr*0.7, sy); ctx.lineTo(sx+sr*0.7+sparkLen, sy-sparkLen*0.6); ctx.stroke();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('V=Q/(4πε₀R) 球壳内部 E=0', sx, h-8);
+    },
+
+    // 6. 避雷针：建筑 + 尖端 + 场线集中 + 放电
+    'lightning-rod'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        // 建筑
+        ctx.fillStyle='#2a2a38'; ctx.fillRect(w*0.25, h*0.55, w*0.5, h*0.4);
+        // 避雷针
+        ctx.fillStyle='#667'; ctx.fillRect(w/2-1.5, h*0.3, 3, h*0.25);
+        ctx.beginPath(); ctx.moveTo(w/2-4, h*0.32); ctx.lineTo(w/2, h*0.26); ctx.lineTo(w/2+4, h*0.32); ctx.closePath(); ctx.fillStyle='#889'; ctx.fill();
+        // 云层
+        ctx.fillStyle='rgba(60,60,80,0.7)'; ctx.fillRect(w*0.1, h*0.05, w*0.8, h*0.15);
+        ctx.fillStyle='rgba(80,80,100,0.5)'; ctx.fillRect(w*0.2, h*0.02, w*0.5, h*0.08);
+        // 场线从云指向尖端（集中）
+        for (let i=0; i<9; i++) {
+            const srcX = w*0.15 + i*w*0.08;
+            const tgt = w/2 + (srcX-w/2)*(1 - Math.min(1, h*0.26/(h*0.55-(h*0.05+h*0.15))));
+            ctx.strokeStyle='rgba(180,150,220,0.25)'; ctx.lineWidth=0.8; ctx.beginPath();
+            ctx.moveTo(srcX, h*0.2); ctx.lineTo(tgt*0.5+w/2*0.5, h*0.38); ctx.lineTo(w/2, h*0.26); ctx.stroke();
+        }
+        // 脉冲放电
+        if (Math.sin(t*4) > 0.8) {
+            ctx.strokeStyle='#ffdd66'; ctx.lineWidth=2.5; ctx.beginPath();
+            ctx.moveTo(w/2, h*0.26); ctx.lineTo(w/2+3, h*0.16); ctx.stroke();
+            ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.beginPath();
+            ctx.moveTo(w/2, h*0.26); ctx.lineTo(w/2+3, h*0.16); ctx.stroke();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('尖端 Φ_E 密度极大 → 优先击穿', w/2, h-8);
+    },
+
+    // 7. 触摸屏：手指 + 玻璃 + ITO网格 + 场线畸变
+    touchscreen(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const fy = h*0.32 + 6*Math.sin(t*1.8); // 手指微动
+        // 手指
+        ctx.fillStyle='#c8a882'; ctx.beginPath(); ctx.ellipse(w/2, fy, 13, 22, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle='#a08060'; ctx.lineWidth=1.5; ctx.stroke();
+        // 玻璃层
+        ctx.fillStyle='rgba(150,180,210,0.15)'; ctx.fillRect(w*0.1, h*0.6, w*0.8, 4);
+        // ITO 电极网格
+        for (let i=0; i<7; i++) {
+            const ex = w*0.12 + i*w*0.12;
+            ctx.fillStyle='#556677'; ctx.fillRect(ex-1, h*0.66, 2, 8);
+        }
+        // 场线从电极指向手指（并随手指弯曲）
+        for (let i=0; i<7; i++) {
+            const ex = w*0.12 + i*w*0.12;
+            const dist = ex - w/2;
+            const bend = dist*0.4*(1 - Math.min(1, Math.abs(dist)/60));
+            ctx.strokeStyle = `rgba(160,140,220,${0.3+0.2*Math.abs(dist)/60})`;
+            ctx.lineWidth=0.8; ctx.beginPath();
+            ctx.moveTo(ex, h*0.66);
+            ctx.quadraticCurveTo(ex+bend*0.5, h*0.5, w/2+dist*0.15, fy+10);
+            ctx.stroke();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('手指→局域 Φ_E 重分布→ΔC 检测', w/2, h-8);
+    },
+
+    // 8. 生物电测量：不规则电极 + 信号脉冲
+    bioelectric(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        // 不规则电极图案（树枝状）
+        ctx.strokeStyle='#667'; ctx.lineWidth=1.2;
+        const drawBranch = (x,y,ang,len,depth) => {
+            if (depth>3||len<6) return;
+            const ex=x+Math.cos(ang)*len, ey=y+Math.sin(ang)*len;
+            ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
+            drawBranch(ex,ey,ang-0.5,len*0.6,depth+1);
+            drawBranch(ex,ey,ang+0.5,len*0.6,depth+1);
+        };
+        for (let i=0; i<3; i++) {
+            drawBranch(w*0.2+i*w*0.3, h*0.8, -Math.PI/2, h*0.5, 0);
+        }
+        // 生物电信号脉冲沿电极传播
+        for (let i=0; i<5; i++) {
+            const phase = (i/5 + t*0.6) % 1;
+            const px = w*0.15 + phase*(w*0.7);
+            const py = h*0.4 + 15*Math.sin(phase*Math.PI*4 + i*2);
+            const grd=ctx.createRadialGradient(px,py,0, px,py,8);
+            grd.addColorStop(0,`rgba(180,140,255,${0.7*(1-phase)})`);
+            grd.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=grd; ctx.fillRect(px-10,py-10,20,20);
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('GNN优化电极 → max SNR(Φ_E)', w/2, h-8);
+    },
+
+    // 9. 电磁屏蔽：箱体开孔 + 入射波 + 反射/穿透
+    shielding(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        // 屏蔽箱体
+        const bx=w*0.35, by=h*0.15, bw=w*0.55, bh=h*0.65;
+        ctx.fillStyle='#223'; ctx.strokeStyle='#445'; ctx.lineWidth=1.5;
+        ctx.fillRect(bx,by,bw,bh); ctx.strokeRect(bx,by,bw,bh);
+        // 散热孔
+        for (let i=0; i<5; i++) {
+            ctx.fillStyle='#0a0c1e'; ctx.fillRect(bx+10+i*22, by+bh*0.3, 10, 14);
+            ctx.strokeStyle='#556'; ctx.strokeRect(bx+10+i*22, by+bh*0.3, 10, 14);
+        }
+        // 入射电磁波（从左边）
+        for (let i=0; i<6; i++) {
+            const phase = (i/6 + t*0.4) % 1;
+            const wx = bx - 30 - phase*40;
+            if (wx < bx-5) {
+                ctx.strokeStyle=`rgba(180,150,255,${0.4*(1-phase)})`; ctx.lineWidth=1;
+                ctx.beginPath(); ctx.arc(bx, by+bh*0.4, wx-bx, -0.4, 0.4); ctx.stroke();
+            }
+        }
+        // 穿透场（孔右侧，淡出）
+        for (let i=0; i<3; i++) {
+            const px = bx+bw+8 + i*10;
+            ctx.strokeStyle=`rgba(255,150,100,${0.15+0.1*i})`; ctx.lineWidth=0.8;
+            ctx.beginPath(); ctx.arc(bx+bw, by+bh*0.4, px-bx-bw, -0.3, 0.3); ctx.stroke();
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('RL演化仿生孔 → min Φ_E_leak', w/2, h-8);
+    },
+
+    // 10. 雷电预警：传感器网格 + 电场增强 + 预警区
+    'lightning-predict'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        // 网格/地图背景
+        ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
+        for (let i=0; i<6; i++) { ctx.beginPath(); ctx.moveTo(15+i*45,10); ctx.lineTo(15+i*45,h-10); ctx.stroke(); }
+        for (let i=0; i<4; i++) { ctx.beginPath(); ctx.moveTo(10,12+i*30); ctx.lineTo(w-10,12+i*30); ctx.stroke(); }
+        // 传感器节点
+        const sensors = [];
+        for (let i=0; i<30; i++) {
+            sensors.push({x:15+Math.random()*(w-30), y:12+Math.random()*(h-24), base:Math.random()*0.3});
+        }
+        // 雷暴云（左上移动中）
+        const cloudX = w*0.3 + 20*Math.sin(t*0.7), cloudY = h*0.15 + 8*Math.cos(t*0.5);
+        ctx.fillStyle='rgba(60,55,80,0.6)'; ctx.beginPath(); ctx.ellipse(cloudX, cloudY, 35, 18, 0, 0, Math.PI*2); ctx.fill();
+        // 传感器响应（距离云越近越亮）
+        sensors.forEach(s => {
+            const dist = Math.hypot(s.x-cloudX, s.y-cloudY);
+            const alert = Math.max(0, 1 - dist/90) * (0.5+0.5*Math.sin(t*3+s.base*10));
+            const alpha = s.base*0.3 + alert*0.7;
+            ctx.fillStyle = alert>0.55?`rgba(255,120,80,${alpha})`:`rgba(100,180,220,${alpha})`;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 2.5, 0, Math.PI*2); ctx.fill();
+            if (alert>0.55) {
+                const grd=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,8);
+                grd.addColorStop(0,`rgba(255,100,60,${alert*0.6})`); grd.addColorStop(1,'rgba(0,0,0,0)');
+                ctx.fillStyle=grd; ctx.fillRect(s.x-10,s.y-10,20,20);
+            }
+        });
+        // 预警区域圈
+        if (t%8 > 2) {
+            ctx.strokeStyle='rgba(255,80,40,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+            ctx.beginPath(); ctx.arc(cloudX, cloudY, 50, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        }
+        ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle='#888'; ctx.fillText('∂Φ_E/∂t > 阈值 → 提前30min预警', w/2, h-8);
+    }
+};
+
+// 管理所有场景 Canvas 动画
+function initScenarioCanvases() {
+    stopAllAnims();
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.modal-canvas').forEach(canvas => {
+            const animId = canvas.dataset.anim;
+            const fn = animThemes[animId];
+            if (!fn || activeAnims.has(canvas)) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const anim = { ctx, fn, canvas, running:true, startTime:performance.now() };
+            activeAnims.set(canvas, anim);
+            function tick(now) {
+                if (!anim.running) return;
+                const rect = canvas.getBoundingClientRect();
+                const w = canvas.width = rect.width * dpr;
+                const h = canvas.height = rect.height * dpr;
+                ctx.setTransform(1,0,0,1,0,0);
+                fn(ctx, w, h, (now - anim.startTime)*0.001);
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        });
+    });
+}
+
+function stopAllAnims() {
+    activeAnims.forEach(a => { a.running = false; });
+    activeAnims.clear();
+}
+
+// 关闭弹窗时停止所有动画
+const _origCloseModal = closeModal;
+closeModal = function() {
+    stopAllAnims();
+    _origCloseModal();
+};
+
+// ============================================================
+//  滚动入场动画
+// ============================================================
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.classic-card, .elec-card').forEach(el => observer.observe(el));
+
+// ============================================================
+//  键盘导航
+// ============================================================
+document.addEventListener('keydown', (e) => {
+    if (modalOverlay.classList.contains('active')) return;
+    const sections = ['hero','classical','frontier','footer'];
+    const current = Math.round(window.scrollY / window.innerHeight);
+    let idx = Math.min(sections.length-1, Math.max(0, current));
+    if (e.key === 'ArrowDown' || e.key === 'j') {
+        e.preventDefault(); idx = Math.min(sections.length-1, idx+1);
+        document.getElementById(sections[idx])?.scrollIntoView({behavior:'smooth'});
+    } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        e.preventDefault(); idx = Math.max(0, idx-1);
+        document.getElementById(sections[idx])?.scrollIntoView({behavior:'smooth'});
+    }
+});
+
+console.log('%c⚡ 电通量的力量 %c| %c从经典工程到 AI 前沿计算',
+    'color:#f0c060;font-size:16px;','','color:#888;');
+console.log('%cΦ_E = ∮ E·dA = Q_enc/ε₀ %c— 高斯定律',
+    'color:#b44dff;font-size:14px;','color:#888;');
+</script>
+</body>
+</html>
