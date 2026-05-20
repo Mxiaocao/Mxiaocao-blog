@@ -210,21 +210,32 @@ body {
 }
 .modal-section p { font-size:13px; color:var(--text2); line-height:1.8; }
 
+/* 顶部大动画 */
+.modal-anim {
+    width:100%; height:200px; margin-bottom:20px;
+    border-radius:8px; overflow:hidden;
+    background:rgba(0,0,0,0.35); position:relative;
+}
+.modal-anim canvas { width:100%; height:100%; display:block; }
+
 .modal-scenario {
     background:rgba(255,255,255,0.02); border-left:3px solid var(--elec);
     padding:12px 16px; margin-bottom:12px; border-radius:0 6px 6px 0;
+    display:flex; gap:14px; align-items:flex-start;
 }
-.modal-scenario .scenario-tag { font-size:10px; color:var(--elec); font-weight:700; letter-spacing:1px; }
-.modal-scenario .scenario-text { font-size:13px; color:var(--text2); margin-top:4px; line-height:1.7; }
+.modal-scenario .scenario-tag { font-size:10px; color:var(--elec); font-weight:700; letter-spacing:1px; margin-bottom:6px; }
+.modal-scenario .scenario-text { font-size:13px; color:var(--text2); line-height:1.7; }
 
-/* 弹窗顶部统一动画配图（标题下方） */
-.modal-anim {
-    width:100%; height:170px; margin:14px 0 6px;
-    border-radius:8px; overflow:hidden;
-    background:rgba(0,0,0,0.3); position:relative;
-    animation:modalFadeUp 0.5s ease 0.16s both;
+/* 场景卡片内配图 —— 左侧 */
+.modal-scenario .scenario-visual {
+    flex-shrink:0; width:46%; height:170px;
+    border-radius:6px; overflow:hidden;
+    background:rgba(0,0,0,0.25); position:relative;
 }
-.modal-anim canvas { width:100%; height:100%; display:block; }
+.modal-scenario .scenario-visual canvas { width:100%; height:100%; display:block; }
+
+/* 场景文字 —— 右侧 */
+.modal-scenario .scenario-body { flex:1; min-width:0; }
 
 /* ============================================================
    Footer
@@ -250,6 +261,9 @@ body {
     .elec-card .card-visual { width:100px; height:100px; font-size:40px; }
     .hero h1 { font-size:26px; }
     .modal-panel { padding:24px 18px; }
+    .modal-anim { height:140px; }
+    .modal-scenario { flex-direction:column; }
+    .modal-scenario .scenario-visual { width:100%; height:130px; }
 }
 </style>
 </head>
@@ -521,9 +535,9 @@ const classicApps = [
         effect:'实现电荷与电场能量的可控储存与快速释放，是现代电子电路中最基础的被动元件。',
         formula:'C = ε₀A/d，U = ½CV²',
         scenarios:[
-            {tag:'智能手机快充', text:'超级电容在手机充电头中充当"电力缓冲池"——利用高介电常数材料在极小体积内储存大量电荷，在快充握手协议期间平滑 120W 级功率脉冲，保护锂电池免受浪涌冲击。其核心是最大化 Φ<sub>E</sub> 即单位面积电场通量。'},
-            {tag:'电动汽车再生制动', text:'当电动车减速时，驱动电机反转成为发电机，产生的瞬时大电流无法直接充入锂电池。超级电容组以秒级速度吸收制动能量（约 50-200 kJ），利用高电通量密度暂存电荷，随后再缓慢释放给电池充电，能量回收效率可达 70%。'},
-            {tag:'电网调峰储能', text:'百兆瓦级超级电容阵列为城市电网提供毫秒级频率调节。当风电或光伏输出突然波动时，电容阵列以极高 Φ<sub>E</sub> 吞吐电荷，在 20 毫秒内注入或吸收有功功率，维持电网 50Hz 频率稳定，避免大面积停电。'}
+            {tag:'智能手机快充', animId:'cap-phone', text:'超级电容在手机充电头中充当"电力缓冲池"——利用高介电常数材料在极小体积内储存大量电荷，在快充握手协议期间平滑 120W 级功率脉冲，保护锂电池免受浪涌冲击。其核心是最大化 Φ<sub>E</sub> 即单位面积电场通量。'},
+            {tag:'电动汽车再生制动', animId:'cap-ev', text:'当电动车减速时，驱动电机反转成为发电机，产生的瞬时大电流无法直接充入锂电池。超级电容组以秒级速度吸收制动能量（约 50-200 kJ），利用高电通量密度暂存电荷，随后再缓慢释放给电池充电，能量回收效率可达 70%。'},
+            {tag:'电网调峰储能', animId:'cap-grid', text:'百兆瓦级超级电容阵列为城市电网提供毫秒级频率调节。当风电或光伏输出突然波动时，电容阵列以极高 Φ<sub>E</sub> 吞吐电荷，在 20 毫秒内注入或吸收有功功率，维持电网 50Hz 频率稳定，避免大面积停电。'}
         ]
     },
     {
@@ -533,9 +547,9 @@ const classicApps = [
         effect:'工业烟气粉尘去除率可达 99.9% 以上，处理风量可达数百万 m³/h。',
         formula:'η = 1 − exp(−A·w/Q) （Deutsch-Anderson 效率方程）',
         scenarios:[
-            {tag:'火力发电厂烟气净化', text:'一座 1000MW 燃煤电厂每天排放约 50,000 m³ 烟气，含有大量飞灰颗粒（PM2.5-PM100）。静电除尘器内部数百条电晕线在 80kV 高压下产生强电场，使飞灰带电后被 3m×15m 的集尘板捕获。除尘效率 99.8%，年回收粉煤灰可达百万吨（用于水泥生产）。'},
-            {tag:'水泥厂回转窑除尘', text:'水泥窑尾气温度高达 350°C，含尘浓度可达 100g/m³。高温静电除尘器使用宽极距（400-600mm）设计降低火花放电风险，在高温下维持稳定电通量分布，回收的碱性粉尘可回用为水泥原料，实现零固废排放。'},
-            {tag:'室内空气净化', text:'家用静电集尘净化器（如部分品牌空气净化器）利用 6-12kV 直流高压产生电晕，使空气中的 PM0.1-PM2.5 微粒带电后被收集极捕获。与 HEPA 滤网不同，静电集尘无需更换耗材，只需定期清洗收集极板，且气流阻力极低、噪音更小。'}
+            {tag:'火力发电厂烟气净化', animId:'precip-plant', text:'一座 1000MW 燃煤电厂每天排放约 50,000 m³ 烟气，含有大量飞灰颗粒（PM2.5-PM100）。静电除尘器内部数百条电晕线在 80kV 高压下产生强电场，使飞灰带电后被 3m×15m 的集尘板捕获。除尘效率 99.8%，年回收粉煤灰可达百万吨（用于水泥生产）。'},
+            {tag:'水泥厂回转窑除尘', animId:'precip-cement', text:'水泥窑尾气温度高达 350°C，含尘浓度可达 100g/m³。高温静电除尘器使用宽极距（400-600mm）设计降低火花放电风险，在高温下维持稳定电通量分布，回收的碱性粉尘可回用为水泥原料，实现零固废排放。'},
+            {tag:'室内空气净化', animId:'precip-home', text:'家用静电集尘净化器（如部分品牌空气净化器）利用 6-12kV 直流高压产生电晕，使空气中的 PM0.1-PM2.5 微粒带电后被收集极捕获。与 HEPA 滤网不同，静电集尘无需更换耗材，只需定期清洗收集极板，且气流阻力极低、噪音更小。'}
         ]
     },
     {
@@ -545,9 +559,9 @@ const classicApps = [
         effect:'涂层均匀、无死角，VOC 排放大幅降低，涂料节省 50% 以上。',
         formula:'颗粒受力：F = qE，迁移速度 v = qE/(6πηr)',
         scenarios:[
-            {tag:'汽车整车自动喷涂', text:'汽车制造厂涂装车间内，机械臂搭载静电旋杯喷枪以 40,000 rpm 高速旋转将涂料雾化为直径 20-50μm 的带电微滴。车身接地后，电场线从喷枪指向车身每一处表面——包括车门内侧、引擎盖边缘等隐蔽位置，带电微滴自动绕到背面附着，涂层厚度均匀（±2μm），涂料利用率高达 93%。'},
-            {tag:'家具粉末涂装', text:'金属办公家具（文件柜、桌腿）悬挂在接地的自动输送链上，通过静电喷粉室。热固性聚酯粉末经摩擦充电后带 10-50μC/g 电荷量，在 70kV 静电场中均匀吸附于工件表面。随后进入 200°C 烘道固化成膜，全程无溶剂、零 VOC 排放，粉末过喷部分可回收再用。'},
-            {tag:'3D 打印后处理上色', text:'FDM 3D 打印件表面通常粗糙且有层纹。静电喷涂可让导电底涂处理后的打印件带上极性，使带电色漆微滴深入填充层纹凹陷，形成平滑均匀的彩色涂层——这对 cosplay 道具、模型手办和医疗教学模型的表面处理尤为重要。'}
+            {tag:'汽车整车自动喷涂', animId:'spray-auto', text:'汽车制造厂涂装车间内，机械臂搭载静电旋杯喷枪以 40,000 rpm 高速旋转将涂料雾化为直径 20-50μm 的带电微滴。车身接地后，电场线从喷枪指向车身每一处表面——包括车门内侧、引擎盖边缘等隐蔽位置，带电微滴自动绕到背面附着，涂层厚度均匀（±2μm），涂料利用率高达 93%。'},
+            {tag:'家具粉末涂装', animId:'spray-furniture', text:'金属办公家具（文件柜、桌腿）悬挂在接地的自动输送链上，通过静电喷粉室。热固性聚酯粉末经摩擦充电后带 10-50μC/g 电荷量，在 70kV 静电场中均匀吸附于工件表面。随后进入 200°C 烘道固化成膜，全程无溶剂、零 VOC 排放，粉末过喷部分可回收再用。'},
+            {tag:'3D 打印后处理上色', animId:'spray-3d', text:'FDM 3D 打印件表面通常粗糙且有层纹。静电喷涂可让导电底涂处理后的打印件带上极性，使带电色漆微滴深入填充层纹凹陷，形成平滑均匀的彩色涂层——这对 cosplay 道具、模型手办和医疗教学模型的表面处理尤为重要。'}
         ]
     },
     {
@@ -557,9 +571,9 @@ const classicApps = [
         effect:'数字化静电成像，分辨率可达 1200 dpi，打印速度 100+ 页/分钟。',
         formula:'表面电位 V = σd/ε（σ 为面电荷密度）',
         scenarios:[
-            {tag:'办公室激光打印机', text:'桌面激光打印机内部 OPC 鼓在黑暗中由充电辊充至 -600V 均匀电位。半导体激光束（780nm 红外）扫描鼓面，被照射区域的电荷通过接地的导电基层泄漏——曝光处电位降至 -50V，形成文字/图像的"电通量潜像"。带负电的碳粉（约 5-10μm 粒径）在显影辊电场力下跳向电位更高的曝光区域，经 180°C 热辊加压熔化渗入纸张纤维。'},
-            {tag:'数码印刷机高速输出', text:'商业数码印刷机（如 HP Indigo）采用液体电子油墨替代干式碳粉。光电成像板（PIP）充电后经激光扫描形成 Φ<sub>E</sub> 潜像，带电荷的液体油墨颗粒（1-2μm，比干式碳粉细 5 倍）在显影电场中精确附着，一次可转印全部六色，以每分钟 200+ 页 A4 的速度输出胶印级画质。'},
-            {tag:'PCB 光刻掩模', text:'在印刷电路板（PCB）制造中，激光光绘机利用静电成像原理在感光胶片上以 25400 dpi 的超高精度绘制电路掩模。精确控制每一点的曝光电荷量（即 Φ<sub>E</sub> 的局域密度），确保 0.05mm 线宽的微细走线边缘锐利——这对于手机主板和芯片封装基板等高密度互连板至关重要。'}
+            {tag:'办公室激光打印机', animId:'xero-office', text:'桌面激光打印机内部 OPC 鼓在黑暗中由充电辊充至 -600V 均匀电位。半导体激光束（780nm 红外）扫描鼓面，被照射区域的电荷通过接地的导电基层泄漏——曝光处电位降至 -50V，形成文字/图像的"电通量潜像"。带负电的碳粉（约 5-10μm 粒径）在显影辊电场力下跳向电位更高的曝光区域，经 180°C 热辊加压熔化渗入纸张纤维。'},
+            {tag:'数码印刷机高速输出', animId:'xero-press', text:'商业数码印刷机（如 HP Indigo）采用液体电子油墨替代干式碳粉。光电成像板（PIP）充电后经激光扫描形成 Φ<sub>E</sub> 潜像，带电荷的液体油墨颗粒（1-2μm，比干式碳粉细 5 倍）在显影电场中精确附着，一次可转印全部六色，以每分钟 200+ 页 A4 的速度输出胶印级画质。'},
+            {tag:'PCB 光刻掩模', animId:'xero-pcb', text:'在印刷电路板（PCB）制造中，激光光绘机利用静电成像原理在感光胶片上以 25400 dpi 的超高精度绘制电路掩模。精确控制每一点的曝光电荷量（即 Φ<sub>E</sub> 的局域密度），确保 0.05mm 线宽的微细走线边缘锐利——这对于手机主板和芯片封装基板等高密度互连板至关重要。'}
         ]
     },
     {
@@ -569,9 +583,9 @@ const classicApps = [
         effect:'产生稳定直流超高压，用于粒子加速器注入级与核物理实验。',
         formula:'V = Q/(4πε₀R)，E<sub>max</sub> ≈ 3×10⁶ V/m（空气击穿阈值）',
         scenarios:[
-            {tag:'粒子加速器高压注入', text:'在静电串列加速器（如 15UD Pelletron）中，范德格拉夫起电机产生 15-25 MV 超高电压。负离子从离子源被注入到高压端，在电场力下加速穿过剥离器变成正离子后再次加速——两次利用同一 Φ<sub>E</sub> 梯度，使质子或重离子获得 MeV 级动能，用于材料辐照改性、碳-14 年代测定和核天体物理实验。'},
-            {tag:'核物理实验室离子源', text:'小型范德格拉夫起电机（0.5-5 MV）广泛用于大学核物理教学实验室。它为学生提供稳定的直流高压来加速电子或质子束流，演示卢瑟福散射实验——用加速的 α 粒子轰击金箔，测量散射角分布，验证原子核模型的正确性。每次实验前需校准球壳表面的 Φ<sub>E</sub> 值以推算束流能量。'},
-            {tag:'科学博物馆经典演示', text:'全球几乎所有科学博物馆（如波士顿科学博物馆、上海科技馆）都有范德格拉夫起电机演示。参观者手触球壳时，头发因同种电荷排斥而根根竖起——电荷沿身体表面分布，每根头发末端的 Φ<sub>E</sub> 密度足以克服重力将发丝推开。这是高斯定理最直观的"人体体验式"证明。'}
+            {tag:'粒子加速器高压注入', animId:'vdg-accel', text:'在静电串列加速器（如 15UD Pelletron）中，范德格拉夫起电机产生 15-25 MV 超高电压。负离子从离子源被注入到高压端，在电场力下加速穿过剥离器变成正离子后再次加速——两次利用同一 Φ<sub>E</sub> 梯度，使质子或重离子获得 MeV 级动能，用于材料辐照改性、碳-14 年代测定和核天体物理实验。'},
+            {tag:'核物理实验室离子源', animId:'vdg-lab', text:'小型范德格拉夫起电机（0.5-5 MV）广泛用于大学核物理教学实验室。它为学生提供稳定的直流高压来加速电子或质子束流，演示卢瑟福散射实验——用加速的 α 粒子轰击金箔，测量散射角分布，验证原子核模型的正确性。每次实验前需校准球壳表面的 Φ<sub>E</sub> 值以推算束流能量。'},
+            {tag:'科学博物馆经典演示', animId:'vdg-museum', text:'全球几乎所有科学博物馆（如波士顿科学博物馆、上海科技馆）都有范德格拉夫起电机演示。参观者手触球壳时，头发因同种电荷排斥而根根竖起——电荷沿身体表面分布，每根头发末端的 Φ<sub>E</sub> 密度足以克服重力将发丝推开。这是高斯定理最直观的"人体体验式"证明。'}
         ]
     },
     {
@@ -581,9 +595,9 @@ const classicApps = [
         effect:'将雷电流（峰值可达 200 kA）安全泄放入大地，保护建筑、设备和人员安全。',
         formula:'尖端场强 E ≈ V/r（r 为尖端曲率半径），保护角 ≈ 45°-60°',
         scenarios:[
-            {tag:'建筑群防雷保护', text:'超高层建筑（如上海中心 632m）的避雷系统远不止一根针。建筑顶部布置多根接闪器形成"保护网"，利用滚球法（rolling sphere method）计算保护范围——等效一个半径 45m 的球体滚过建筑表面，所有接触到球的区域都需布置接闪器。每根接闪器的尖端 Φ<sub>E</sub> 密度设计要保证在雷暴电场（约 10 kV/m）下率先电离空气形成上行先导。'},
-            {tag:'飞机复合材料防雷', text:'现代客机（如波音 787）机身大量使用碳纤维复合材料（CFRP）替代铝合金，但 CFRP 导电性仅为铝的 1/1000。工程师在复合材料中嵌入超薄铜网或镍涂层导电层，确保机身表面形成连续等电位面——使得雷击时电流沿机身外部 Φ<sub>E</sub> 最小路径（法拉第笼效应）流过，保护内部油箱、航电系统和乘客安全。每架客机平均每年遭遇 1-2 次雷击。'},
-            {tag:'高压输电线路防雷', text:'500 kV 超高压输电线路上方架设两条架空地线（避雷线），它们位于相导线之上，在几何上形成保护角（< 20°）。雷击时率先接闪，通过杆塔接地网将电流泄放。同时安装线路避雷器（氧化锌 ZnO 阀片），利用 ZnO 的非线性电阻特性——正常 Φ<sub>E</sub> 下呈高阻，雷击过电压下瞬间变为低阻，将雷电能量箝制在绝缘子安全范围内。'}
+            {tag:'建筑群防雷保护', animId:'lr-building', text:'超高层建筑（如上海中心 632m）的避雷系统远不止一根针。建筑顶部布置多根接闪器形成"保护网"，利用滚球法（rolling sphere method）计算保护范围——等效一个半径 45m 的球体滚过建筑表面，所有接触到球的区域都需布置接闪器。每根接闪器的尖端 Φ<sub>E</sub> 密度设计要保证在雷暴电场（约 10 kV/m）下率先电离空气形成上行先导。'},
+            {tag:'飞机复合材料防雷', animId:'lr-plane', text:'现代客机（如波音 787）机身大量使用碳纤维复合材料（CFRP）替代铝合金，但 CFRP 导电性仅为铝的 1/1000。工程师在复合材料中嵌入超薄铜网或镍涂层导电层，确保机身表面形成连续等电位面——使得雷击时电流沿机身外部 Φ<sub>E</sub> 最小路径（法拉第笼效应）流过，保护内部油箱、航电系统和乘客安全。每架客机平均每年遭遇 1-2 次雷击。'},
+            {tag:'高压输电线路防雷', animId:'lr-line', text:'500 kV 超高压输电线路上方架设两条架空地线（避雷线），它们位于相导线之上，在几何上形成保护角（< 20°）。雷击时率先接闪，通过杆塔接地网将电流泄放。同时安装线路避雷器（氧化锌 ZnO 阀片），利用 ZnO 的非线性电阻特性——正常 Φ<sub>E</sub> 下呈高阻，雷击过电压下瞬间变为低阻，将雷电能量箝制在绝缘子安全范围内。'}
         ]
     },
     {
@@ -593,9 +607,9 @@ const classicApps = [
         effect:'实现多点触控、手势识别、压力感应，支撑现代智能手机核心交互。',
         formula:'ΔC ≈ ε₀·A/d（手指→电极耦合），Φ<sub>E</sub> = ∮ΔE·dA',
         scenarios:[
-            {tag:'智能手机多点触控', text:'最新手机屏幕（如 iPhone、旗舰 Android）采用互电容式触控：驱动层和感应层 ITO 透明电极正交排列，形成数千个交叉节点。每个节点都是一个小"电容器"。手指靠近时，节点处电场从"电极→电极"变为"电极→手指"，电容降低约 0.5-2 pF。触控 IC（如 Apple Taptic Engine 驱动芯片）以 240 Hz 频率扫描全屏 1000+ 个节点，将微弱的 Φ<sub>E</sub> 变化转化为精确的 (x,y) 坐标和接触面积。'},
-            {tag:'汽车中控触摸屏', text:'车载触屏需应对极寒（-30°C）、酷暑（+85°C）、电磁干扰及戴手套操作。高灵敏互电容方案通过增大感应电极面积和优化 Φ<sub>E</sub> 耦合路径，使 3mm 厚的皮革手套下也能检测到手指位置。同时，在 ITO 层下方增加屏蔽层，阻断来自车载电机、逆变器的电磁噪声干扰，保证触控信噪比 > 30 dB。'},
-            {tag:'工业 HMI 防水触控', text:'工业现场触摸屏（如数控机床面板、户外充电桩屏幕）需在淋雨、油污、作业手套等恶劣条件下可靠运行。采用"自电容+互电容"双模检测：自电容模式检测大面积水滴的电容变化并滤除（防误触），互电容模式在水膜下仍能分辨手指精确位置。核心算法利用 Φ<sub>E</sub> 在介质界面（水/玻璃/空气）的折射规律来区分手指和水滴的电容特征。'}
+            {tag:'智能手机多点触控', animId:'touch-phone', text:'最新手机屏幕（如 iPhone、旗舰 Android）采用互电容式触控：驱动层和感应层 ITO 透明电极正交排列，形成数千个交叉节点。每个节点都是一个小"电容器"。手指靠近时，节点处电场从"电极→电极"变为"电极→手指"，电容降低约 0.5-2 pF。触控 IC（如 Apple Taptic Engine 驱动芯片）以 240 Hz 频率扫描全屏 1000+ 个节点，将微弱的 Φ<sub>E</sub> 变化转化为精确的 (x,y) 坐标和接触面积。'},
+            {tag:'汽车中控触摸屏', animId:'touch-car', text:'车载触屏需应对极寒（-30°C）、酷暑（+85°C）、电磁干扰及戴手套操作。高灵敏互电容方案通过增大感应电极面积和优化 Φ<sub>E</sub> 耦合路径，使 3mm 厚的皮革手套下也能检测到手指位置。同时，在 ITO 层下方增加屏蔽层，阻断来自车载电机、逆变器的电磁噪声干扰，保证触控信噪比 > 30 dB。'},
+            {tag:'工业 HMI 防水触控', animId:'touch-ind', text:'工业现场触摸屏（如数控机床面板、户外充电桩屏幕）需在淋雨、油污、作业手套等恶劣条件下可靠运行。采用"自电容+互电容"双模检测：自电容模式检测大面积水滴的电容变化并滤除（防误触），互电容模式在水膜下仍能分辨手指精确位置。核心算法利用 Φ<sub>E</sub> 在介质界面（水/玻璃/空气）的折射规律来区分手指和水滴的电容特征。'}
         ]
     }
 ];
@@ -612,9 +626,9 @@ const frontierApps = [
         shortDesc:'人体靠近会改变局域电场分布。AI 抛弃了传统有限元方法的慢速数值计算，通过学习海量电场模拟数据，只需几秒钟即可根据目标电通量变化率 Φ<sub>E</sub> = ∮ E·dA，逆向推理生成最优的不规则传感器电极图案。',
         formula:'优化目标：max SNR(Φ<sub>E</sub>) = max ∮_sensor E_bio·dA / ∮_sensor E_noise·dA',
         scenarios:[
-            {tag:'脑机接口 (BCI)', text:'高位截瘫患者的大脑运动皮层神经元放电产生约 10-100μV 的微弱头皮电位。传统的 EEG 电极布局（10-20 系统）使用均匀分布的 21 个电极，信噪比极低。图神经网络（GNN）以百万组模拟电场数据为训练集，将电极形状和位置作为可优化参数，搜索使 Φ<sub>E</sub>（生物电场通量）最大化、Φ<sub>E_noise</sub> 最小化的最优非均匀布局——电极可能是蜿蜒的树枝状而非圆形，以贴合颅骨曲率并避开肌电干扰源。信噪比提升 3-8 倍，使患者"意念打字"速度从每分钟 5 字符提升至 30 字符。'},
-            {tag:'孕妇胎儿心电监测', text:'胎儿心电图（FECG）信号强度仅 1-50μV，淹没在母亲 1000μV 级的心电信号中。AI 代理模型在孕妇腹部皮肤模型上模拟数十万个随机电极布局，计算每个布局下穿过各电极的 Φ<sub>E</sub>（来自胎儿心脏的时变电场）与来自母体的串扰通量之比。优化出的同心多环电极组可在空间上解耦两个电场源——类似波束成形，使临床级 FECG 提取成为可能，替代侵入式头皮电极。'},
-            {tag:'智能手表健康监测', text:'智能手表 PPG（光电心率）传感器在运动伪影下精度骤降。新一代"电场心率监测"利用手腕内侧电极阵列感知心脏搏动引起的皮下组织介电常数周期变化（Δε/ε ≈ 0.1-0.5%）。AI 优化电极几何形状使 Φ<sub>E</sub> 尽可能集中在桡动脉上方，配合运动传感器数据实时自适应滤波，在跑步、游泳等场景下心率精度达到 ±2 bpm——与胸带式 ECG 持平。'}
+            {tag:'脑机接口 (BCI)', animId:'bio-bci', text:'高位截瘫患者的大脑运动皮层神经元放电产生约 10-100μV 的微弱头皮电位。传统的 EEG 电极布局（10-20 系统）使用均匀分布的 21 个电极，信噪比极低。图神经网络（GNN）以百万组模拟电场数据为训练集，将电极形状和位置作为可优化参数，搜索使 Φ<sub>E</sub>（生物电场通量）最大化、Φ<sub>E_noise</sub> 最小化的最优非均匀布局——电极可能是蜿蜒的树枝状而非圆形，以贴合颅骨曲率并避开肌电干扰源。信噪比提升 3-8 倍，使患者"意念打字"速度从每分钟 5 字符提升至 30 字符。'},
+            {tag:'孕妇胎儿心电监测', animId:'bio-fetal', text:'胎儿心电图（FECG）信号强度仅 1-50μV，淹没在母亲 1000μV 级的心电信号中。AI 代理模型在孕妇腹部皮肤模型上模拟数十万个随机电极布局，计算每个布局下穿过各电极的 Φ<sub>E</sub>（来自胎儿心脏的时变电场）与来自母体的串扰通量之比。优化出的同心多环电极组可在空间上解耦两个电场源——类似波束成形，使临床级 FECG 提取成为可能，替代侵入式头皮电极。'},
+            {tag:'智能手表健康监测', animId:'bio-watch', text:'智能手表 PPG（光电心率）传感器在运动伪影下精度骤降。新一代"电场心率监测"利用手腕内侧电极阵列感知心脏搏动引起的皮下组织介电常数周期变化（Δε/ε ≈ 0.1-0.5%）。AI 优化电极几何形状使 Φ<sub>E</sub> 尽可能集中在桡动脉上方，配合运动传感器数据实时自适应滤波，在跑步、游泳等场景下心率精度达到 ±2 bpm——与胸带式 ECG 持平。'}
         ]
     },
     {
@@ -625,9 +639,9 @@ const frontierApps = [
         shortDesc:'设备开孔散热与电磁屏蔽是一对天然矛盾。强化学习 AI 通过数万次虚拟迭代试错，以最小化腔内总电通量 Φ<sub>E</sub> 为目标，演化出打破人类工程直觉的仿生学拓扑开孔方案。',
         formula:'min Φ<sub>E_leak</sub> = min ∮_aperture E·dA  s.t.  Q_air ≥ Q_min',
         scenarios:[
-            {tag:'航天器电子舱屏蔽', text:'卫星电子舱需要散热孔让热量辐射到太空，但每个开孔都会让外部宇宙射线和太阳风暴产生的强电场渗透入舱内——可能造成单粒子翻转（SEU）烧毁芯片。强化学习 AI 将开孔形状作为"基因"，在数万次电磁仿真中变异、交叉、选择：最终演化出类似蝴蝶翅膀鳞片的多层交错微孔结构，每层孔的 Φ<sub>E</sub> 泄漏方向与下层错位 45°，在保证 85% 散热流量的同时将漏电场强度降低 42%。NASA 已在部分 CubeSat 项目中验证该方案。'},
-            {tag:'自动驾驶域控制器', text:'L4 级自动驾驶域控制器（如 NVIDIA Orin 平台）功耗高达 200W+，需要强力风冷，但同时必须屏蔽来自电机驱动器和 DC-DC 转换器的强烈电磁干扰（10 kHz-1 GHz）。强化学习 AI 在域控制器壳体的 3D 模型上搜索最优开孔拓扑——演化结果类似白蚁巢穴的通气结构：入口处有一系列微小的螺旋状导流片，气流通过时几乎无阻，但每片导流片同时形成局域电场"驻波陷阱"——入射电磁波在片间多次反射衰减，使 Φ<sub>E</sub> 泄漏比传统圆孔阵列低 35dB。'},
-            {tag:'5G 基站射频隔离', text:'Massive MIMO 5G 基站（64T64R）天线阵列间距仅 λ/2 ≈ 5cm。64 个发射通道同时工作时，天线间串扰会导致波束赋形失真。AI 生成式设计在天线罩内部"雕刻"出仿生珊瑚状的隔离结构——利用周期性凹凸表面使串扰电场在结构间经历多次吸收和散射，将相邻天线单元间的 Φ<sub>E</sub> 耦合降低 25dB 以上，等效于增大了天线隔离度而不增加物理间距。'}
+            {tag:'航天器电子舱屏蔽', animId:'shield-sat', text:'卫星电子舱需要散热孔让热量辐射到太空，但每个开孔都会让外部宇宙射线和太阳风暴产生的强电场渗透入舱内——可能造成单粒子翻转（SEU）烧毁芯片。强化学习 AI 将开孔形状作为"基因"，在数万次电磁仿真中变异、交叉、选择：最终演化出类似蝴蝶翅膀鳞片的多层交错微孔结构，每层孔的 Φ<sub>E</sub> 泄漏方向与下层错位 45°，在保证 85% 散热流量的同时将漏电场强度降低 42%。NASA 已在部分 CubeSat 项目中验证该方案。'},
+            {tag:'自动驾驶域控制器', animId:'shield-av', text:'L4 级自动驾驶域控制器（如 NVIDIA Orin 平台）功耗高达 200W+，需要强力风冷，但同时必须屏蔽来自电机驱动器和 DC-DC 转换器的强烈电磁干扰（10 kHz-1 GHz）。强化学习 AI 在域控制器壳体的 3D 模型上搜索最优开孔拓扑——演化结果类似白蚁巢穴的通气结构：入口处有一系列微小的螺旋状导流片，气流通过时几乎无阻，但每片导流片同时形成局域电场"驻波陷阱"——入射电磁波在片间多次反射衰减，使 Φ<sub>E</sub> 泄漏比传统圆孔阵列低 35dB。'},
+            {tag:'5G 基站射频隔离', animId:'shield-5g', text:'Massive MIMO 5G 基站（64T64R）天线阵列间距仅 λ/2 ≈ 5cm。64 个发射通道同时工作时，天线间串扰会导致波束赋形失真。AI 生成式设计在天线罩内部"雕刻"出仿生珊瑚状的隔离结构——利用周期性凹凸表面使串扰电场在结构间经历多次吸收和散射，将相邻天线单元间的 Φ<sub>E</sub> 耦合降低 25dB 以上，等效于增大了天线隔离度而不增加物理间距。'}
         ]
     },
     {
@@ -638,9 +652,9 @@ const frontierApps = [
         shortDesc:'雷暴云发展会引发大范围大气电通量激增。AI 从数千个城市地面电场传感器的嘈杂信号中，精准剥离地形导致的局域电场畸变噪点，提前 30 分钟锁定雷击高发区域。',
         formula:'预警信号：∂Φ<sub>E</sub>/∂t > 阈值（大气电场突变率监测）',
         scenarios:[
-            {tag:'城市电网雷电预警', text:'城市配电网（10kV/35kV）跨越数百平方公里，雷击可造成绝缘子闪络、变压器烧毁和区域停电。传统雷电预测依赖多普勒雷达（仅探测已形成的降水区），对"干雷暴"（无降雨但闪电频繁）完全失效。时序大模型（如基于 Transformer 的时空预测网络）接入全市 200+ 地面电场仪（场磨计 mill）的实时数据，每 10 秒更新一次 Φ<sub>E</sub> 空间分布图，利用自注意力机制学习各站点电场变化的时空相关性——可在强电场信号出现 30 分钟前预测雷击高概率区域（空间精度 1km²），电力调度中心提前切换供电线路，将雷击停电时长缩短 60%。'},
-            {tag:'航天发射场气象保障', text:'火箭发射（如 SpaceX Falcon 9、中国长征系列）对雷电极度敏感——发射升空过程中如果穿越强电场区域，可能触发"火箭引雷"（火箭尾焰电离大气形成导电通道，人工诱发闪电），后果是灾难性的。发射场周边部署 31 个地面电场监测站形成三维 Φ<sub>E</sub> 监测网。AI 大模型整合电场数据、卫星云图、大气探空资料和邻近的闪电定位数据（LLS），在发射窗口前 2 小时判定大气电场是否满足发射准则（场强 < 3kV/m）。2024 年某次发射中，AI 提前 35 分钟识别出一片即将增强的电场异常区，发射倒计时因此推迟 22 分钟，成功避开一次潜在的火箭引雷事件。'},
-            {tag:'风电场叶片防雷', text:'现代风电机组高度超 200m，叶片长达 100m+，自身就是一座"移动避雷针"。海上风电场（如英国 Dogger Bank 3.6GW 项目）每台机组每年遭受 10-50 次雷击，叶片损坏维修成本单次可达 50 万美元。时空图网络学习数百台风机内置电场传感器的时空关联模式，识别出哪些云团可能发展成雷暴单体（Φ<sub>E</sub> 增长率 > 500 V/m/min），在雷击前 15 分钟向单台风机发出变桨降速指令，将雷击概率降低约 40%，叶片寿命延长 3-5 年。'}
+            {tag:'城市电网雷电预警', animId:'lp-grid', text:'城市配电网（10kV/35kV）跨越数百平方公里，雷击可造成绝缘子闪络、变压器烧毁和区域停电。传统雷电预测依赖多普勒雷达（仅探测已形成的降水区），对"干雷暴"（无降雨但闪电频繁）完全失效。时序大模型（如基于 Transformer 的时空预测网络）接入全市 200+ 地面电场仪（场磨计 mill）的实时数据，每 10 秒更新一次 Φ<sub>E</sub> 空间分布图，利用自注意力机制学习各站点电场变化的时空相关性——可在强电场信号出现 30 分钟前预测雷击高概率区域（空间精度 1km²），电力调度中心提前切换供电线路，将雷击停电时长缩短 60%。'},
+            {tag:'航天发射场气象保障', animId:'lp-launch', text:'火箭发射（如 SpaceX Falcon 9、中国长征系列）对雷电极度敏感——发射升空过程中如果穿越强电场区域，可能触发"火箭引雷"（火箭尾焰电离大气形成导电通道，人工诱发闪电），后果是灾难性的。发射场周边部署 31 个地面电场监测站形成三维 Φ<sub>E</sub> 监测网。AI 大模型整合电场数据、卫星云图、大气探空资料和邻近的闪电定位数据（LLS），在发射窗口前 2 小时判定大气电场是否满足发射准则（场强 < 3kV/m）。2024 年某次发射中，AI 提前 35 分钟识别出一片即将增强的电场异常区，发射倒计时因此推迟 22 分钟，成功避开一次潜在的火箭引雷事件。'},
+            {tag:'风电场叶片防雷', animId:'lp-wind', text:'现代风电机组高度超 200m，叶片长达 100m+，自身就是一座"移动避雷针"。海上风电场（如英国 Dogger Bank 3.6GW 项目）每台机组每年遭受 10-50 次雷击，叶片损坏维修成本单次可达 50 万美元。时空图网络学习数百台风机内置电场传感器的时空关联模式，识别出哪些云团可能发展成雷暴单体（Φ<sub>E</sub> 增长率 > 500 V/m/min），在雷击前 15 分钟向单台风机发出变桨降速指令，将雷击概率降低约 40%，叶片寿命延长 3-5 年。'}
         ]
     }
 ];
@@ -715,8 +729,11 @@ document.addEventListener('keydown', (e) => {
 function openClassicModal(app) {
     const scenariosWithDelay = app.scenarios.map((s, i) => `
         <div class="modal-scenario" style="animation-delay:${0.32 + i*0.08}s">
-            <div class="scenario-tag">▸ ${s.tag}</div>
-            <div class="scenario-text">${s.text}</div>
+            <div class="scenario-visual"><canvas class="scenario-canvas" data-anim="${s.animId||''}"></canvas></div>
+            <div class="scenario-body">
+                <div class="scenario-tag">▸ ${s.tag}</div>
+                <div class="scenario-text">${s.text}</div>
+            </div>
         </div>
     `).join('');
 
@@ -743,8 +760,11 @@ function openClassicModal(app) {
 function openFrontierModal(app) {
     const scenariosWithDelay = app.scenarios.map((s, i) => `
         <div class="modal-scenario" style="animation-delay:${0.38 + i*0.08}s">
-            <div class="scenario-tag">▸ ${s.tag}</div>
-            <div class="scenario-text">${s.text}</div>
+            <div class="scenario-visual"><canvas class="scenario-canvas" data-anim="${s.animId||''}"></canvas></div>
+            <div class="scenario-body">
+                <div class="scenario-tag">▸ ${s.tag}</div>
+                <div class="scenario-text">${s.text}</div>
+            </div>
         </div>
     `).join('');
 
@@ -771,333 +791,1713 @@ function openFrontierModal(app) {
     initScenarioCanvases();
 }
 
-// 暴露 closeModal 到全局作用域（供 onclick 使用）
-window.closeModal = closeModal;
-
 // ============================================================
 //  场景配图动画系统
-//  10 个主题动画，对应 10 张卡片的物理概念
-//  每个 Canvas 独立 rAF 循环，按需启停
+//  30 个独立场景动画，每个 Canvas 独立 rAF 循环，按需启停
 // ============================================================
 const activeAnims = new Map();
 
-// 动画主题函数 (ctx, w, h, t) — t 为秒
+// 30 个独立场景动画，每个场景配有专属 Canvas 动画
 const animThemes = {
-    // 1. 电容器充电：平行极板 + 积累电荷 + 场线
+    // ===== 10 个顶部大动画（卡片主题）=====
+    // 1. 电容器与储能：平行极板 + 场线 + 电荷积累
     capacitor(ctx, w, h, t) {
-        const cx = w/2, cy = h/2;
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        // 极板
-        const plateW = w*0.7, plateX = cx - plateW/2;
-        ctx.fillStyle = '#667'; ctx.fillRect(plateX, cy-28, plateW, 3);
-        ctx.fillStyle = '#667'; ctx.fillRect(plateX, cy+25, plateW, 3);
-        // 场线（竖直，随 t 增强）
-        const strength = Math.min(1, t*0.8);
-        for (let i=0; i<9; i++) {
-            const px = plateX + plateW*(i/8);
-            const alpha = 0.2 + 0.5*strength*(1 - Math.abs(i-4)/5);
-            ctx.strokeStyle = `rgba(180,140,255,${alpha})`;
-            ctx.lineWidth = 1; ctx.beginPath();
-            ctx.moveTo(px, cy-22); ctx.lineTo(px, cy+19);
-            ctx.stroke();
-            // 箭头
+        const cx = w/2, cy = h/2, plateW = w*0.6, plateX = cx - plateW/2;
+        // 上极板
+        const topGrd = ctx.createLinearGradient(plateX, cy-35, plateX+plateW, cy-35);
+        topGrd.addColorStop(0,'#889'); topGrd.addColorStop(0.5,'#aab'); topGrd.addColorStop(1,'#889');
+        ctx.fillStyle = topGrd; ctx.fillRect(plateX, cy-35, plateW, 4);
+        // 下极板
+        const botGrd = ctx.createLinearGradient(plateX, cy+28, plateX+plateW, cy+28);
+        botGrd.addColorStop(0,'#667'); botGrd.addColorStop(0.5,'#889'); botGrd.addColorStop(1,'#667');
+        ctx.fillStyle = botGrd; ctx.fillRect(plateX, cy+28, plateW, 4);
+        // 场线（随 t 增强）
+        const strength = Math.min(1, t*0.7);
+        for (let i=0;i<11;i++) {
+            const px = plateX + plateW*(i/10);
+            const alpha = 0.15 + 0.55*strength*(1 - Math.abs(i-5)/7);
+            ctx.strokeStyle = `rgba(180,140,255,${alpha})`; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(px, cy-30); ctx.lineTo(px, cy+22); ctx.stroke();
             if (i%2===0) {
                 ctx.fillStyle = `rgba(200,170,255,${alpha})`;
-                ctx.beginPath(); ctx.moveTo(px, cy+14); ctx.lineTo(px-4, cy+8); ctx.lineTo(px+4, cy+8); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(px, cy+18); ctx.lineTo(px-4, cy+13); ctx.lineTo(px+4, cy+13); ctx.fill();
             }
         }
-        // 电荷积累（+ 在上极板，- 在下极板）
-        const nCharges = Math.floor(2 + strength*10);
-        for (let i=0; i<nCharges; i++) {
-            const px = plateX + 6 + (plateW-12)*(i/nCharges);
-            ctx.fillStyle = '#ff6644'; ctx.beginPath(); ctx.arc(px, cy-32, 2.2, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.fillText('+', px-3, cy-30);
-            ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(px+5, cy+30, 2.2, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.fillText('−', px+2, cy+32);
+        // 电荷积累
+        const nCharges = Math.floor(3 + strength*14);
+        for (let i=0;i<nCharges;i++) {
+            const px = plateX + 8 + (plateW-16)*(i/nCharges);
+            ctx.fillStyle = '#ff6644'; ctx.beginPath(); ctx.arc(px, cy-40, 2.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('+', px-2, cy-37);
+            ctx.fillStyle = '#4488ff'; ctx.beginPath(); ctx.arc(px+4, cy+34, 2.2, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('−', px+2, cy+37);
         }
-        ctx.font = '9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle = '#888'; ctx.fillText('Φ_E = ∮E·dA = Q/ε₀', cx, h-8);
+        // 公式
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Φ_E = ∮E·dA = Q/ε₀', cx, h-10);
     },
 
-    // 2. 静电除尘：中心电晕线 + 粉尘漂移
+    // 2. 静电除尘：中心电晕线 + 粉尘漂移 + 集尘板
     precipitator(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
         const cx = w*0.25, cy = h/2;
         // 电晕线
-        ctx.strokeStyle = '#557'; ctx.lineWidth=2; ctx.beginPath();
-        ctx.moveTo(cx, cy-30); ctx.lineTo(cx, cy+30); ctx.stroke();
+        ctx.strokeStyle = '#99a'; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(cx, cy-38); ctx.lineTo(cx, cy+38); ctx.stroke();
         // 电晕发光
-        const glow = 0.4+0.3*Math.sin(t*8);
-        const grd=ctx.createRadialGradient(cx,cy,3, cx,cy,18);
-        grd.addColorStop(0,`rgba(180,140,255,${glow})`); grd.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=grd; ctx.fillRect(cx-20,cy-20,40,40);
+        const glow = 0.35+0.35*Math.sin(t*8);
+        const grd = ctx.createRadialGradient(cx, cy, 4, cx, cy, 24);
+        grd.addColorStop(0, `rgba(180,140,255,${glow})`); grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd; ctx.fillRect(cx-26, cy-28, 52, 56);
         // 集尘板（右侧）
-        ctx.fillStyle='#445'; ctx.fillRect(w-18, cy-35, 6, 70);
-        // 粉尘颗粒从电晕线向外漂移
-        for (let i=0; i<15; i++) {
-            const phase = (i/15 + t*0.25) % 1;
-            const px = cx + phase*(w-cx-24);
-            const py = cy-25 + (i%5)*12 + 3*Math.sin(phase*Math.PI*3);
-            const alpha = 0.6+0.4*Math.sin(phase*Math.PI);
+        const plateGrd = ctx.createLinearGradient(w-22, 0, w-12, 0);
+        plateGrd.addColorStop(0,'#556'); plateGrd.addColorStop(1,'#334');
+        ctx.fillStyle = plateGrd; ctx.fillRect(w-22, cy-40, 8, 80);
+        ctx.strokeStyle = '#778'; ctx.lineWidth = 1; ctx.strokeRect(w-22, cy-40, 8, 80);
+        // 粉尘颗粒迁移
+        for (let i=0;i<18;i++) {
+            const phase = (i/18 + t*0.22)%1;
+            const px = cx + phase*(w-cx-28);
+            const py = cy-32 + (i%6)*12 + 4*Math.sin(phase*Math.PI*3);
+            const alpha = 0.5+0.5*Math.sin(phase*Math.PI);
             ctx.fillStyle = `rgba(200,180,200,${alpha})`;
-            ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI*2); ctx.fill();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('电晕放电 → 粉尘迁移', cx+60, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('η = 1−exp(−A·w/Q)  除尘99.9%', w*0.55, h-10);
     },
 
-    // 3. 静电喷涂：喷枪 + 带电雾滴沿场线飞行
+    // 3. 静电喷涂：喷枪 + 带电雾滴 + 场线环抱
     spray(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        const nx=w*0.15, ny=h/2;
+        const nx = w*0.12, ny = h/2;
         // 喷枪
-        ctx.fillStyle='#556'; ctx.fillRect(0, ny-6, nx, 12);
-        ctx.fillStyle='#778'; ctx.fillRect(nx-4, ny-3, 8, 6);
-        // 目标工件
-        ctx.fillStyle='#334'; ctx.strokeStyle='#556'; ctx.lineWidth=1.5;
-        ctx.beginPath(); ctx.roundRect(w*0.7, ny-25, w*0.25, 50, 8); ctx.fill(); ctx.stroke();
-        // 场线（从喷嘴到工件，弧线包裹背面）
-        for (let i=0; i<7; i++) {
-            const yOff = (i-3)*10;
-            const cpY = ny + yOff*0.5 + 10*Math.sin(t*2+i);
-            ctx.strokeStyle = `rgba(160,130,220,0.3)`;
-            ctx.lineWidth=0.8; ctx.beginPath();
-            ctx.moveTo(nx, ny+yOff*0.3);
-            ctx.quadraticCurveTo(w*0.4, cpY, w*0.7+Math.abs(yOff)*1.5, ny+yOff*0.6);
+        const gunGrd = ctx.createLinearGradient(0, 0, nx, 0);
+        gunGrd.addColorStop(0,'#445'); gunGrd.addColorStop(1,'#667');
+        ctx.fillStyle = gunGrd; ctx.fillRect(0, ny-8, nx, 16);
+        ctx.fillStyle = '#99a'; ctx.fillRect(nx-6, ny-4, 10, 8);
+        // 工件
+        ctx.fillStyle = '#2a2a38'; ctx.strokeStyle = '#667'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(w*0.68, ny-30, w*0.28, 60, 8); ctx.fill(); ctx.stroke();
+        // 场线弧线包裹
+        for (let i=0;i<9;i++) {
+            const yOff = (i-4)*12;
+            const cpY = ny + yOff*0.4 + 8*Math.sin(t*2+i);
+            ctx.strokeStyle = `rgba(160,130,220,0.3)`; ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(nx, ny+yOff*0.25);
+            ctx.quadraticCurveTo(w*0.38, cpY, w*0.68+Math.abs(yOff)*1.2, ny+yOff*0.55);
             ctx.stroke();
         }
         // 带电雾滴
-        for (let i=0; i<12; i++) {
-            const phase = ((i/12) + t*0.35) % 1;
-            const px = nx + phase*(w*0.7-nx);
-            const py = ny + 15*Math.sin(phase*Math.PI*2 + i) * (1-phase*0.5);
-            ctx.fillStyle = `rgba(200,170,255,${0.7+0.3*Math.sin(phase*10)})`;
-            ctx.beginPath(); ctx.arc(px, py, 1.6, 0, Math.PI*2); ctx.fill();
+        for (let i=0;i<14;i++) {
+            const phase = (i/14 + t*0.32)%1;
+            const px = nx + phase*(w*0.72-nx);
+            const py = ny + 18*Math.sin(phase*Math.PI*2.5 + i)*(1-phase*0.4);
+            ctx.fillStyle = `rgba(200,170,255,${0.6+0.4*Math.sin(phase*10)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI*2); ctx.fill();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('F=qE → 静电环抱效应', w*0.42, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('F=qE → 静电环抱效应 → 涂料利用率95%', w*0.4, h-10);
     },
 
     // 4. 静电复印：光导鼓 + 激光扫描 + 碳粉显影
     xerography(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        const drumX=w*0.15, drumY=h/2, drumR=28;
-        // 光导鼓
-        ctx.fillStyle='#2a2a3a'; ctx.beginPath(); ctx.arc(drumX, drumY, drumR, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#556'; ctx.lineWidth=1.5; ctx.stroke();
+        const drumX = w*0.22, drumY = h*0.48, drumR = 32;
+        // OPC鼓
+        const drumGrd = ctx.createRadialGradient(drumX-3, drumY-3, drumR*0.15, drumX, drumY, drumR);
+        drumGrd.addColorStop(0,'#556'); drumGrd.addColorStop(0.6,'#2a2a3a'); drumGrd.addColorStop(1,'#1a1a2e');
+        ctx.fillStyle = drumGrd; ctx.beginPath(); ctx.arc(drumX, drumY, drumR, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#778'; ctx.lineWidth = 1.8; ctx.stroke();
         // 旋转标记
-        const rot = t*1.5;
-        for (let i=0; i<6; i++) {
-            const a = rot + i*Math.PI/3;
-            ctx.fillStyle='#444'; ctx.beginPath();
-            ctx.arc(drumX+Math.cos(a)*drumR*0.7, drumY+Math.sin(a)*drumR*0.7, 3, 0, Math.PI*2); ctx.fill();
+        const rot = t*1.2;
+        for (let i=0;i<8;i++) {
+            const a = rot + i*Math.PI/4;
+            ctx.fillStyle = 'rgba(120,120,160,0.5)'; ctx.beginPath();
+            ctx.arc(drumX+Math.cos(a)*drumR*0.65, drumY+Math.sin(a)*drumR*0.65, 2.5, 0, Math.PI*2); ctx.fill();
         }
-        // 激光束（从上方扫描）
-        const laserPhase = (t*0.6)%1;
+        // 充电电晕
+        ctx.fillStyle = 'rgba(180,140,255,0.25)'; ctx.fillRect(drumX-8, drumY-drumR-10, 16, 6);
+        // 激光束
+        const laserPhase = (t*0.55)%1;
         const lx = drumX - drumR*0.8 + laserPhase*drumR*1.6;
-        ctx.strokeStyle = `rgba(255,60,60,${0.6+0.4*Math.sin(t*12)})`; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(lx, drumY-drumR-10); ctx.lineTo(lx, drumY-drumR+2); ctx.stroke();
-        // 碳粉颗粒（从下方跳向鼓面）
-        for (let i=0; i<8; i++) {
-            const phase = (i/8 + t*0.3) % 1;
-            const tx = drumX-drumR*0.6 + phase*drumR*1.2;
-            const ty = drumY+drumR+5 - phase*12;
-            ctx.fillStyle = `rgba(80,80,90,${0.5+phase})`;
-            ctx.beginPath(); ctx.arc(tx, ty, 1.5, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = `rgba(255,60,60,${0.5+0.4*Math.sin(t*14)})`; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(lx, drumY-drumR-14); ctx.lineTo(lx, drumY-drumR+2); ctx.stroke();
+        // 碳粉颗粒
+        for (let i=0;i<10;i++) {
+            const phase = (i/10 + t*0.28)%1;
+            const tx = drumX-drumR*0.5 + phase*drumR;
+            const ty = drumY+drumR+4 - phase*6;
+            ctx.fillStyle = `rgba(80,80,90,${0.4+0.5*Math.sin(phase*7)})`;
+            ctx.beginPath(); ctx.arc(tx, ty, 1.6, 0, Math.PI*2); ctx.fill();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('激光消电 → 静电潜像 → 碳粉显影', w*0.55, h-8);
+        // 纸张
+        ctx.fillStyle = '#ddd'; ctx.fillRect(drumX+drumR+6, drumY-3, 30, 2);
+        // 定影热辊
+        ctx.fillStyle = '#854'; ctx.beginPath(); ctx.arc(drumX+drumR+36, drumY-1, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f84'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('180°C', drumX+drumR+36, drumY-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('充电→激光潜像→碳粉显影→热压定影', w*0.58, h-10);
     },
 
     // 5. 范德格拉夫起电机：球壳 + 传送带 + 电荷 + 火花
     vandegraaff(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        const sx=w/2, sy=h*0.35, sr=26;
+        const sx = w/2, sy = h*0.32, sr = 28;
         // 球壳
-        const grd=ctx.createRadialGradient(sx-5,sy-5,sr*0.2, sx,sy,sr);
-        grd.addColorStop(0,'#556'); grd.addColorStop(0.7,'#334'); grd.addColorStop(1,'#223');
-        ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#778'; ctx.lineWidth=1.5; ctx.stroke();
+        const sphereGrd = ctx.createRadialGradient(sx-6, sy-6, sr*0.15, sx, sy, sr);
+        sphereGrd.addColorStop(0,'#778'); sphereGrd.addColorStop(0.6,'#334'); sphereGrd.addColorStop(1,'#1a1a2e');
+        ctx.fillStyle = sphereGrd; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#99a'; ctx.lineWidth = 2; ctx.stroke();
+        // 支撑柱
+        ctx.fillStyle = '#3a3a4a'; ctx.fillRect(sx-5, sy+sr, 10, h-sy-sr-8);
         // 传送带
-        ctx.fillStyle='#3a3a3a'; ctx.fillRect(sx-4, sy+sr, 8, h-sy-sr-5);
-        // 带上电荷
-        for (let i=0; i<8; i++) {
-            const phase = (i/8 + t*0.5) % 1;
-            const py = sy+sr + phase*(h-sy-sr-5);
+        ctx.fillStyle = '#2a2a2a'; ctx.fillRect(sx-3, sy+sr, 6, h-sy-sr-8);
+        for (let i=0;i<10;i++) {
+            const phase = (i/10 + t*0.45)%1;
+            const py = sy+sr + phase*(h-sy-sr-10);
             ctx.fillStyle = i%2===0?'#ff6644':'#4488ff';
-            ctx.beginPath(); ctx.arc(sx, py, 2.2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(sx, py, 2.5, 0, Math.PI*2); ctx.fill();
         }
-        // 表面电荷积累
-        for (let i=0; i<12; i++) {
-            const a = i*Math.PI*2/12 + t*0.3;
-            ctx.fillStyle='#ff6644'; ctx.beginPath();
-            ctx.arc(sx+Math.cos(a)*sr*0.9, sy+Math.sin(a)*sr*0.9, 1.8, 0, Math.PI*2); ctx.fill();
+        // 表面电荷
+        for (let i=0;i<14;i++) {
+            const a = i*Math.PI*2/14 + t*0.25;
+            ctx.fillStyle = '#ff6644'; ctx.beginPath();
+            ctx.arc(sx+Math.cos(a)*sr*0.88, sy+Math.sin(a)*sr*0.88, 2, 0, Math.PI*2); ctx.fill();
         }
-        // 火花放电（间歇）
-        if (Math.sin(t*3.5) > 0.85) {
-            const sparkLen = 6+Math.random()*10;
-            ctx.strokeStyle='#ffcc44'; ctx.lineWidth=2;
+        // 火花
+        if (Math.sin(t*3.2)>0.82) {
+            const sparkLen = 8+Math.random()*14;
+            ctx.strokeStyle = '#ffdd44'; ctx.lineWidth = 2.5;
             ctx.beginPath(); ctx.moveTo(sx+sr*0.7, sy); ctx.lineTo(sx+sr*0.7+sparkLen, sy-sparkLen*0.6); ctx.stroke();
-            ctx.strokeStyle='#fff'; ctx.lineWidth=1;
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(sx+sr*0.7, sy); ctx.lineTo(sx+sr*0.7+sparkLen, sy-sparkLen*0.6); ctx.stroke();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('V=Q/(4πε₀R) 球壳内部 E=0', sx, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('V=Q/(4πε₀R)  内部 E=0 → 高斯定理', sx, h-10);
     },
 
-    // 6. 避雷针：建筑 + 尖端 + 场线集中 + 放电
+    // 6. 避雷与闪电防护：尖端 + 场线集中 + 脉冲放电
     'lightning-rod'(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h*0.55;
         // 建筑
-        ctx.fillStyle='#2a2a38'; ctx.fillRect(w*0.25, h*0.55, w*0.5, h*0.4);
+        const bldGrd = ctx.createLinearGradient(0, cy-40, 0, cy+30);
+        bldGrd.addColorStop(0,'#3a3a4a'); bldGrd.addColorStop(1,'#1a1a2e');
+        ctx.fillStyle = bldGrd; ctx.fillRect(w*0.22, cy-30, w*0.56, 50);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.strokeRect(w*0.22, cy-30, w*0.56, 50);
+        // 窗户
+        for (let r=0;r<4;r++) for (let c=0;c<4;c++) {
+            ctx.fillStyle = 'rgba(60,80,120,0.25)'; ctx.fillRect(w*0.25+c*38, cy-27+r*12, 18, 8);
+        }
         // 避雷针
-        ctx.fillStyle='#667'; ctx.fillRect(w/2-1.5, h*0.3, 3, h*0.25);
-        ctx.beginPath(); ctx.moveTo(w/2-4, h*0.32); ctx.lineTo(w/2, h*0.26); ctx.lineTo(w/2+4, h*0.32); ctx.closePath(); ctx.fillStyle='#889'; ctx.fill();
-        // 云层
-        ctx.fillStyle='rgba(60,60,80,0.7)'; ctx.fillRect(w*0.1, h*0.05, w*0.8, h*0.15);
-        ctx.fillStyle='rgba(80,80,100,0.5)'; ctx.fillRect(w*0.2, h*0.02, w*0.5, h*0.08);
-        // 场线从云指向尖端（集中）
-        for (let i=0; i<9; i++) {
-            const srcX = w*0.15 + i*w*0.08;
-            const tgt = w/2 + (srcX-w/2)*(1 - Math.min(1, h*0.26/(h*0.55-(h*0.05+h*0.15))));
-            ctx.strokeStyle='rgba(180,150,220,0.25)'; ctx.lineWidth=0.8; ctx.beginPath();
-            ctx.moveTo(srcX, h*0.2); ctx.lineTo(tgt*0.5+w/2*0.5, h*0.38); ctx.lineTo(w/2, h*0.26); ctx.stroke();
+        ctx.fillStyle = '#889'; ctx.fillRect(cx-2, cy-48, 4, 20);
+        ctx.fillStyle = '#aab'; ctx.beginPath();
+        ctx.moveTo(cx-5, cy-50); ctx.lineTo(cx, cy-54); ctx.lineTo(cx+5, cy-50); ctx.closePath(); ctx.fill();
+        // 雷云
+        ctx.fillStyle = 'rgba(50,48,68,0.65)'; ctx.beginPath(); ctx.ellipse(cx+5, cy-62, 35, 14, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(60,55,80,0.4)'; ctx.beginPath(); ctx.ellipse(cx-8, cy-66, 28, 8, 0, 0, Math.PI*2); ctx.fill();
+        // 场线集中
+        for (let i=0;i<10;i++) {
+            const srcX = w*0.1 + i*w*0.09;
+            ctx.strokeStyle = 'rgba(180,150,220,0.28)'; ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.moveTo(srcX, cy-58);
+            ctx.quadraticCurveTo((srcX+cx)/2, cy-38, cx, cy-52); ctx.stroke();
         }
-        // 脉冲放电
-        if (Math.sin(t*4) > 0.8) {
-            ctx.strokeStyle='#ffdd66'; ctx.lineWidth=2.5; ctx.beginPath();
-            ctx.moveTo(w/2, h*0.26); ctx.lineTo(w/2+3, h*0.16); ctx.stroke();
-            ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.beginPath();
-            ctx.moveTo(w/2, h*0.26); ctx.lineTo(w/2+3, h*0.16); ctx.stroke();
+        // 放电脉冲
+        if (Math.sin(t*3.8)>0.83) {
+            ctx.strokeStyle = '#ffdd66'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(cx, cy-54); ctx.lineTo(cx+2, cy-66); ctx.stroke();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(cx, cy-54); ctx.lineTo(cx+2, cy-66); ctx.stroke();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('尖端 Φ_E 密度极大 → 优先击穿', w/2, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('尖端 E≈V/r → 上行先导 → 安全泄流', cx, h-10);
     },
 
-    // 7. 触摸屏：手指 + 玻璃 + ITO网格 + 场线畸变
+    // 7. 电容式触摸传感：手指 + ITO 网格 + 场线畸变
     touchscreen(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        const fy = h*0.32 + 6*Math.sin(t*1.8); // 手指微动
+        const cx = w/2, cy = h*0.35;
         // 手指
-        ctx.fillStyle='#c8a882'; ctx.beginPath(); ctx.ellipse(w/2, fy, 13, 22, 0, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle='#a08060'; ctx.lineWidth=1.5; ctx.stroke();
+        const fy = cy + 8*Math.sin(t*1.6);
+        const fingerGrd = ctx.createLinearGradient(cx-8, fy-30, cx+8, fy);
+        fingerGrd.addColorStop(0,'#d4b896'); fingerGrd.addColorStop(0.5,'#c8a882'); fingerGrd.addColorStop(1,'#b89872');
+        ctx.fillStyle = fingerGrd; ctx.beginPath(); ctx.ellipse(cx, fy, 14, 24, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#a08060'; ctx.lineWidth = 1.5; ctx.stroke();
         // 玻璃层
-        ctx.fillStyle='rgba(150,180,210,0.15)'; ctx.fillRect(w*0.1, h*0.6, w*0.8, 4);
-        // ITO 电极网格
-        for (let i=0; i<7; i++) {
-            const ex = w*0.12 + i*w*0.12;
-            ctx.fillStyle='#556677'; ctx.fillRect(ex-1, h*0.66, 2, 8);
+        ctx.fillStyle = 'rgba(150,180,210,0.12)'; ctx.fillRect(w*0.08, h*0.62, w*0.84, 5);
+        // ITO 电极
+        for (let i=0;i<9;i++) {
+            const ex = w*0.1 + i*w*0.1;
+            ctx.fillStyle = '#556677'; ctx.fillRect(ex-1.5, h*0.68, 3, 10);
         }
-        // 场线从电极指向手指（并随手指弯曲）
-        for (let i=0; i<7; i++) {
-            const ex = w*0.12 + i*w*0.12;
-            const dist = ex - w/2;
-            const bend = dist*0.4*(1 - Math.min(1, Math.abs(dist)/60));
-            ctx.strokeStyle = `rgba(160,140,220,${0.3+0.2*Math.abs(dist)/60})`;
-            ctx.lineWidth=0.8; ctx.beginPath();
-            ctx.moveTo(ex, h*0.66);
-            ctx.quadraticCurveTo(ex+bend*0.5, h*0.5, w/2+dist*0.15, fy+10);
+        // 场线畸变
+        for (let i=0;i<9;i++) {
+            const ex = w*0.1 + i*w*0.1;
+            const dist = ex - cx;
+            const bend = dist*0.35*(1 - Math.min(1, Math.abs(dist)/80));
+            ctx.strokeStyle = `rgba(160,140,220,${0.25+0.2*Math.abs(dist)/80})`; ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(ex, h*0.68);
+            ctx.quadraticCurveTo(ex+bend*0.5, h*0.5, cx+dist*0.12, fy+12);
             ctx.stroke();
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('手指→局域 Φ_E 重分布→ΔC 检测', w/2, h-8);
+        // 触控IC读数
+        ctx.fillStyle = '#223'; ctx.fillRect(cx-18, h*0.78, 36, 14);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cx-18, h*0.78, 36, 14);
+        ctx.fillStyle = '#4f8'; ctx.font = '9px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`ΔC=${(0.3+0.7*Math.sin(t*2)).toFixed(1)}pF`, cx, h*0.78+10);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('手指→局域 Φ_E 重分布→ΔC检测→240Hz扫描', cx, h-10);
     },
 
-    // 8. 生物电测量：不规则电极 + 信号脉冲
+    // 8. 生物电测量：不规则电极 + GNN优化 + 信号脉冲
     bioelectric(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        // 不规则电极图案（树枝状）
-        ctx.strokeStyle='#667'; ctx.lineWidth=1.2;
-        const drawBranch = (x,y,ang,len,depth) => {
-            if (depth>3||len<6) return;
-            const ex=x+Math.cos(ang)*len, ey=y+Math.sin(ang)*len;
+        // 不规则电极（树枝状 GNN 优化）
+        ctx.strokeStyle = '#88a'; ctx.lineWidth = 1.3;
+        const drawBranch = (x, y, ang, len, depth) => {
+            if (depth>3||len<8) return;
+            const ex = x+Math.cos(ang)*len, ey = y+Math.sin(ang)*len;
             ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey); ctx.stroke();
-            drawBranch(ex,ey,ang-0.5,len*0.6,depth+1);
-            drawBranch(ex,ey,ang+0.5,len*0.6,depth+1);
+            ctx.fillStyle = 'rgba(200,170,255,0.7)'; ctx.beginPath(); ctx.arc(ex, ey, 2, 0, Math.PI*2); ctx.fill();
+            drawBranch(ex, ey, ang-0.5, len*0.55, depth+1);
+            drawBranch(ex, ey, ang+0.5, len*0.55, depth+1);
         };
-        for (let i=0; i<3; i++) {
-            drawBranch(w*0.2+i*w*0.3, h*0.8, -Math.PI/2, h*0.5, 0);
+        for (let i=0;i<4;i++) {
+            drawBranch(w*0.15+i*w*0.24, h*0.82, -Math.PI/2, h*0.5, 0);
         }
-        // 生物电信号脉冲沿电极传播
-        for (let i=0; i<5; i++) {
-            const phase = (i/5 + t*0.6) % 1;
-            const px = w*0.15 + phase*(w*0.7);
-            const py = h*0.4 + 15*Math.sin(phase*Math.PI*4 + i*2);
-            const grd=ctx.createRadialGradient(px,py,0, px,py,8);
-            grd.addColorStop(0,`rgba(180,140,255,${0.7*(1-phase)})`);
-            grd.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=grd; ctx.fillRect(px-10,py-10,20,20);
+        // 信号脉冲
+        for (let i=0;i<6;i++) {
+            const phase = (i/6 + t*0.5)%1;
+            const px = w*0.1 + phase*(w*0.8);
+            const py = h*0.35 + 18*Math.sin(phase*Math.PI*4 + i*2.5);
+            const pulseGrd = ctx.createRadialGradient(px, py, 0, px, py, 10);
+            pulseGrd.addColorStop(0, `rgba(200,160,255,${0.8*(1-phase)})`);
+            pulseGrd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = pulseGrd; ctx.fillRect(px-12, py-12, 24, 24);
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('GNN优化电极 → max SNR(Φ_E)', w/2, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('GNN优化电极 → max SNR(Φ_E_bio/Φ_E_noise)', w/2, h-10);
     },
 
-    // 9. 电磁屏蔽：箱体开孔 + 入射波 + 反射/穿透
+    // 9. 电磁屏蔽：箱体开孔 + 入射波 + 穿透衰减
     shielding(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        // 屏蔽箱体
-        const bx=w*0.35, by=h*0.15, bw=w*0.55, bh=h*0.65;
-        ctx.fillStyle='#223'; ctx.strokeStyle='#445'; ctx.lineWidth=1.5;
-        ctx.fillRect(bx,by,bw,bh); ctx.strokeRect(bx,by,bw,bh);
-        // 散热孔
-        for (let i=0; i<5; i++) {
-            ctx.fillStyle='#0a0c1e'; ctx.fillRect(bx+10+i*22, by+bh*0.3, 10, 14);
-            ctx.strokeStyle='#556'; ctx.strokeRect(bx+10+i*22, by+bh*0.3, 10, 14);
-        }
-        // 入射电磁波（从左边）
-        for (let i=0; i<6; i++) {
-            const phase = (i/6 + t*0.4) % 1;
-            const wx = bx - 30 - phase*40;
-            if (wx < bx-5) {
-                ctx.strokeStyle=`rgba(180,150,255,${0.4*(1-phase)})`; ctx.lineWidth=1;
-                ctx.beginPath(); ctx.arc(bx, by+bh*0.4, wx-bx, -0.4, 0.4); ctx.stroke();
+        const bx = w*0.32, by = h*0.12, bw = w*0.55, bh = h*0.7;
+        // 屏蔽箱
+        ctx.fillStyle = '#1a1a2e'; ctx.strokeStyle = '#556'; ctx.lineWidth = 1.8;
+        ctx.fillRect(bx, by, bw, bh); ctx.strokeRect(bx, by, bw, bh);
+        // 散热孔阵列（仿生多层）
+        for (let layer=0;layer<2;layer++) {
+            const ly = by+bh*0.35 + layer*16;
+            for (let i=0;i<6;i++) {
+                const lx = bx+12 + i*16 + (layer%2)*8;
+                ctx.fillStyle = '#0a0c1e'; ctx.fillRect(lx, ly, 8, 10);
+                ctx.strokeStyle = 'rgba(100,200,150,0.6)'; ctx.lineWidth = 0.8; ctx.strokeRect(lx, ly, 8, 10);
             }
         }
-        // 穿透场（孔右侧，淡出）
-        for (let i=0; i<3; i++) {
-            const px = bx+bw+8 + i*10;
-            ctx.strokeStyle=`rgba(255,150,100,${0.15+0.1*i})`; ctx.lineWidth=0.8;
-            ctx.beginPath(); ctx.arc(bx+bw, by+bh*0.4, px-bx-bw, -0.3, 0.3); ctx.stroke();
+        // 入射电磁波
+        for (let i=0;i<7;i++) {
+            const phase = (i/7 + t*0.35)%1;
+            const wx = bx - 35 - phase*45;
+            if (wx < bx-4) {
+                ctx.strokeStyle = `rgba(180,150,255,${0.35*(1-phase)})`; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(bx, by+bh*0.42, bx-wx, -0.4, 0.4); ctx.stroke();
+            }
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('RL演化仿生孔 → min Φ_E_leak', w/2, h-8);
+        // 穿透场（衰减后）
+        for (let i=0;i<4;i++) {
+            const px = bx+bw+6 + i*12;
+            ctx.strokeStyle = `rgba(255,150,100,${0.12+0.06*i})`; ctx.lineWidth = 0.7;
+            ctx.beginPath(); ctx.arc(bx+bw, by+bh*0.42, px-bx-bw, -0.25, 0.25); ctx.stroke();
+        }
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('RL演化仿生孔 → min Φ_E_leak → 散热+屏蔽双优', w/2, h-10);
     },
 
-    // 10. 雷电预警：传感器网格 + 电场增强 + 预警区
+    // 10. 雷电预警：传感器网格 + 电场激增 + 预警区
     'lightning-predict'(ctx, w, h, t) {
         ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
-        // 网格/地图背景
-        ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
-        for (let i=0; i<6; i++) { ctx.beginPath(); ctx.moveTo(15+i*45,10); ctx.lineTo(15+i*45,h-10); ctx.stroke(); }
-        for (let i=0; i<4; i++) { ctx.beginPath(); ctx.moveTo(10,12+i*30); ctx.lineTo(w-10,12+i*30); ctx.stroke(); }
-        // 传感器节点
+        // 地图网格
+        ctx.strokeStyle = '#1a1a2a'; ctx.lineWidth = 0.4;
+        for (let i=0;i<7;i++) { ctx.beginPath(); ctx.moveTo(12+i*40,8); ctx.lineTo(12+i*40,h-8); ctx.stroke(); }
+        for (let i=0;i<4;i++) { ctx.beginPath(); ctx.moveTo(8, 10+i*30); ctx.lineTo(w-8, 10+i*30); ctx.stroke(); }
+        // 传感器节点（场磨计）
         const sensors = [];
-        for (let i=0; i<30; i++) {
-            sensors.push({x:15+Math.random()*(w-30), y:12+Math.random()*(h-24), base:Math.random()*0.3});
+        for (let i=0;i<35;i++) {
+            sensors.push({x:14+Math.random()*(w-28), y:10+Math.random()*(h-20), base:Math.random()*0.3});
         }
-        // 雷暴云（左上移动中）
-        const cloudX = w*0.3 + 20*Math.sin(t*0.7), cloudY = h*0.15 + 8*Math.cos(t*0.5);
-        ctx.fillStyle='rgba(60,55,80,0.6)'; ctx.beginPath(); ctx.ellipse(cloudX, cloudY, 35, 18, 0, 0, Math.PI*2); ctx.fill();
-        // 传感器响应（距离云越近越亮）
+        // 雷暴云
+        const cloudX = w*0.28 + 22*Math.sin(t*0.6), cloudY = h*0.18 + 10*Math.cos(t*0.45);
+        ctx.fillStyle = 'rgba(55,50,75,0.55)'; ctx.beginPath(); ctx.ellipse(cloudX, cloudY, 40, 20, 0, 0, Math.PI*2); ctx.fill();
+        // 传感器响应
         sensors.forEach(s => {
             const dist = Math.hypot(s.x-cloudX, s.y-cloudY);
-            const alert = Math.max(0, 1 - dist/90) * (0.5+0.5*Math.sin(t*3+s.base*10));
-            const alpha = s.base*0.3 + alert*0.7;
-            ctx.fillStyle = alert>0.55?`rgba(255,120,80,${alpha})`:`rgba(100,180,220,${alpha})`;
-            ctx.beginPath(); ctx.arc(s.x, s.y, 2.5, 0, Math.PI*2); ctx.fill();
-            if (alert>0.55) {
-                const grd=ctx.createRadialGradient(s.x,s.y,0,s.x,s.y,8);
-                grd.addColorStop(0,`rgba(255,100,60,${alert*0.6})`); grd.addColorStop(1,'rgba(0,0,0,0)');
-                ctx.fillStyle=grd; ctx.fillRect(s.x-10,s.y-10,20,20);
+            const alert = Math.max(0, 1-dist/100)*(0.5+0.5*Math.sin(t*2.5+s.base*8));
+            const alpha = s.base*0.25 + alert*0.75;
+            ctx.fillStyle = alert>0.5?`rgba(255,110,70,${alpha})`:`rgba(100,180,220,${alpha})`;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 2.8, 0, Math.PI*2); ctx.fill();
+            if (alert>0.5) {
+                const warnGrd = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 10);
+                warnGrd.addColorStop(0, `rgba(255,80,40,${alert*0.55})`); warnGrd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = warnGrd; ctx.fillRect(s.x-12, s.y-12, 24, 24);
             }
         });
-        // 预警区域圈
-        if (t%8 > 2) {
-            ctx.strokeStyle='rgba(255,80,40,0.5)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
-            ctx.beginPath(); ctx.arc(cloudX, cloudY, 50, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        // 预警圈
+        if (Math.sin(t*0.7)>-0.2) {
+            ctx.strokeStyle = 'rgba(255,70,35,0.5)'; ctx.lineWidth = 1.8; ctx.setLineDash([4,3]);
+            ctx.beginPath(); ctx.arc(cloudX, cloudY, 55, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
         }
-        ctx.font='9px sans-serif'; ctx.textAlign='center';
-        ctx.fillStyle='#888'; ctx.fillText('∂Φ_E/∂t > 阈值 → 提前30min预警', w/2, h-8);
+        ctx.fillStyle = '#f0c060'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('∂Φ_E/∂t > 阈值 → 提前30min预警 → 停电-60%', w/2, h-10);
+    },
+
+    // ===== 30 个独立场景动画 =====
+    // 1a. 智能手机快充：手机+电池+超级电容缓冲+电流
+    'cap-phone'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 手机轮廓
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(cx-22, cy-32, 44, 64, 6); ctx.stroke();
+        // 屏幕
+        ctx.fillStyle = 'rgba(30,40,80,0.6)'; ctx.fillRect(cx-17, cy-22, 34, 38);
+        // 电池图标（内部）
+        const battX = cx-10, battY = cy+22, battW = 20, battH = 10;
+        ctx.strokeStyle = '#888'; ctx.lineWidth = 1; ctx.strokeRect(battX, battY, battW, battH);
+        ctx.fillStyle = '#448'; ctx.fillRect(battX+2, battY+2, battW-4, battH-4);
+        const charge = 0.3 + 0.7*((t*0.25)%1);
+        const grad = ctx.createLinearGradient(battX, battY, battX+battW*charge, battY);
+        grad.addColorStop(0, '#4f8'); grad.addColorStop(1, '#4f8');
+        ctx.fillStyle = grad; ctx.fillRect(battX+2, battY+2, (battW-4)*charge, battH-4);
+        ctx.fillStyle = '#667'; ctx.fillRect(cx-3, battY-3, 6, 3);
+        // 充电线缆
+        ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.moveTo(cx, cy+32); ctx.lineTo(cx, cy+42); ctx.stroke();
+        // 超级电容缓冲（手机下方）
+        ctx.fillStyle = '#223'; ctx.fillRect(cx-18, cy+44, 36, 8);
+        ctx.strokeStyle = '#556'; ctx.strokeRect(cx-18, cy+44, 12, 8);
+        ctx.strokeRect(cx-6, cy+44, 12, 8);
+        ctx.strokeRect(cx+6, cy+44, 12, 8);
+        // 电流粒子从充电器流向电容再流向电池
+        for (let i=0;i<6;i++) {
+            const phase = (i/6 + t*0.5)%1;
+            const py = cy+42 + phase*10;
+            ctx.fillStyle = `rgba(255,200,60,${0.7*(1-Math.abs(phase-0.5)*2)})`;
+            ctx.beginPath(); ctx.arc(cx, Math.min(py, cy+44), 1.4, 0, Math.PI*2); ctx.fill();
+        }
+        // 场线（电容内部）
+        for (let i=0;i<5;i++) {
+            const px = cx-14 + i*7;
+            ctx.strokeStyle = 'rgba(180,140,255,0.35)'; ctx.lineWidth = 0.7; ctx.beginPath();
+            ctx.moveTo(px, cy+43); ctx.lineTo(px, cy+50); ctx.stroke();
+        }
+        ctx.font = '8px sans-serif'; ctx.textAlign='center';
+        ctx.fillStyle = '#888'; ctx.fillText('超级电容缓冲→平滑120W脉冲', cx, h-6);
+    },
+
+    // 1b. 电动汽车再生制动：车轮+电机反转+能量回收
+    'cap-ev'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 车身
+        ctx.fillStyle = '#1a1a2e'; ctx.beginPath();
+        ctx.moveTo(cx-35, cy+8); ctx.lineTo(cx-40, cy); ctx.lineTo(cx-30, cy-18);
+        ctx.lineTo(cx+10, cy-18); ctx.lineTo(cx+20, cy); ctx.lineTo(cx+35, cy+8);
+        ctx.lineTo(cx+35, cy+14); ctx.lineTo(cx-35, cy+14); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.stroke();
+        // 车轮
+        const drawWheel = (wx, wy, r) => {
+            ctx.strokeStyle = '#667'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(wx, wy, r, 0, Math.PI*2); ctx.stroke();
+            const spokeA = t*8*((wx<cx)?-1:1);
+            for (let a=0;a<4;a++) {
+                const ang = spokeA + a*Math.PI/2;
+                ctx.beginPath(); ctx.moveTo(wx, wy); ctx.lineTo(wx+Math.cos(ang)*r*0.8, wy+Math.sin(ang)*r*0.8); ctx.stroke();
+            }
+            ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(wx, wy, 2, 0, Math.PI*2); ctx.fill();
+        };
+        drawWheel(cx-28, cy+18, 8);
+        drawWheel(cx+24, cy+18, 8);
+        // 制动标志：减速条纹
+        const brakePhase = (t*0.3)%2;
+        if (brakePhase < 0.6) {
+            ctx.fillStyle = `rgba(255,80,40,${0.7*(1-brakePhase/0.6)})`;
+            ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('制 动', cx-5, cy-22);
+        }
+        // 能量流箭头（从车轮指向超级电容）
+        const arrowAlpha = 0.4 + 0.4*Math.sin(t*6);
+        for (let i=0;i<5;i++) {
+            const phase = (i/5 + t*0.4)%1;
+            const ax = cx-20 + phase*35;
+            const ay = cy+6 + Math.sin(phase*Math.PI)*8;
+            ctx.strokeStyle = `rgba(100,220,180,${arrowAlpha*(1-phase)})`; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax-5, ay-2); ctx.stroke();
+            ctx.fillStyle = `rgba(100,220,180,${arrowAlpha})`;
+            ctx.beginPath(); ctx.moveTo(ax-3, ay-3); ctx.lineTo(ax, ay); ctx.lineTo(ax-3, ay+3); ctx.fill();
+        }
+        // 超级电容组（车身中央）
+        ctx.fillStyle = '#223'; ctx.fillRect(cx-8, cy-10, 16, 16);
+        ctx.strokeStyle = '#4a8'; ctx.lineWidth = 1; ctx.strokeRect(cx-8, cy-10, 16, 16);
+        const capLevel = 0.2 + 0.5*(0.5+0.5*Math.sin(t*0.35));
+        ctx.fillStyle = 'rgba(100,220,180,0.5)'; ctx.fillRect(cx-6, cy-8+12*(1-capLevel), 12, 12*capLevel);
+        ctx.fillStyle = '#fff'; ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('超容', cx, cy+2);
+        // 电池
+        ctx.fillStyle = '#333'; ctx.fillRect(cx+18, cy-5, 14, 8);
+        ctx.strokeStyle = '#888'; ctx.strokeRect(cx+18, cy-5, 14, 8);
+        ctx.fillStyle = 'rgba(100,220,180,0.5)'; ctx.fillRect(cx+20, cy-3, 10*charge, 4);
+        ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('再生制动→超容暂存→电池慢充 效率70%', cx, h-6);
+    },
+
+    // 1c. 电网调峰储能：电网+风光波动+超级电容阵列
+    'cap-grid'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 电网输电线
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2;
+        for (let i=0;i<3;i++) {
+            const y = cy-18 + i*8;
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            // 正弦波叠加
+            ctx.strokeStyle = `rgba(180,140,255,${0.3+0.15*i})`; ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            for (let x=0;x<w;x+=2) {
+                const wave = Math.sin(x/20 + t*3 + i)*3;
+                x===0?ctx.moveTo(x, y+wave):ctx.lineTo(x, y+wave);
+            }
+            ctx.stroke();
+            ctx.strokeStyle = '#556';
+        }
+        // 风力发电机
+        ctx.fillStyle = '#334'; ctx.fillRect(12, cy-30, 2, 22);
+        const bladeA = t*5;
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1;
+        for (let b=0;b<3;b++) {
+            const ang = bladeA + b*Math.PI*2/3;
+            ctx.beginPath(); ctx.moveTo(13, cy-30); ctx.lineTo(13+Math.cos(ang)*10, cy-30+Math.sin(ang)*10); ctx.stroke();
+        }
+        // 太阳能板
+        ctx.fillStyle = '#445'; ctx.fillRect(w-30, cy-28, 18, 12);
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 0.5; ctx.strokeRect(w-30, cy-28, 18, 12);
+        for (let i=1;i<3;i++) {ctx.beginPath(); ctx.moveTo(w-30, cy-28+i*4); ctx.lineTo(w-12, cy-28+i*4); ctx.stroke();}
+        // 功率波动箭头
+        const fluctDir = Math.sin(t*2.5) > 0 ? 1 : -1;
+        ctx.strokeStyle = `rgba(255,150,80,0.6)`; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(22, cy-35); ctx.lineTo(22, cy-46); ctx.stroke();
+        // 超级电容阵列（中央）
+        for (let i=0;i<6;i++) {
+            const capX = cx-25 + i*10;
+            ctx.fillStyle = '#1a1a2e'; ctx.fillRect(capX, cy+5, 8, 16);
+            ctx.strokeStyle = '#556'; ctx.strokeRect(capX, cy+5, 8, 16);
+            const level = 0.3 + 0.7*Math.abs(Math.sin(t*2 + i*0.6));
+            ctx.fillStyle = `rgba(180,140,255,${0.3+0.5*level})`;
+            ctx.fillRect(capX+1, cy+6+14*(1-level), 6, 14*level);
+        }
+        // 频率计
+        ctx.fillStyle = '#111'; ctx.fillRect(cx-15, cy-8, 30, 14);
+        ctx.strokeStyle = '#556'; ctx.strokeRect(cx-15, cy-8, 30, 14);
+        const freq = 50 + Math.sin(t*2)*2;
+        ctx.fillStyle = freq>50.5?'#f84':freq<49.5?'#f84':'#4f8';
+        ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`${freq.toFixed(1)}Hz`, cx, cy+3);
+        // 吞吐箭头
+        ctx.strokeStyle = `rgba(180,140,255,0.6)`; ctx.lineWidth = 1;
+        const arrowY = cy-4 + (fluctDir>0?-6:6);
+        ctx.beginPath(); ctx.moveTo(cx, cy-4); ctx.lineTo(cx, arrowY); ctx.stroke();
+        ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('超容阵列→20ms响应→稳定50Hz', cx, h-6);
+    },
+
+    // 2a. 火力发电厂烟气净化：烟囱+电晕线+集尘板+飞灰捕获
+    'precip-plant'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 烟囱
+        ctx.fillStyle = '#2a2a38'; ctx.fillRect(cx-12, cy-35, 24, 50);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.strokeRect(cx-12, cy-35, 24, 50);
+        // 烟囱顶部
+        ctx.fillStyle = '#333'; ctx.fillRect(cx-16, cy-38, 32, 6);
+        // 烟气颗粒（从底部上升）
+        for (let i=0;i<20;i++) {
+            const phase = (i/20 + t*0.3)%1;
+            const px = cx-8 + (i%2)*16;
+            const py = cy+15 - phase*50;
+            if (py > cy-35) {
+                ctx.fillStyle = `rgba(150,150,160,${0.2+0.3*(1-phase)})`;
+                ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+            }
+        }
+        // 电晕线（烟囱内部中央）
+        ctx.strokeStyle = '#b44dff'; ctx.lineWidth = 1.5; ctx.setLineDash([1,2]);
+        ctx.beginPath(); ctx.moveTo(cx, cy-32); ctx.lineTo(cx, cy+12); ctx.stroke(); ctx.setLineDash([]);
+        // 电晕发光
+        const glowPulse = 0.4+0.3*Math.sin(t*10);
+        const grd = ctx.createRadialGradient(cx, cy-10, 2, cx, cy-10, 14);
+        grd.addColorStop(0, `rgba(180,77,255,${glowPulse})`); grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd; ctx.fillRect(cx-16, cy-24, 32, 28);
+        // 集尘板（烟囱两侧）
+        ctx.fillStyle = '#334'; ctx.fillRect(cx+14, cy-30, 8, 40);
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1; ctx.strokeRect(cx+14, cy-30, 8, 40);
+        ctx.fillStyle = '#334'; ctx.fillRect(cx-22, cy-30, 8, 40);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cx-22, cy-30, 8, 40);
+        // 粉尘从电晕向两侧集尘板迁移
+        for (let i=0;i<10;i++) {
+            const phase = (i/10 + t*0.3)%1;
+            const side = i%2===0?1:-1;
+            const sx = cx + side*phase*10;
+            const sy = cy-20 + Math.sin(phase*Math.PI*2+i)*6;
+            ctx.fillStyle = `rgba(200,180,150,${0.5+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(sx, sy, 1.6, 0, Math.PI*2); ctx.fill();
+        }
+        // 干净空气（烟囱顶部）
+        ctx.fillStyle = 'rgba(100,200,255,0.08)'; ctx.fillRect(cx-10, cy-40, 20, 6);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#8af'; ctx.fillText('99.8%除尘→年回收百万吨粉煤灰', cx, h-6);
+    },
+
+    // 2b. 水泥厂回转窑除尘：高温窑+宽极距+粉尘回用
+    'precip-cement'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 回转窑（倾斜圆筒）
+        ctx.save(); ctx.translate(cx-5, cy-5); ctx.rotate(-0.15);
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(0, 0, 30, 10, 0, 0, Math.PI*2); ctx.stroke();
+        // 旋转标记
+        for (let i=0;i<4;i++) {
+            const a = t*2 + i*Math.PI/2;
+            ctx.fillStyle = '#445';
+            ctx.beginPath(); ctx.arc(Math.cos(a)*26, Math.sin(a)*7, 2, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.restore();
+        // 高温热浪（波动线条）
+        for (let i=0;i<5;i++) {
+            ctx.strokeStyle = `rgba(255,120,60,${0.1+0.08*Math.sin(t*4+i)})`; ctx.lineWidth = 0.7;
+            ctx.beginPath();
+            for (let x=cx-25;x<cx+25;x+=3) {
+                const wy = cy-15 + Math.sin(x/5 + t*3 + i)*2;
+                x===cx-25?ctx.moveTo(x, wy):ctx.lineTo(x, wy);
+            }
+            ctx.stroke();
+        }
+        // 宽极距电晕线
+        ctx.strokeStyle = '#b44dff'; ctx.lineWidth = 1.2; ctx.setLineDash([1,3]);
+        ctx.beginPath(); ctx.moveTo(cx-20, cy-25); ctx.lineTo(cx-20, cy+5); ctx.stroke(); ctx.setLineDash([]);
+        // 宽极距集尘板
+        ctx.fillStyle = '#334'; ctx.fillRect(cx+15, cy-25, 8, 30);
+        ctx.strokeStyle = '#778'; ctx.strokeRect(cx+15, cy-25, 8, 30);
+        ctx.fillText('400mm', cx+19, cy-15);
+        // 高温粉尘迁移
+        for (let i=0;i<8;i++) {
+            const phase = (i/8 + t*0.25)%1;
+            const sx = cx-18 + phase*33;
+            const sy = cy-15 + Math.sin(phase*Math.PI*3)*8;
+            ctx.fillStyle = `rgba(220,180,140,${0.4+0.4*Math.sin(phase*6)})`;
+            ctx.beginPath(); ctx.arc(sx, sy, 1.3, 0, Math.PI*2); ctx.fill();
+        }
+        // 回收箭头
+        ctx.strokeStyle = 'rgba(100,220,150,0.6)'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(cx+19, cy-20); ctx.lineTo(cx+19, cy+10);
+        ctx.lineTo(cx-5, cy+10); ctx.moveTo(cx+19, cy+5); ctx.lineTo(cx+14, cy+10); ctx.lineTo(cx+24, cy+10); ctx.stroke();
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#8af'; ctx.fillText('350°C高温除尘→宽极距→粉尘回用水泥', cx, h-6);
+    },
+
+    // 2c. 室内空气净化：家用静电集尘+空气流动
+    'precip-home'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 房间
+        ctx.strokeStyle = '#445'; ctx.lineWidth = 1; ctx.strokeRect(cx-40, cy-30, 80, 55);
+        // 净化器（桌面小设备）
+        ctx.fillStyle = '#2a2a38'; ctx.fillRect(cx-10, cy-8, 20, 18);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cx-10, cy-8, 20, 18);
+        // 进气口
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(cx-7, cy+10, 14, 3);
+        // 出气口（顶部）
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(cx-6, cy-11, 12, 3);
+        // 内部电晕
+        ctx.strokeStyle = '#b44dff'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(cx, cy-5); ctx.lineTo(cx, cy+6); ctx.stroke();
+        const grd = ctx.createRadialGradient(cx, cy, 1, cx, cy, 8);
+        grd.addColorStop(0, 'rgba(180,77,255,0.3)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grd; ctx.fillRect(cx-10, cy-8, 20, 16);
+        // 集尘板
+        ctx.fillStyle = '#334'; ctx.fillRect(cx-9, cy-5, 3, 12);
+        ctx.fillRect(cx+6, cy-5, 3, 12);
+        // 空气流动（进气→内部→出气）
+        const flowParticles = [];
+        for (let i=0;i<12;i++) {
+            const phase = (i/12 + t*0.5)%1;
+            let px, py;
+            if (phase<0.33) { px=cx-5+phase*3*10; py=cy+13-phase*16; }
+            else if (phase<0.66) { px=cx; py=cy+8-(phase-0.33)*3*14; }
+            else { px=cx-5+(phase-0.66)*3*10; py=cy-4-(phase-0.66)*10; }
+            ctx.fillStyle = `rgba(150,200,255,${0.3+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1, 0, Math.PI*2); ctx.fill();
+        }
+        // PM2.5 微粒被捕获（进入后消失）
+        for (let i=0;i<6;i++) {
+            const phase = (i/6 + t*0.35)%1;
+            if (phase<0.4) {
+                const px = cx-4+phase*10, py = cy+11;
+                ctx.fillStyle = `rgba(180,180,180,${0.6*(1-phase/0.4)})`;
+                ctx.beginPath(); ctx.arc(px, py, 1.2, 0, Math.PI*2); ctx.fill();
+            }
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#8af'; ctx.fillText('家用静电集尘→免耗材→低噪音', cx, h-6);
+    },
+
+    // 3a. 汽车整车自动喷涂：机械臂+旋杯+带电微滴+环抱效应
+    'spray-auto'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 车身截面
+        ctx.fillStyle = '#1a1a2e'; ctx.beginPath();
+        ctx.moveTo(cx-25, cy+10); ctx.lineTo(cx-30, cy-5); ctx.lineTo(cx-25, cy-18);
+        ctx.lineTo(cx+5, cy-20); ctx.lineTo(cx+25, cy-12); ctx.lineTo(cx+28, cy+2);
+        ctx.lineTo(cx+25, cy+12); ctx.lineTo(cx-15, cy+14); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.2; ctx.stroke();
+        // 接地标志
+        ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx-25, cy+14); ctx.lineTo(cx-25, cy+22);
+        ctx.moveTo(cx-29, cy+22); ctx.lineTo(cx-21, cy+22);
+        ctx.moveTo(cx-27, cy+25); ctx.lineTo(cx-23, cy+25); ctx.stroke();
+        // 机械臂
+        const armBaseX = cx-40, armBaseY = cy-25;
+        ctx.strokeStyle = '#778'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(armBaseX, armBaseY+15); ctx.lineTo(armBaseX+10, armBaseY);
+        ctx.lineTo(armBaseX+20, armBaseY-8); ctx.stroke();
+        // 旋杯喷枪
+        ctx.fillStyle = '#556'; ctx.beginPath(); ctx.arc(armBaseX+20, armBaseY-8, 5, 0, Math.PI*2); ctx.fill();
+        const cupRot = t*40;
+        for (let a=0;a<4;a++) {
+            const ang = cupRot + a*Math.PI/2;
+            ctx.strokeStyle = '#99a'; ctx.lineWidth = 0.6;
+            ctx.beginPath(); ctx.moveTo(armBaseX+20, armBaseY-8);
+            ctx.lineTo(armBaseX+20+Math.cos(ang)*3, armBaseY-8+Math.sin(ang)*3); ctx.stroke();
+        }
+        // 场线（喷枪→车身，弯曲包裹背面）
+        for (let i=0;i<7;i++) {
+            const ty = cy-18 + i*5;
+            const dist = ty-cy;
+            ctx.strokeStyle = `rgba(160,130,220,0.2)`; ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(armBaseX+22, armBaseY-6);
+            ctx.quadraticCurveTo(cx-5, armBaseY+5+dist*0.3, cx+Math.abs(dist)*0.8, ty);
+            ctx.stroke();
+        }
+        // 带电微滴飞行
+        for (let i=0;i<15;i++) {
+            const phase = (i/15 + t*0.35)%1;
+            const ty = cy-20 + ((i%6)-2)*7;
+            const px = armBaseX+22 + phase*(cx+15-armBaseX-22);
+            const py = armBaseY-6 + (ty-(armBaseY-6))*phase + 5*Math.sin(phase*Math.PI*3);
+            ctx.fillStyle = `rgba(200,170,255,${0.6+0.3*Math.sin(phase*10)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.4, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('旋杯40k rpm→带电微滴→环抱背面→涂料93%利用', cx, h-6);
+    },
+
+    // 3b. 家具粉末涂装：输送链+喷粉+烘道固化
+    'spray-furniture'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 输送链轨道
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+        ctx.beginPath(); ctx.moveTo(5, cy-15); ctx.lineTo(w-5, cy-15); ctx.stroke(); ctx.setLineDash([]);
+        // 悬挂钩
+        for (let i=0;i<4;i++) {
+            const hx = 20 + i*50 + ((t*20)%50);
+            if (hx<w-10) {
+                ctx.strokeStyle = '#667'; ctx.lineWidth = 0.8;
+                ctx.beginPath(); ctx.moveTo(hx, cy-15); ctx.lineTo(hx, cy-5); ctx.stroke();
+            }
+        }
+        // 文件柜（在输送链上移动）
+        const cabX = cx + ((t*18)%60) - 30;
+        ctx.fillStyle = '#2a2a38'; ctx.fillRect(cabX-8, cy-5, 16, 18);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cabX-8, cy-5, 16, 18);
+        ctx.strokeRect(cabX-8, cy-5, 8, 18);
+        // 喷粉室（中央上方）
+        ctx.strokeStyle = '#445'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(cx-25, cy-22, 50, 15, 4); ctx.stroke();
+        // 粉末喷枪
+        ctx.fillStyle = '#556'; ctx.fillRect(cx-15, cy-22, 30, 4);
+        ctx.fillStyle = '#778'; ctx.beginPath(); ctx.arc(cx-12, cy-20, 3, 0, Math.PI*2); ctx.fill();
+        // 带电粉末颗粒
+        for (let i=0;i<12;i++) {
+            const phase = (i/12 + t*0.4)%1;
+            const px = cx-10 + phase*20;
+            const py = cy-18 + phase*10;
+            ctx.fillStyle = `rgba(200,180,150,${0.6+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.fill();
+        }
+        // 烘道（右侧）
+        const ovenGrad = ctx.createLinearGradient(cx+20, cy-10, cx+45, cy-10);
+        ovenGrad.addColorStop(0, 'rgba(255,140,60,0.1)'); ovenGrad.addColorStop(1, 'rgba(255,80,30,0.25)');
+        ctx.fillStyle = ovenGrad; ctx.fillRect(cx+20, cy-15, 25, 22);
+        ctx.strokeStyle = '#864'; ctx.strokeRect(cx+20, cy-15, 25, 22);
+        ctx.fillStyle = '#f84'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('200°C', cx+32, cy-1);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('粉末静电吸附→烘道固化→零VOC', cx, h-6);
+    },
+
+    // 3c. 3D打印后处理上色：打印件+导电底涂+静电着色
+    'spray-3d'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 3D打印件（有层纹的物体）
+        ctx.fillStyle = '#2a2a38'; ctx.beginPath();
+        ctx.moveTo(cx-10, cy-20); ctx.lineTo(cx+12, cy-22); ctx.lineTo(cx+18, cy-5);
+        ctx.lineTo(cx+8, cy+15); ctx.lineTo(cx-12, cy+12); ctx.lineTo(cx-16, cy-2); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.stroke();
+        // 层纹（水平纹理）
+        ctx.strokeStyle = 'rgba(100,100,120,0.3)'; ctx.lineWidth = 0.5;
+        for (let i=0;i<8;i++) {
+            const y = cy-18 + i*5;
+            ctx.beginPath(); ctx.moveTo(cx-14, y); ctx.lineTo(cx+16, y); ctx.stroke();
+        }
+        // 导电底涂（蓝色涂层）
+        ctx.strokeStyle = 'rgba(100,150,220,0.5)'; ctx.lineWidth = 1.5; ctx.setLineDash([2,2]);
+        ctx.beginPath(); ctx.moveTo(cx-14, cy-22); ctx.lineTo(cx+10, cy-23);
+        ctx.lineTo(cx+17, cy-4); ctx.lineTo(cx+6, cy+16); ctx.lineTo(cx-13, cy+10); ctx.closePath(); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(100,150,220,0.1)'; ctx.fill();
+        // 静电喷枪（左侧）
+        ctx.fillStyle = '#445'; ctx.fillRect(cx-30, cy-8, 12, 4);
+        ctx.fillStyle = '#667'; ctx.beginPath(); ctx.arc(cx-30, cy-6, 4, 0, Math.PI*2); ctx.fill();
+        // 带电漆滴
+        for (let i=0;i<10;i++) {
+            const phase = (i/10 + t*0.3)%1;
+            const px = cx-28 + phase*40;
+            const ty = cy-18 + (i%6-2)*5;
+            const py = cy-4 + (ty-(cy-4))*phase + 3*Math.sin(phase*Math.PI*2+i);
+            const colors = ['#e44', '#4e4', '#48e', '#e8e', '#ee4'];
+            ctx.fillStyle = `rgba(${colors[i%5].slice(1).split('').map(c=>parseInt(c,16)*17).join(',')},${0.7+0.2*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(px, py, 1.3, 0, Math.PI*2); ctx.fill();
+        }
+        // 平滑效果（右侧 → 对比）
+        ctx.fillStyle = '#2a2a38'; ctx.beginPath();
+        ctx.moveTo(cx+22, cy-16); ctx.lineTo(cx+36, cy-14); ctx.lineTo(cx+38, cy); ctx.lineTo(cx+30, cy+10);
+        ctx.lineTo(cx+20, cy+8); ctx.lineTo(cx+18, cy-2); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#556'; ctx.stroke();
+        ctx.fillStyle = 'rgba(100,200,120,0.3)';
+        ctx.beginPath(); ctx.ellipse(cx+28, cy-2, 10, 14, 0, 0, Math.PI*2); ctx.fill();
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('导电底涂→静电着色→平滑表面', cx, h-6);
+    },
+
+    // 4a. 办公室激光打印机：OPC鼓+充电+激光+碳粉+热辊定影
+    'xero-office'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // OPC鼓
+        const drumX = cx-18, drumY = cy-5, drumR = 20;
+        ctx.fillStyle = '#1a1a2e'; ctx.beginPath(); ctx.arc(drumX, drumY, drumR, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.5; ctx.stroke();
+        // 鼓旋转
+        const rot = t*1.5;
+        for (let i=0;i<6;i++) {
+            const a = rot + i*Math.PI/3;
+            ctx.fillStyle = '#333'; ctx.beginPath();
+            ctx.arc(drumX+Math.cos(a)*drumR*0.6, drumY+Math.sin(a)*drumR*0.6, 2, 0, Math.PI*2); ctx.fill();
+        }
+        // 充电辊（上方）
+        ctx.fillStyle = '#445'; ctx.beginPath(); ctx.arc(cx-18, drumY-drumR-6, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('-600V', cx-18, drumY-drumR-6);
+        // 激光束
+        const laserPhase = (t*0.6)%1;
+        const lx = drumX - drumR*0.7 + laserPhase*drumR*1.4;
+        ctx.strokeStyle = `rgba(255,60,60,${0.6+0.3*Math.sin(t*12)})`; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(lx, drumY-drumR-15); ctx.lineTo(lx, drumY-drumR+2); ctx.stroke();
+        // 碳粉颗粒（下方）
+        for (let i=0;i<8;i++) {
+            const phase = (i/8 + t*0.3)%1;
+            const tx = drumX-drumR*0.5 + phase*drumR*1;
+            const ty = drumY+drumR+3 - phase*5;
+            ctx.fillStyle = `rgba(80,80,90,${0.4+0.4*Math.sin(phase*6)})`;
+            ctx.beginPath(); ctx.arc(tx, ty, 1.3, 0, Math.PI*2); ctx.fill();
+        }
+        // 纸张路径
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(drumX+drumR+2, drumY-3); ctx.lineTo(cx+35, drumY-3); ctx.stroke();
+        // 热辊
+        ctx.fillStyle = '#854'; ctx.beginPath(); ctx.arc(cx+35, drumY-3, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#f84'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('180°C', cx+35, drumY-8);
+        // 出纸
+        ctx.fillStyle = '#ddd'; ctx.fillRect(cx+38, drumY-8, 8, 3);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('充电→激光潜像→碳粉显影→热辊定影', cx, h-6);
+    },
+
+    // 4b. 数码印刷机高速输出：PIP+液体油墨+高速转印
+    'xero-press'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // PIP（光电成像板）滚筒
+        const pipX = cx-15, pipY = cy-5, pipR = 18;
+        ctx.strokeStyle = '#888'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(pipX, pipY, pipR, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = 'rgba(50,50,80,0.5)'; ctx.fill();
+        // PIP旋转
+        for (let i=0;i<8;i++) {
+            const a = t*2 + i*Math.PI/4;
+            ctx.fillStyle = '#445'; ctx.beginPath();
+            ctx.arc(pipX+Math.cos(a)*pipR*0.6, pipY+Math.sin(a)*pipR*0.6, 2, 0, Math.PI*2); ctx.fill();
+        }
+        // 激光扫描
+        const laserPhase = (t*0.7)%1;
+        const lx = pipX - pipR*0.7 + laserPhase*pipR*1.4;
+        ctx.strokeStyle = 'rgba(255,60,60,0.7)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(lx, pipY-pipR-10); ctx.lineTo(lx, pipY-pipR+2); ctx.stroke();
+        // 液体油墨（细小颗粒）
+        for (let i=0;i<6;i++) {
+            const phase = (i/6 + t*0.4)%1;
+            const ox = pipX-pipR*0.4 + phase*pipR*0.8;
+            const oy = pipY+pipR+2 - phase*4;
+            ctx.fillStyle = `rgba(100,180,255,${0.5+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(ox, oy, 1, 0, Math.PI*2); ctx.fill();
+        }
+        // 转印毯
+        ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(cx+20, pipY-2, 16, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#667'; ctx.stroke();
+        // 高速出纸
+        for (let i=0;i<5;i++) {
+            const px = cx+36 + i*4 + ((t*15)%4);
+            ctx.fillStyle = `rgba(220,220,220,${0.5+0.2*i})`; ctx.fillRect(px, pipY-4, 4, 2);
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('液体油墨1-2μm→一次六色→200+页/分钟', cx, h-6);
+    },
+
+    // 4c. PCB光刻掩模：激光光绘+高精度胶片+微细走线
+    'xero-pcb'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 感光胶片
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-30, cy-15, 60, 30);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.strokeRect(cx-30, cy-15, 60, 30);
+        // 精密激光扫描（极细光束）
+        const scanLine = (t*0.4)%1;
+        const ly = cy-12 + scanLine*24;
+        ctx.strokeStyle = 'rgba(255,50,50,0.8)'; ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(cx-28, ly); ctx.lineTo(cx+28, ly); ctx.stroke();
+        // PCB 走线图案（逐行绘制）
+        ctx.strokeStyle = 'rgba(100,200,150,0.5)'; ctx.lineWidth = 0.6;
+        for (let i=0;i<4;i++) {
+            const y = cy-10 + i*5;
+            if (scanLine > i*0.25) {
+                ctx.beginPath(); ctx.moveTo(cx-25, y); ctx.lineTo(cx-5, y);
+                ctx.lineTo(cx-2, y-3); ctx.lineTo(cx+10, y-3);
+                ctx.lineTo(cx+15, y); ctx.lineTo(cx+25, y); ctx.stroke();
+            }
+        }
+        // 过孔焊盘
+        for (let xo=-15;xo<=15;xo+=10) {
+            const px = cx+xo, py = cy; if (Math.abs(xo)===15) continue;
+            ctx.strokeStyle = 'rgba(200,180,100,0.6)'; ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.arc(px, py, 1.5, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.fillStyle = 'rgba(100,200,150,0.4)'; ctx.fillRect(cx-6, cy-11, 4, 8);
+        ctx.fillStyle = 'rgba(100,200,150,0.4)'; ctx.fillRect(cx+2, cy-8, 4, 4);
+        // 已曝光区域高亮
+        ctx.fillStyle = 'rgba(255,60,60,0.04)';
+        if (scanLine>0.3) ctx.fillRect(cx-28, cy-12, 56, 2);
+        if (scanLine>0.5) ctx.fillRect(cx-28, cy-7, 56, 2);
+        if (scanLine>0.7) ctx.fillRect(cx-28, cy-2, 56, 2);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('25400 dpi→0.05mm线宽→PCB精密掩模', cx, h-6);
+    },
+
+    // 5a. 粒子加速器高压注入：串列加速器+离子源+剥离器+两次加速
+    'vdg-accel'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 高压端（中央球壳）
+        const sr = 16;
+        const grd = ctx.createRadialGradient(cx-3, cy-3, sr*0.2, cx, cy, sr);
+        grd.addColorStop(0, '#667'); grd.addColorStop(0.7, '#334'); grd.addColorStop(1, '#223');
+        ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx, cy, sr, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#889'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#f84'; ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('+15MV', cx, cy+3);
+        // 加速管（左右两侧）
+        for (let side=-1;side<=1;side+=2) {
+            ctx.strokeStyle = '#556'; ctx.lineWidth = 1;
+            for (let y=-12;y<=12;y+=3) {
+                ctx.beginPath(); ctx.moveTo(cx+side*sr, cy+y-2); ctx.lineTo(cx+side*38, cy+y-2); ctx.stroke();
+            }
+        }
+        // 负离子源（左侧）
+        ctx.fillStyle = '#334'; ctx.beginPath(); ctx.arc(cx-40, cy, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '5px sans-serif'; ctx.fillText('H⁻', cx-42, cy-6);
+        // 负离子加速（左→右）
+        for (let i=0;i<5;i++) {
+            const phase = (i/5 + t*0.5)%1;
+            const px = cx-38 + phase* 22;
+            ctx.fillStyle = `rgba(255,100,80,${0.5+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(px, cy, 1.5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = '5px sans-serif'; ctx.fillText('−', px-3, cy-5);
+        }
+        // 剥离器（中央）
+        ctx.fillStyle = 'rgba(255,200,50,0.4)'; ctx.fillRect(cx-2, cy-10, 4, 20);
+        ctx.fillStyle = '#fc0'; ctx.font = '5px sans-serif'; ctx.fillText('C箔', cx-5, cy-13);
+        // 正离子加速（中→右）
+        for (let i=0;i<5;i++) {
+            const phase = (i/5 + t*0.6)%1;
+            const px = cx+sr + phase* 20;
+            ctx.fillStyle = `rgba(255,200,50,${0.5+0.3*Math.sin(phase*8)})`;
+            ctx.beginPath(); ctx.arc(px, cy, 1.5, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = '5px sans-serif'; ctx.fillText('+', px-3, cy-5);
+        }
+        // 靶
+        ctx.fillStyle = '#844'; ctx.beginPath(); ctx.arc(cx+35, cy, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = '5px sans-serif'; ctx.fillText('靶', cx+33, cy-8);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('负离子→H⁻加速→剥离→质子二次加速→MeV级', cx, h-6);
+    },
+
+    // 5b. 核物理实验室离子源：教学VDG+α粒子散射
+    'vdg-lab'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 小型VDG
+        const sr = 14;
+        ctx.fillStyle = '#334'; ctx.beginPath(); ctx.arc(cx-20, cy, sr, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.2; ctx.stroke();
+        // 传送带
+        ctx.fillStyle = '#3a3a3a'; ctx.fillRect(cx-22, cy+sr, 4, 20);
+        for (let i=0;i<4;i++) {
+            const phase = (i/4 + t*0.4)%1;
+            ctx.fillStyle = i%2?'#f64':'#48f';
+            ctx.beginPath(); ctx.arc(cx-20, cy+sr+phase*20, 1.8, 0, Math.PI*2); ctx.fill();
+        }
+        // 表面电荷
+        for (let i=0;i<8;i++) {
+            const a = i*Math.PI*2/8 + t*0.3;
+            ctx.fillStyle = '#f64'; ctx.beginPath();
+            ctx.arc(cx-20+Math.cos(a)*sr*0.85, cy+Math.sin(a)*sr*0.85, 1.5, 0, Math.PI*2); ctx.fill();
+        }
+        // α粒子束
+        ctx.strokeStyle = 'rgba(255,200,100,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([2,2]);
+        ctx.beginPath(); ctx.moveTo(cx-20, cy-sr-8); ctx.lineTo(cx-20, cy-sr-1); ctx.stroke(); ctx.setLineDash([]);
+        // 金箔
+        ctx.fillStyle = 'rgba(255,200,50,0.3)'; ctx.fillRect(cx+5, cy-1, 8, 1);
+        ctx.fillStyle = '#fc0'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Au 箔', cx+9, cy-4);
+        // 散射粒子（向后散射到大角度）
+        for (let i=0;i<6;i++) {
+            const angle = Math.PI + (i-2.5)*0.6 + Math.sin(t*1.5+i)*0.15;
+            const dist = 12 + 8*Math.sin(t*3+i);
+            const px = cx+5 + Math.cos(angle)*dist;
+            const py = cy + Math.sin(angle)*dist;
+            ctx.fillStyle = 'rgba(255,200,100,0.7)';
+            ctx.beginPath(); ctx.arc(px, py, 1.2, 0, Math.PI*2); ctx.fill();
+        }
+        // 探测器（环形）
+        ctx.strokeStyle = 'rgba(100,200,255,0.3)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.arc(cx+5, cy, 20, -Math.PI*0.7, Math.PI*0.3); ctx.stroke();
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('α粒子→金箔→卢瑟福散射→验证核模型', cx, h-6);
+    },
+
+    // 5c. 科学博物馆经典演示：人手触球+头发竖起+高斯定理可视化
+    'vdg-museum'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h*0.35;
+        const sr = 18;
+        // VDG球壳
+        const grd = ctx.createRadialGradient(cx-4, cy-4, sr*0.2, cx, cy, sr);
+        grd.addColorStop(0, '#667'); grd.addColorStop(0.7, '#334'); grd.addColorStop(1, '#223');
+        ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx, cy, sr, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#889'; ctx.lineWidth = 1.5; ctx.stroke();
+        // 人手（触摸球壳）
+        const handX = cx+sr*0.7, handY = cy-sr*0.3;
+        ctx.fillStyle = '#c8a882'; ctx.beginPath(); ctx.ellipse(handX, handY, 6, 4, 0.3, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#a08060'; ctx.lineWidth = 1; ctx.stroke();
+        // 手臂
+        ctx.strokeStyle = '#c8a882'; ctx.lineWidth = 3; ctx.beginPath();
+        ctx.moveTo(handX-2, handY+3); ctx.lineTo(cx+sr+5, cy-sr-5); ctx.stroke();
+        // 人体轮廓
+        ctx.strokeStyle = '#c8a882'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx+sr+6, cy-sr-12, 7, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+sr+6, cy-sr-5); ctx.lineTo(cx+sr+6, cy+10); ctx.stroke();
+        // 头发竖起（多根线条从头顶辐射）
+        for (let i=0;i<12;i++) {
+            const angle = -Math.PI*0.3 + i*Math.PI*0.6/11;
+            const hairLen = 8 + 5*Math.sin(t*2+i);
+            ctx.strokeStyle = `rgba(80,60,40,${0.5+0.3*Math.sin(t*3+i)})`; ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(cx+sr+6+Math.cos(angle-Math.PI/2)*6, cy-sr-12+Math.sin(angle-Math.PI/2)*6);
+            ctx.lineTo(cx+sr+6+Math.cos(angle-Math.PI/2)*6+Math.cos(angle)*hairLen, cy-sr-12+Math.sin(angle-Math.PI/2)*6+Math.sin(angle)*hairLen);
+            ctx.stroke();
+        }
+        // 电荷分布（球壳表面+s人体表面）
+        for (let i=0;i<8;i++) {
+            const a = i*Math.PI*2/8 + t*0.2;
+            ctx.fillStyle = '#f84'; ctx.beginPath();
+            ctx.arc(cx+Math.cos(a)*sr*0.9, cy+Math.sin(a)*sr*0.9, 1.5, 0, Math.PI*2); ctx.fill();
+        }
+        // 观众
+        for (let wx=-25;wx<=20;wx+=15) {
+            ctx.strokeStyle = 'rgba(200,200,220,0.2)'; ctx.lineWidth = 0.6;
+            ctx.beginPath(); ctx.arc(cx+wx, cy+sr+18, 5, 0, Math.PI*2); ctx.stroke();
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('人体带电→同种电荷排斥→头发竖起  E内部=0', cx, h-6);
+    },
+
+    // 6a. 超高层建筑防雷：接闪器+滚球法+引下线+接地网
+    'lr-building'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 高楼
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-15, cy-25, 30, 50);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.strokeRect(cx-15, cy-25, 30, 50);
+        // 窗户
+        for (let r=0;r<5;r++) for (let c=0;c<3;c++) {
+            ctx.fillStyle = 'rgba(60,80,120,0.3)'; ctx.fillRect(cx-13+c*8, cy-22+r*9, 6, 6);
+        }
+        // 多根接闪器（顶部）
+        for (let i=0;i<3;i++) {
+            const rx = cx-8 + i*8;
+            ctx.strokeStyle = '#889'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(rx, cy-25); ctx.lineTo(rx, cy-32); ctx.stroke();
+            ctx.fillStyle = '#ffd'; ctx.beginPath();
+            ctx.moveTo(rx, cy-34); ctx.lineTo(rx-3, cy-30); ctx.lineTo(rx+3, cy-30); ctx.closePath(); ctx.fill();
+        }
+        // 滚球法可视化（半透明球体滚过）
+        const ballPhase = (t*0.2)%1;
+        const ballX = cx-20 + ballPhase*40;
+        ctx.strokeStyle = 'rgba(255,200,100,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.arc(ballX, cy-20, 25, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,200,100,0.1)'; ctx.fill();
+        ctx.fillStyle = '#fc0'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('R=45m', ballX, cy-20);
+        // 雷云（顶部）
+        ctx.fillStyle = 'rgba(50,50,70,0.6)'; ctx.beginPath(); ctx.ellipse(cx, cy-38, 30, 10, 0, 0, Math.PI*2); ctx.fill();
+        // 上行先导
+        ctx.strokeStyle = 'rgba(255,220,80,0.6)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx, cy-32); ctx.lineTo(cx-2, cy-40); ctx.stroke();
+        // 引下线
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1; ctx.setLineDash([2,1]);
+        ctx.beginPath(); ctx.moveTo(cx-14, cy-25); ctx.lineTo(cx-14, cy+25); ctx.stroke(); ctx.setLineDash([]);
+        // 接地网
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx-25, cy+27); ctx.lineTo(cx+25, cy+27); ctx.stroke();
+        for (let i=0;i<5;i++) {ctx.beginPath(); ctx.moveTo(cx-20+i*10, cy+27); ctx.lineTo(cx-20+i*10, cy+30); ctx.stroke();}
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('滚球法→多接闪器→上行先导→安全入地', cx, h-6);
+    },
+
+    // 6b. 飞机复合材料防雷：CFRP+铜网+法拉第笼
+    'lr-plane'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 机身截面
+        ctx.fillStyle = '#1a1a2e'; ctx.beginPath(); ctx.ellipse(cx, cy, 35, 12, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.stroke();
+        // CFRP 层（外层）
+        ctx.strokeStyle = 'rgba(100,100,130,0.5)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(cx, cy, 34, 11, 0, 0, Math.PI*2); ctx.stroke();
+        // 铜网导电层（内层，虚线）
+        ctx.strokeStyle = 'rgba(255,180,60,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.ellipse(cx, cy, 30, 9, 0, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        // 油箱（内部）
+        ctx.fillStyle = 'rgba(200,100,60,0.2)'; ctx.fillRect(cx-12, cy-2, 24, 6);
+        ctx.strokeStyle = 'rgba(200,100,60,0.4)'; ctx.strokeRect(cx-12, cy-2, 24, 6);
+        // 航电
+        ctx.fillStyle = 'rgba(100,180,255,0.15)'; ctx.fillRect(cx-3, cy-6, 8, 4);
+        ctx.strokeStyle = 'rgba(100,180,255,0.3)'; ctx.strokeRect(cx-3, cy-6, 8, 4);
+        // 雷击（顶部）
+        if (Math.sin(t*3.5)>0.8) {
+            ctx.strokeStyle = '#ffd'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(cx, cy-15); ctx.lineTo(cx-3, cy-8); ctx.stroke();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cx, cy-15); ctx.lineTo(cx-3, cy-8); ctx.stroke();
+        }
+        // 电流沿表面流动（法拉第笼）
+        for (let i=0;i<10;i++) {
+            const phase = (i/10 + t*0.4)%1;
+            const angle = -Math.PI/2 + phase*Math.PI*2;
+            const rx = cx + Math.cos(angle)*32;
+            const ry = cy + Math.sin(angle)*10;
+            ctx.fillStyle = `rgba(255,200,60,${0.3+0.3*Math.sin(phase*10)})`;
+            ctx.beginPath(); ctx.arc(rx, ry, 1.3, 0, Math.PI*2); ctx.fill();
+        }
+        // 内部保护标志
+        ctx.fillStyle = 'rgba(100,255,150,0.3)';
+        ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('安全 ✓', cx, cy+3);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('CFRP+铜网→法拉第笼→内部电场=0', cx, h-6);
+    },
+
+    // 6c. 高压输电线路防雷：架空地线+保护角+ZnO避雷器
+    'lr-line'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 杆塔
+        ctx.strokeStyle = '#666'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx-20, cy+15); ctx.lineTo(cx-3, cy-20); ctx.lineTo(cx, cy-35); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+20, cy+15); ctx.lineTo(cx+3, cy-20); ctx.lineTo(cx, cy-35); ctx.stroke();
+        // 架空地线（避雷线，最上方）
+        ctx.strokeStyle = '#fc0'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(cx-35, cy-36); ctx.lineTo(cx+35, cy-36); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx-35, cy-34); ctx.lineTo(cx+35, cy-34); ctx.stroke();
+        // 保护角标注
+        ctx.strokeStyle = 'rgba(255,200,80,0.3)'; ctx.lineWidth = 0.8; ctx.setLineDash([2,3]);
+        ctx.beginPath(); ctx.moveTo(cx, cy-35); ctx.lineTo(cx+10, cy-20); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#fc0'; ctx.font = '6px sans-serif'; ctx.fillText('<20°', cx+12, cy-27);
+        // 相导线（三相）
+        for (let p=0;p<3;p++) {
+            ctx.strokeStyle = '#889'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cx-35, cy-20+p*6); ctx.lineTo(cx+35, cy-20+p*6); ctx.stroke();
+        }
+        // 雷击
+        if (Math.sin(t*4)>0.8) {
+            ctx.strokeStyle = '#ffd'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(cx+5, cy-45); ctx.lineTo(cx, cy-35); ctx.stroke();
+        }
+        // ZnO避雷器
+        ctx.fillStyle = '#334'; ctx.fillRect(cx-15, cy+3, 6, 12);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cx-15, cy+3, 6, 12);
+        ctx.fillStyle = '#fff'; ctx.font = '4px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('ZnO', cx-12, cy+10);
+        // 接地电流
+        ctx.strokeStyle = 'rgba(255,200,60,0.6)'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx, cy+12); ctx.lineTo(cx, cy+25); ctx.stroke();
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('架空地线→保护角<20°→ZnO箝位→安全泄流', cx, h-6);
+    },
+
+    // 7a. 智能手机多点触控：ITO网格+手指+互电容+坐标读出
+    'touch-phone'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 手机屏幕截面
+        ctx.fillStyle = 'rgba(20,30,50,0.7)'; ctx.fillRect(cx-30, cy-25, 60, 40);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.strokeRect(cx-30, cy-25, 60, 40);
+        // 玻璃层
+        ctx.fillStyle = 'rgba(150,180,210,0.12)'; ctx.fillRect(cx-28, cy-23, 56, 4);
+        // ITO驱动层
+        ctx.strokeStyle = 'rgba(100,150,200,0.4)'; ctx.lineWidth = 0.5;
+        for (let i=0;i<5;i++) {
+            ctx.beginPath(); ctx.moveTo(cx-25, cy-14+i*3); ctx.lineTo(cx+25, cy-14+i*3); ctx.stroke();
+        }
+        // ITO感应层
+        ctx.strokeStyle = 'rgba(150,120,200,0.4)'; ctx.lineWidth = 0.5;
+        for (let i=0;i<6;i++) {
+            ctx.beginPath(); ctx.moveTo(cx-24+i*10, cy-16); ctx.lineTo(cx-24+i*10, cy-2); ctx.stroke();
+        }
+        // 手指（触摸中）
+        const fingerY = cy-28 + 5*Math.sin(t*1.5);
+        ctx.fillStyle = '#c8a882'; ctx.beginPath(); ctx.ellipse(cx, fingerY, 10, 14, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#a08060'; ctx.lineWidth = 1; ctx.stroke();
+        // 场线畸变（电极→手指）
+        for (let i=0;i<5;i++) {
+            const ex = cx-20 + i*10;
+            const dist = (ex-cx);
+            ctx.strokeStyle = `rgba(180,140,255,${0.15+0.1*Math.abs(dist)/20})`; ctx.lineWidth = 0.6;
+            ctx.beginPath();
+            ctx.moveTo(ex, cy-14);
+            ctx.quadraticCurveTo(ex+dist*0.2, cy-18, cx+dist*0.15, fingerY+8);
+            ctx.stroke();
+        }
+        // 触控IC（底部）
+        ctx.fillStyle = '#223'; ctx.fillRect(cx-12, cy+6, 24, 10);
+        ctx.strokeStyle = '#667'; ctx.strokeRect(cx-12, cy+6, 24, 10);
+        ctx.fillStyle = '#4f8'; ctx.font = '6px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('240Hz', cx, cy+13);
+        // 坐标显示
+        const tx = Math.round(cx + 15*Math.sin(t*2)), ty = Math.round(fingerY+8);
+        ctx.fillStyle = '#8f8'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(`(${tx},${ty})`, cx, cy+23);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('手指→ΔC 0.5-2pF→240Hz扫描1000+节点', cx, h-6);
+    },
+
+    // 7b. 汽车中控触摸屏：手套穿透+屏蔽层+宽温域
+    'touch-car'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 中控屏幕
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-32, cy-22, 64, 38);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.5; ctx.strokeRect(cx-32, cy-22, 64, 38);
+        // 屏幕内容（地图简图）
+        ctx.strokeStyle = 'rgba(100,180,240,0.3)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(cx-25, cy-15); ctx.lineTo(cx+10, cy-12); ctx.lineTo(cx, cy-5); ctx.lineTo(cx-20, cy-8); ctx.closePath(); ctx.stroke();
+        ctx.fillStyle = 'rgba(80,120,200,0.15)'; ctx.fill();
+        // 厚玻璃+手套
+        ctx.fillStyle = 'rgba(150,180,210,0.2)'; ctx.fillRect(cx-30, cy-20, 60, 5);
+        // 皮革手套手指
+        ctx.fillStyle = '#555'; ctx.beginPath(); ctx.ellipse(cx+5, cy-25, 12, 16, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.stroke();
+        // 手套纹理
+        for (let i=0;i<3;i++) {
+            ctx.strokeStyle = 'rgba(80,80,80,0.5)'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.arc(cx+3, cy-25 + i*3-3, 8, 0, Math.PI); ctx.stroke();
+        }
+        // 增大电极（宽间距ITO）
+        ctx.strokeStyle = 'rgba(100,200,150,0.5)'; ctx.lineWidth = 1.5;
+        for (let i=0;i<4;i++) {
+            ctx.beginPath(); ctx.moveTo(cx-22+i*15, cy-12); ctx.lineTo(cx-22+i*15, cy-2); ctx.stroke();
+        }
+        // 屏蔽层
+        ctx.fillStyle = 'rgba(255,200,100,0.08)'; ctx.fillRect(cx-30, cy-3, 60, 3);
+        ctx.strokeStyle = 'rgba(255,200,100,0.4)'; ctx.lineWidth = 0.8; ctx.setLineDash([2,1]);
+        ctx.beginPath(); ctx.moveTo(cx-30, cy-1); ctx.lineTo(cx+30, cy-1); ctx.stroke(); ctx.setLineDash([]);
+        // 场线穿透手套
+        ctx.strokeStyle = 'rgba(180,140,255,0.25)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx+5, cy-10); ctx.quadraticCurveTo(cx+8, cy-6, cx+10, cy-13); ctx.stroke();
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('3mm手套→大电极+屏蔽层→SNR>30dB', cx, h-6);
+    },
+
+    // 7c. 工业HMI防水触控：自容+互容双模+水滴/油污过滤
+    'touch-ind'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 工业屏幕
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-30, cy-22, 60, 36);
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.5; ctx.strokeRect(cx-30, cy-22, 60, 36);
+        // 水滴
+        const dropX = cx-12 + 3*Math.sin(t*0.7), dropY = cy-10;
+        ctx.fillStyle = 'rgba(100,180,255,0.35)'; ctx.beginPath(); ctx.arc(dropX, dropY, 5, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(150,200,255,0.6)'; ctx.lineWidth = 0.8; ctx.stroke();
+        // 油污斑块
+        ctx.fillStyle = 'rgba(200,180,120,0.15)'; ctx.beginPath(); ctx.arc(cx+15, cy+2, 7, 0, Math.PI*2); ctx.fill();
+        // 手指（带作业手套）
+        ctx.fillStyle = '#c8a882'; ctx.beginPath(); ctx.ellipse(cx-2, cy-28, 8, 12, 0.1, 0, Math.PI*2); ctx.fill();
+        // 双模检测提示
+        // 自电容模式（检测大片水）
+        ctx.strokeStyle = 'rgba(255,150,80,0.4)'; ctx.lineWidth = 0.8; ctx.setLineDash([2,2]);
+        ctx.beginPath(); ctx.arc(dropX, dropY, 9, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#fa8'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('自容:水滴检测→滤除', dropX, dropY-12);
+        // 互电容模式（精确手指）
+        ctx.strokeStyle = 'rgba(100,255,150,0.5)'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.arc(cx-2, cy-28, 11, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = '#8f8'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('互容:手指识别', cx-2, cy-42);
+        // ITO阵列
+        for (let i=0;i<5;i++) {
+            ctx.strokeStyle = 'rgba(100,150,200,0.3)'; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(cx-22+i*11, cy-16); ctx.lineTo(cx-22+i*11, cy); ctx.stroke();
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('双模检测→区分水滴/手指→工业级可靠', cx, h-6);
+    },
+
+    // 8a. 脑机接口(BCI)：GNN优化电极+头皮+神经元信号+意念打字
+    'bio-bci'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 头部轮廓
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(cx, cy+5, 18, Math.PI*1.1, Math.PI*1.9); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx-16, cy-8); ctx.lineTo(cx-16, cy+10); ctx.stroke();
+        // 大脑皮层（内部）
+        ctx.fillStyle = 'rgba(180,140,255,0.05)'; ctx.beginPath(); ctx.ellipse(cx, cy+2, 12, 9, 0, 0, Math.PI*2); ctx.fill();
+        // 传统均匀电极（灰点，10-20系统）
+        for (let i=0;i<7;i++) {
+            const a = -Math.PI*0.5 + i*Math.PI/6;
+            const ex = cx + Math.cos(a)*15, ey = cy+3 + Math.sin(a)*10;
+            ctx.fillStyle = 'rgba(150,150,150,0.4)'; ctx.beginPath(); ctx.arc(ex, ey, 2, 0, Math.PI*2); ctx.fill();
+        }
+        // GNN优化的树枝状电极（金色，大）
+        ctx.strokeStyle = 'rgba(255,200,80,0.7)'; ctx.lineWidth = 1;
+        const drawElectrode = (bx, by, ang, len, depth) => {
+            if (depth>2||len<5) return;
+            const ex = bx+Math.cos(ang)*len, ey = by+Math.sin(ang)*len;
+            ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,200,80,0.8)'; ctx.beginPath(); ctx.arc(ex, ey, 1.5, 0, Math.PI*2); ctx.fill();
+            drawElectrode(ex, ey, ang-0.4, len*0.55, depth+1);
+            drawElectrode(ex, ey, ang+0.4, len*0.55, depth+1);
+        };
+        drawElectrode(cx+3, cy-2, -Math.PI/2, 10, 0);
+        drawElectrode(cx-5, cy+2, -Math.PI/2.5, 8, 0);
+        // 信号脉冲（沿树枝状电极传导）
+        for (let i=0;i<4;i++) {
+            const phase = (i/4 + t*0.55)%1;
+            const px = cx-3 + phase*10;
+            const py = cy-5 - phase*6;
+            const grd = ctx.createRadialGradient(px, py, 0, px, py, 7);
+            grd.addColorStop(0, `rgba(255,200,80,${0.6*(1-phase)})`);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grd; ctx.fillRect(px-8, py-8, 16, 16);
+        }
+        // 显示屏（右侧）意念打字
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx+18, cy-8, 20, 14);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.strokeRect(cx+18, cy-8, 20, 14);
+        ctx.fillStyle = '#8f8'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+        const words = ['你','好','世','界','脑','机'];
+        ctx.fillText(words[Math.floor(t*1.5)%6], cx+28, cy+1);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('GNN优化→树枝电极→SNR×3-8→5→30字/分', cx, h-6);
+    },
+
+    // 8b. 孕妇胎儿心电监测：同心环电极+母体/胎儿电场解耦
+    'bio-fetal'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 孕妇腹部截面
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.ellipse(cx, cy+5, 28, 18, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = 'rgba(30,20,40,0.3)'; ctx.fill();
+        // 胎儿（内部小圆）
+        ctx.fillStyle = 'rgba(255,180,180,0.2)'; ctx.beginPath(); ctx.arc(cx+8, cy+8, 7, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,150,150,0.5)'; ctx.lineWidth = 0.8; ctx.stroke();
+        // 胎儿心脏（微小搏动）
+        const heartBeat = 0.4+0.6*Math.abs(Math.sin(t*2.5*Math.PI));
+        ctx.fillStyle = `rgba(255,60,60,${heartBeat})`; ctx.beginPath(); ctx.arc(cx+8, cy+7, 2, 0, Math.PI*2); ctx.fill();
+        // 母体心脏（大信号）
+        const mHeartBeat = 0.3+0.7*Math.abs(Math.sin(t*1.2*Math.PI));
+        ctx.fillStyle = `rgba(255,100,100,${mHeartBeat*0.6})`; ctx.beginPath(); ctx.arc(cx+15, cy-2, 3.5, 0, Math.PI*2); ctx.fill();
+        // 同心多环电极（AI优化）
+        for (let r=1;r<=3;r++) {
+            ctx.strokeStyle = `rgba(100,200,255,${0.7-0.15*r})`; ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.arc(cx+2, cy+3, r*5, 0, Math.PI*2); ctx.stroke();
+        }
+        // 中心电极
+        ctx.fillStyle = 'rgba(100,200,255,0.8)'; ctx.beginPath(); ctx.arc(cx+2, cy+3, 2.5, 0, Math.PI*2); ctx.fill();
+        // 信号分离示意
+        ctx.strokeStyle = 'rgba(255,200,100,0.5)'; ctx.lineWidth = 0.5; ctx.setLineDash([1,1]);
+        ctx.beginPath(); ctx.moveTo(cx+2, cy+3); ctx.lineTo(cx+2, cy-18); ctx.stroke(); ctx.setLineDash([]);
+        // FECG波形（纯净）
+        ctx.strokeStyle = 'rgba(100,255,150,0.7)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx-15, cy-18);
+        for (let x=0;x<30;x++) {
+            const wave = Math.sin((x+t*10)*0.4)*3 + (Math.sin((x+t*10)*1.2)>0.8?6:0);
+            ctx.lineTo(cx-15+x, cy-18+wave);
+        }
+        ctx.stroke();
+        ctx.fillStyle = '#8f8'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('FECG 1-50μV', cx, cy-22);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('同心环电极→空间解耦→替代侵入式', cx, h-6);
+    },
+
+    // 8c. 智能手表健康监测：腕部电极+桡动脉+电场心率
+    'bio-watch'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 手腕截面
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.ellipse(cx, cy+2, 25, 14, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = 'rgba(30,20,40,0.3)'; ctx.fill();
+        // 桡动脉
+        ctx.fillStyle = 'rgba(200,60,60,0.5)'; ctx.beginPath(); ctx.arc(cx+12, cy-2, 3, 0, Math.PI*2); ctx.fill();
+        const pulse = 0.7+0.3*Math.sin(t*2.2*Math.PI);
+        ctx.fillStyle = `rgba(255,80,80,${pulse})`; ctx.beginPath(); ctx.arc(cx+12, cy-2, 2* pulse, 0, Math.PI*2); ctx.fill();
+        // 智能手表（底部）
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-6, cy+14, 12, 8);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1; ctx.strokeRect(cx-6, cy+14, 12, 8);
+        // 表带
+        ctx.strokeStyle = '#444'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx-12, cy+18); ctx.lineTo(cx-6, cy+18); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx+6, cy+18); ctx.lineTo(cx+12, cy+18); ctx.stroke();
+        // E-field电极阵列（底部，AI优化形状）
+        for (let i=0;i<4;i++) {
+            ctx.strokeStyle = 'rgba(100,200,255,0.6)'; ctx.lineWidth = 0.7;
+            ctx.beginPath(); ctx.moveTo(cx-5+i*3, cy+14); ctx.lineTo(cx-5+i*3, cy+11); ctx.stroke();
+            ctx.fillStyle = 'rgba(100,200,255,0.8)'; ctx.beginPath(); ctx.arc(cx-5+i*3, cy+11, 1.2, 0, Math.PI*2); ctx.fill();
+        }
+        // 场线（从动脉到电极）
+        for (let i=0;i<4;i++) {
+            const ex = cx-3+i*3;
+            ctx.strokeStyle = `rgba(180,140,255,0.2)`; ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(cx+12, cy-2); ctx.quadraticCurveTo(ex, cy+6, ex, cy+12); ctx.stroke();
+        }
+        // 表盘显示心率
+        ctx.fillStyle = '#4f8'; ctx.font = 'bold 7px monospace'; ctx.textAlign = 'center';
+        const hr = 72 + Math.round(5*Math.sin(t*0.5));
+        ctx.fillText(`♥ ${hr} bpm`, cx, cy+22);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('电场心率→AI优化电极→±2bpm精度', cx, h-6);
+    },
+
+    // 9a. 航天器电子舱屏蔽：蝴蝶翅膀鳞片式多层交错孔
+    'shield-sat'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 卫星舱体
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-35, cy-20, 70, 35);
+        ctx.strokeStyle = '#445'; ctx.lineWidth = 1.2; ctx.strokeRect(cx-35, cy-20, 70, 35);
+        // 太阳翼
+        ctx.fillStyle = 'rgba(50,80,120,0.5)'; ctx.fillRect(cx-50, cy-15, 15, 25);
+        ctx.fillStyle = 'rgba(50,80,120,0.5)'; ctx.fillRect(cx+35, cy-15, 15, 25);
+        // 散热孔（蝴蝶翅膀鳞片式多层交错）
+        for (let layer=0;layer<2;layer++) {
+            const ly = cy-8 + layer*9;
+            for (let i=0;i<4;i++) {
+                const lx = cx-18 + i*8 + (layer%2)*4;
+                ctx.fillStyle = this.color || '#0a0c1e';
+                ctx.fillStyle = '#0a0c1e'; ctx.fillRect(lx, ly, 6, 5);
+                ctx.strokeStyle = 'rgba(100,200,150,0.5)'; ctx.lineWidth = 0.7;
+                ctx.strokeRect(lx, ly, 6, 5);
+            }
+        }
+        // 宇宙射线（从左侧射入）
+        for (let i=0;i<6;i++) {
+            const phase = (i/6 + t*0.35)%1;
+            const wx = cx-40 - phase*15;
+            if (wx > cx-36 && wx < cx-16) {
+                ctx.strokeStyle = `rgba(255,150,80,${0.5*(1-phase)})`; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(wx, cy-5); ctx.lineTo(wx+4, cy-5); ctx.stroke();
+            }
+        }
+        // 层层衰减可视化（每层穿透变弱）
+        for (let layer=0;layer<2;layer++) {
+            const alpha = 0.15 - layer*0.05;
+            ctx.strokeStyle = `rgba(255,100,60,${alpha})`; ctx.lineWidth = 0.5;
+            ctx.beginPath(); ctx.moveTo(cx, cy-5+layer*9); ctx.lineTo(cx+15, cy-5+layer*9); ctx.stroke();
+        }
+        ctx.fillStyle = '#8f8'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('穿透-42%', cx+20, cy+8);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('蝶翅鳞片式→多层交错45°→散热85%+漏场-42%', cx, h-6);
+    },
+
+    // 9b. 自动驾驶域控制器：螺旋导流片+驻波陷阱
+    'shield-av'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 域控制器壳体
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-30, cy-18, 60, 32);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.strokeRect(cx-30, cy-18, 60, 32);
+        // 内部芯片
+        ctx.fillStyle = 'rgba(255,80,40,0.3)'; ctx.fillRect(cx-5, cy-3, 16, 10);
+        ctx.fillStyle = '#f84'; ctx.font = '5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Orin', cx+3, cy+3);
+        // 散热风扇
+        const fanAngle = t*10;
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(cx+25, cy-10, 6, fanAngle, fanAngle+2.5); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx+25, cy-10, 6, fanAngle+Math.PI, fanAngle+Math.PI+2.5); ctx.stroke();
+        // 螺旋导流片（仿白蚁巢穴）
+        for (let v=0;v<3;v++) {
+            const vx = cx-15 + v*15;
+            ctx.strokeStyle = 'rgba(100,200,255,0.5)'; ctx.lineWidth = 0.7;
+            ctx.beginPath();
+            for (let a=0;a<Math.PI*1.5;a+=0.15) {
+                const r = 3+a*1.2;
+                const px = vx + Math.cos(a)*r, py = cy-15 + Math.sin(a)*r;
+                a===0?ctx.moveTo(px, py):ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+        }
+        // EMI干扰源（外部）
+        for (let i=0;i<4;i++) {
+            const phase = (i/4 + t*0.4)%1;
+            ctx.strokeStyle = `rgba(255,100,50,${0.3*(1-phase)})`; ctx.lineWidth = 0.7;
+            ctx.beginPath(); ctx.arc(cx-35, cy, 3+phase*8, -0.5, 0.5); ctx.stroke();
+        }
+        // 驻波陷阱衰减
+        ctx.fillStyle = 'rgba(100,200,150,0.2)';
+        for (let v=0;v<3;v++) ctx.fillRect(cx-14+v*15, cy-16, 8, 4);
+        ctx.fillStyle = '#8f8'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('漏场-35dB', cx, cy+13);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('RL搜索→螺旋导流片→驻波陷阱→低35dB', cx, h-6);
+    },
+
+    // 9c. 5G基站射频隔离：珊瑚状隔离结构+串扰抑制
+    'shield-5g'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // Massive MIMO天线面板
+        ctx.fillStyle = '#1a1a2e'; ctx.fillRect(cx-35, cy-15, 70, 25);
+        ctx.strokeStyle = '#556'; ctx.lineWidth = 1.2; ctx.strokeRect(cx-35, cy-15, 70, 25);
+        // 天线阵元（8×8简化）
+        for (let r=0;r<4;r++) {
+            for (let c=0;c<8;c++) {
+                const ax = cx-28 + c*8, ay = cy-10 + r*5;
+                ctx.fillStyle = '#334'; ctx.beginPath(); ctx.rect(ax, ay, 5, 3); ctx.fill();
+                ctx.strokeStyle = '#667'; ctx.lineWidth = 0.5; ctx.strokeRect(ax, ay, 5, 3);
+            }
+        }
+        // 珊瑚状隔离结构（天线间凹凸表面）
+        ctx.strokeStyle = 'rgba(255,180,80,0.5)'; ctx.lineWidth = 0.8;
+        for (let c=1;c<8;c++) {
+            const ax = cx-28 + c*8 - 2;
+            ctx.beginPath(); ctx.moveTo(ax, cy-12);
+            for (let y=cy-12;y<cy+4;y+=2) {
+                ctx.lineTo(ax+Math.sin(y*2)*1.5, y);
+            }
+            ctx.stroke();
+        }
+        // 串扰电场（相邻天线间）
+        for (let i=0;i<5;i++) {
+            const phase = (i/5 + t*0.3)%1;
+            const antIdx = 2+i;
+            const ax = cx-28 + antIdx*8;
+            if (phase<0.5) {
+                ctx.strokeStyle = `rgba(255,100,60,${0.2*(1-phase*2)})`; ctx.lineWidth = 0.5;
+                ctx.beginPath(); ctx.arc(ax+3, cy-8, phase*10, -0.4, 0.4); ctx.stroke();
+            }
+        }
+        // 衰减后残余
+        ctx.strokeStyle = 'rgba(100,200,150,0.15)'; ctx.lineWidth = 0.5;
+        for (let c=2;c<8;c++) {
+            const ax = cx-28 + c*8 + 4;
+            ctx.beginPath(); ctx.moveTo(ax, cy-8); ctx.lineTo(ax+3, cy-8); ctx.stroke();
+        }
+        ctx.fillStyle = '#8f8'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('隔离-25dB', cx, cy+13);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('珊瑚状结构→周期凹凸→串扰-25dB→不变间距', cx, h-6);
+    },
+
+    // 10a. 城市电网雷电预警：场磨计网络+时空预测+调度切负荷
+    'lp-grid'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 城市地图网格
+        ctx.strokeStyle = '#222'; ctx.lineWidth = 0.4;
+        for (let i=0;i<6;i++) { ctx.beginPath(); ctx.moveTo(5+i*(w-10)/5, 8); ctx.lineTo(5+i*(w-10)/5, h-8); ctx.stroke(); }
+        for (let i=0;i<3;i++) { ctx.beginPath(); ctx.moveTo(5, 8+i*(h-16)/2); ctx.lineTo(w-5, 8+i*(h-16)/2); ctx.stroke(); }
+        // 输电线路
+        ctx.strokeStyle = '#445'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(10, cy-5); ctx.lineTo(w-10, cy-5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, cy+5); ctx.lineTo(w-10, cy+5); ctx.stroke();
+        // 变压器/变电所
+        for (let i=0;i<3;i++) {
+            const tx = 20+i*55;
+            ctx.fillStyle = '#334'; ctx.fillRect(tx-5, cy-3, 10, 8);
+            ctx.strokeStyle = '#667'; ctx.lineWidth = 0.8; ctx.strokeRect(tx-5, cy-3, 10, 8);
+        }
+        // 场磨计传感器（随机分布）
+        const mills = [];
+        for (let i=0;i<12;i++) {
+            const sx = 15+(i*37+17)%(w-30), sy = 12+(i*23+11)%(h-24);
+            mills.push({x:sx, y:sy, phase:Math.random()*Math.PI*2});
+        }
+        // 雷暴云
+        const cloudX = w*0.25 + 15*Math.sin(t*0.5), cloudY = h*0.2 + 6*Math.cos(t*0.6);
+        ctx.fillStyle = 'rgba(50,45,70,0.55)'; ctx.beginPath(); ctx.ellipse(cloudX, cloudY, 22, 12, 0, 0, Math.PI*2); ctx.fill();
+        // 传感器响应
+        mills.forEach(m => {
+            const dist = Math.hypot(m.x-cloudX, m.y-cloudY);
+            const alert = Math.max(0, 1-dist/65)*(0.5+0.5*Math.sin(t*2.5+m.phase));
+            ctx.fillStyle = alert>0.5?`rgba(255,120,80,${0.3+alert*0.7})`:`rgba(100,180,220,${0.3+m.phase*0.2})`;
+            ctx.beginPath(); ctx.arc(m.x, m.y, 2, 0, Math.PI*2); ctx.fill();
+            if (alert>0.5) {
+                const grd = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, 7);
+                grd.addColorStop(0, `rgba(255,80,40,${alert*0.5})`); grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd; ctx.fillRect(m.x-8, m.y-8, 16, 16);
+            }
+        });
+        // 预警区域（虚线框）
+        if (Math.sin(t*0.8)>0) {
+            ctx.strokeStyle = 'rgba(255,80,40,0.5)'; ctx.lineWidth = 1.2; ctx.setLineDash([3,2]);
+            ctx.beginPath(); ctx.ellipse(cloudX, cloudY, 30, 18, 0, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+        }
+        // 调度指令
+        ctx.fillStyle = '#f84'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('调度:切换馈线', cx+10, cy+15);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('200+场磨计→10s更新→提前30min→停电-60%', cx, h-6);
+    },
+
+    // 10b. 航天发射场气象保障：31站+三维Φ_E监测+发射准则
+    'lp-launch'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 火箭
+        ctx.fillStyle = '#ddd'; ctx.fillRect(cx-3, cy-25, 6, 35);
+        ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1; ctx.strokeRect(cx-3, cy-25, 6, 35);
+        // 整流罩
+        ctx.fillStyle = '#f44'; ctx.beginPath();
+        ctx.moveTo(cx-5, cy-25); ctx.lineTo(cx, cy-32); ctx.lineTo(cx+5, cy-25); ctx.closePath(); ctx.fill();
+        // 发射塔
+        ctx.strokeStyle = '#667'; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(cx+5, cy-15); ctx.lineTo(cx+12, cy+10); ctx.moveTo(cx+5, cy-5); ctx.lineTo(cx+10, cy+10); ctx.stroke();
+        // 31个监测站（简化分布）
+        for (let i=0;i<10;i++) {
+            const angle = i*Math.PI*2/10 + t*0.1;
+            const dist = 20 + 10*Math.sin(i*2.5);
+            const sx = cx + Math.cos(angle)*dist;
+            const sy = cy + Math.sin(angle)*dist;
+            ctx.fillStyle = 'rgba(100,180,220,0.6)'; ctx.beginPath(); ctx.arc(sx, sy, 1.5, 0, Math.PI*2); ctx.fill();
+        }
+        // 场强色图（背景）
+        const fieldStrength = 1.5 + 1.5*Math.sin(t*0.4);
+        const fieldGrd = ctx.createRadialGradient(cx-10, cy-5, 5, cx, cy, 35);
+        fieldGrd.addColorStop(0, `rgba(255,${Math.floor(80-fieldStrength*20)},40,0.08)`);
+        fieldGrd.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = fieldGrd; ctx.fillRect(cx-40, cy-35, 80, 70);
+        // 预警阈值线
+        const thresholdY = cy-20 + fieldStrength*5;
+        ctx.strokeStyle = 'rgba(255,80,40,0.6)'; ctx.lineWidth = 0.8; ctx.setLineDash([4,2]);
+        ctx.beginPath(); ctx.moveTo(cx-30, thresholdY); ctx.lineTo(cx+30, thresholdY); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = '#f84'; ctx.font = '6px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('3kV/m阈值', cx+25, thresholdY-3);
+        // 发射指示灯
+        const goNoGo = fieldStrength<2.5;
+        ctx.fillStyle = goNoGo?'#4f8':'#f44'; ctx.beginPath(); ctx.arc(cx-20, cy-30, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 5px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(goNoGo?'GO':'HOLD', cx-20, cy-28);
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('31站三维Φ_E→AI判据→避开火箭引雷', cx, h-6);
+    },
+
+    // 10c. 风电场叶片防雷：海上风机+雷暴预测+变桨降速
+    'lp-wind'(ctx, w, h, t) {
+        ctx.fillStyle = '#0a0c1e'; ctx.fillRect(0,0,w,h);
+        const cx = w/2, cy = h/2;
+        // 海面
+        ctx.fillStyle = 'rgba(20,40,80,0.4)'; ctx.fillRect(0, cy+15, w, h-cy-15);
+        ctx.strokeStyle = 'rgba(40,80,140,0.3)'; ctx.lineWidth = 0.5;
+        for (let i=0;i<3;i++) {
+            ctx.beginPath(); ctx.moveTo(0, cy+18+i*4); ctx.lineTo(w, cy+18+i*4+2*Math.sin(t+i)); ctx.stroke();
+        }
+        // 风机塔筒
+        ctx.fillStyle = '#ddd'; ctx.fillRect(cx-2, cy-20, 4, 35);
+        ctx.strokeStyle = '#aaa'; ctx.lineWidth = 0.8; ctx.strokeRect(cx-2, cy-20, 4, 35);
+        // 叶片
+        const bladeAng = t*3;
+        for (let b=0;b<3;b++) {
+            const ang = bladeAng + b*Math.PI*2/3;
+            ctx.strokeStyle = '#ccc'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(cx, cy-20); ctx.lineTo(cx+Math.cos(ang)*18, cy-20+Math.sin(ang)*18); ctx.stroke();
+            ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(cx+Math.cos(ang)*10, cy-20+Math.sin(ang)*10);
+            ctx.lineTo(cx+Math.cos(ang)*10+Math.cos(ang+Math.PI/2)*3, cy-20+Math.sin(ang)*10+Math.sin(ang+Math.PI/2)*3);
+            ctx.stroke();
+        }
+        // 雷暴云
+        const stormX = cx-10 + 8*Math.sin(t*0.3), stormY = cy-32;
+        ctx.fillStyle = 'rgba(50,45,70,0.55)'; ctx.beginPath(); ctx.ellipse(stormX, stormY, 18, 8, 0, 0, Math.PI*2); ctx.fill();
+        // ∂Φ_E/∂t 增长指示
+        const growthRate = 0.4+0.6*Math.abs(Math.sin(t*0.6));
+        ctx.fillStyle = `rgba(255,${Math.floor(100-growthRate*80)},40,0.4)`;
+        ctx.beginPath(); ctx.arc(stormX, stormY, 8+growthRate*12, 0, Math.PI*2); ctx.fill();
+        // 雷击
+        if (Math.sin(t*4.5)>0.88) {
+            ctx.strokeStyle = '#ffd'; ctx.lineWidth = 2.2;
+            ctx.beginPath(); ctx.moveTo(stormX, stormY+6); ctx.lineTo(cx, cy-20); ctx.stroke();
+        }
+        // 变桨降速指令
+        if (growthRate>0.6) {
+            ctx.fillStyle = 'rgba(255,200,60,0.8)'; ctx.font = 'bold 6px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('变桨降速!', cx, cy-35);
+        }
+        ctx.font = '7px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillStyle = '#888'; ctx.fillText('时空GNN→∂Φ_E/∂t>500→提前15min→雷击-40%', cx, h-6);
     }
 };
 
@@ -1105,7 +2505,7 @@ const animThemes = {
 function initScenarioCanvases() {
     stopAllAnims();
     requestAnimationFrame(() => {
-        document.querySelectorAll('.modal-canvas').forEach(canvas => {
+        document.querySelectorAll('.modal-canvas, .scenario-canvas').forEach(canvas => {
             const animId = canvas.dataset.anim;
             const fn = animThemes[animId];
             if (!fn || activeAnims.has(canvas)) return;
@@ -1138,6 +2538,7 @@ closeModal = function() {
     stopAllAnims();
     _origCloseModal();
 };
+window.closeModal = closeModal;
 
 // ============================================================
 //  滚动入场动画
