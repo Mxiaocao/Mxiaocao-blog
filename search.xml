@@ -31,6 +31,35 @@
     
     
     <entry>
+      <title>9.2 凸包</title>
+      <link href="/2026/05/25/9-2-Convex-Hull/"/>
+      <url>/2026/05/25/9-2-Convex-Hull/</url>
+      
+        <content type="html"><![CDATA[<p>在二维计算几何中，凸包是最经典的算法之一。无论是求解最远点对、判断点集区域还是进行动态规划的几何优化，凸包都是不可或缺的知识点</p><h2 id="一、定义"><a href="#一、定义" class="headerlink" title="一、定义"></a>一、定义</h2><p>凸多边形：是指所有内角大小都在 [0,𝜋] 范围内的简单多边形</p><p>凸包：在平面上能包含所有给定点的最小凸多边形叫做凸包，严谨地说，对于给定平面上的点集 $X$，所有包含 $X$ 的凸集的交集 $S$，被称为 $X$ 的凸包</p><p>但说白了可以理解为用一个橡皮筋包含住所有给定点的形态，凸包用最小的周长围住了给定的所有点。例如一堆点中，内部点不会出现在凸包上，只有最外层的点会构成凸包</p><p>凸包常见用途包括：</p><ul><li>求最外层边界</li><li>求最远点对，配合旋转卡壳</li><li>判断点是否在点集形成的区域内</li><li>凸多边形面积、周长</li><li>半平面交、动态规划优化中的几何结构</li></ul><h2 id="二、Andrew-算法求凸包"><a href="#二、Andrew-算法求凸包" class="headerlink" title="二、Andrew 算法求凸包"></a>二、Andrew 算法求凸包</h2><p>求凸包常用地有Andrew算法和Graham扫描法。由于Andrew算法好写、稳定、常数小，复杂度是O(n log n)，所以介绍Andrew算法</p><p>Andrew算法地核心思想是维护一个单调栈，分两步求出下凸壳和上凸壳：</p><ol><li><p>双关键字排序：</p><p>先按x坐标从小到大排序，若x相同则按y坐标排序。排序后，最左下角的点和最右上角的点必定在凸包上</p></li><li><p>扫描下凸壳（从左到右）：</p><ul><li>依次将点入栈</li><li>假设栈顶的两个点是A B，即将入栈的新点是C</li><li>计算cross(B-A,C-B)。如果结果小于等于0（即出现了向右转或直走），说明B点凹进去了，不配留在凸包上，将B弹出</li><li>重复上述判定，直到转向再次变为左转，将C压入栈</li></ul></li><li><p>扫描上凸壳（从右到左）：</p><p>逆序枚举所有点，同上</p></li><li><p>合并收尾：</p><p>上下凸壳拼接为完整的凸包</p></li></ol><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">point</span>&#123;</span><br><span class="line">    ll x,y;</span><br><span class="line">    </span><br><span class="line">    <span class="type">bool</span> <span class="keyword">operator</span>&lt;(<span class="type">const</span> point&amp; o) <span class="type">const</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(x != o.x) <span class="keyword">return</span> x &lt; o.x;</span><br><span class="line">        <span class="keyword">return</span> y &lt; o.y;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">bool</span> <span class="keyword">operator</span>==(<span class="type">const</span> point&amp; o) <span class="type">const</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> x == other.x &amp;&amp; y == other.y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">point <span class="keyword">operator</span>-(point a,point b)&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;a.x-b.x,a.y-b.y&#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">ll <span class="title">cross</span><span class="params">(point a,point b)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a.x*b.y - a.y-b.x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">vector&lt;point&gt; <span class="title">convex_hull</span><span class="params">(vector&lt;point&gt; p)</span></span>&#123;</span><br><span class="line">    <span class="built_in">sort</span>(p.<span class="built_in">begin</span>(),p.<span class="built_in">end</span>());</span><br><span class="line">    p.<span class="built_in">erase</span>(<span class="built_in">unique</span>(p.<span class="built_in">begin</span>(),p.<span class="built_in">end</span>()),p.<span class="built_in">end</span>());</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> n = p.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">if</span>(n &lt;= <span class="number">2</span>) <span class="keyword">return</span> p;</span><br><span class="line">    </span><br><span class="line">    vector&lt;point&gt; hull;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        <span class="keyword">while</span>(hull.<span class="built_in">size</span>() &gt;= <span class="number">2</span>)&#123;</span><br><span class="line">            point a = hull[hull.<span class="built_in">size</span>()<span class="number">-2</span>];</span><br><span class="line">            point b = hull[hull.<span class="built_in">size</span>()<span class="number">-1</span>];</span><br><span class="line">            point c = p[i];</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">cross</span>(b-a,c-a) &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">                hull.<span class="built_in">pop_back</span>();</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        hull.<span class="built_in">push_back</span>(p[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> lower_size = hull.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = n<span class="number">-2</span>;i &gt;= <span class="number">0</span>;--i)&#123;</span><br><span class="line">        <span class="keyword">while</span>((<span class="type">int</span>)hull.<span class="built_in">size</span>() &gt; lower_size)&#123;</span><br><span class="line">            point a = hull[hull.<span class="built_in">size</span>()<span class="number">-2</span>];</span><br><span class="line">            point b = hull[hull.<span class="built_in">size</span>()<span class="number">-1</span>];</span><br><span class="line">            point c = p[i];</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">cross</span>(b-a,c-a) &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">                hull.<span class="built_in">pop_back</span>();</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        hull.<span class="built_in">push_back</span>(p[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    hull.<span class="built_in">pop_back</span>();</span><br><span class="line">    <span class="keyword">return</span> hull;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> geometry </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 计算几何 </tag>
+            
+            <tag> 凸包 </tag>
+            
+            <tag> Andrew算法 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>9.1 二维几何</title>
       <link href="/2026/05/25/9-1-2D-Geometry/"/>
       <url>/2026/05/25/9-1-2D-Geometry/</url>
@@ -62,35 +91,6 @@
     
     
     <entry>
-      <title>9.2 凸包</title>
-      <link href="/2026/05/25/9-2-Convex-Hull/"/>
-      <url>/2026/05/25/9-2-Convex-Hull/</url>
-      
-        <content type="html"><![CDATA[<p>在二维计算几何中，凸包是最经典的算法之一。无论是求解最远点对、判断点集区域还是进行动态规划的几何优化，凸包都是不可或缺的知识点</p><h2 id="一、定义"><a href="#一、定义" class="headerlink" title="一、定义"></a>一、定义</h2><p>凸多边形：是指所有内角大小都在 [0,𝜋] 范围内的简单多边形</p><p>凸包：在平面上能包含所有给定点的最小凸多边形叫做凸包，严谨地说，对于给定平面上的点集 $X$，所有包含 $X$ 的凸集的交集 $S$，被称为 $X$ 的凸包</p><p>但说白了可以理解为用一个橡皮筋包含住所有给定点的形态，凸包用最小的周长围住了给定的所有点。例如一堆点中，内部点不会出现在凸包上，只有最外层的点会构成凸包</p><p>凸包常见用途包括：</p><ul><li>求最外层边界</li><li>求最远点对，配合旋转卡壳</li><li>判断点是否在点集形成的区域内</li><li>凸多边形面积、周长</li><li>半平面交、动态规划优化中的几何结构</li></ul><h2 id="二、Andrew-算法求凸包"><a href="#二、Andrew-算法求凸包" class="headerlink" title="二、Andrew 算法求凸包"></a>二、Andrew 算法求凸包</h2><p>求凸包常用地有Andrew算法和Graham扫描法。由于Andrew算法好写、稳定、常数小，复杂度是O(n log n)，所以介绍Andrew算法</p><p>Andrew算法地核心思想是维护一个单调栈，分两步求出下凸壳和上凸壳：</p><ol><li><p>双关键字排序：</p><p>先按x坐标从小到大排序，若x相同则按y坐标排序。排序后，最左下角的点和最右上角的点必定在凸包上</p></li><li><p>扫描下凸壳（从左到右）：</p><ul><li>依次将点入栈</li><li>假设栈顶的两个点是A B，即将入栈的新点是C</li><li>计算cross(B-A,C-B)。如果结果小于等于0（即出现了向右转或直走），说明B点凹进去了，不配留在凸包上，将B弹出</li><li>重复上述判定，直到转向再次变为左转，将C压入栈</li></ul></li><li><p>扫描上凸壳（从右到左）：</p><p>逆序枚举所有点，同上</p></li><li><p>合并收尾：</p><p>上下凸壳拼接为完整的凸包</p></li></ol><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">point</span>&#123;</span><br><span class="line">    ll x,y;</span><br><span class="line">    </span><br><span class="line">    <span class="type">bool</span> <span class="keyword">operator</span>&lt;(<span class="type">const</span> point&amp; o) <span class="type">const</span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(x != o.x) <span class="keyword">return</span> x &lt; o.x;</span><br><span class="line">        <span class="keyword">return</span> y &lt; o.y;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">bool</span> <span class="keyword">operator</span>==(<span class="type">const</span> point&amp; o) <span class="type">const</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> x == other.x &amp;&amp; y == other.y;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">point <span class="keyword">operator</span>-(point a,point b)&#123;</span><br><span class="line">    <span class="keyword">return</span> &#123;a.x-b.x,a.y-b.y&#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">ll <span class="title">cross</span><span class="params">(point a,point b)</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a.x*b.y - a.y-b.x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">vector&lt;point&gt; <span class="title">convex_hull</span><span class="params">(vector&lt;point&gt; p)</span></span>&#123;</span><br><span class="line">    <span class="built_in">sort</span>(p.<span class="built_in">begin</span>(),p.<span class="built_in">end</span>());</span><br><span class="line">    p.<span class="built_in">erase</span>(<span class="built_in">unique</span>(p.<span class="built_in">begin</span>(),p.<span class="built_in">end</span>()),p.<span class="built_in">end</span>());</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> n = p.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">if</span>(n &lt;= <span class="number">2</span>) <span class="keyword">return</span> p;</span><br><span class="line">    </span><br><span class="line">    vector&lt;point&gt; hull;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>;i &lt; n;++i)&#123;</span><br><span class="line">        <span class="keyword">while</span>(hull.<span class="built_in">size</span>() &gt;= <span class="number">2</span>)&#123;</span><br><span class="line">            point a = hull[hull.<span class="built_in">size</span>()<span class="number">-2</span>];</span><br><span class="line">            point b = hull[hull.<span class="built_in">size</span>()<span class="number">-1</span>];</span><br><span class="line">            point c = p[i];</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">cross</span>(b-a,c-a) &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">                hull.<span class="built_in">pop_back</span>();</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        hull.<span class="built_in">push_back</span>(p[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">int</span> lower_size = hull.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = n<span class="number">-2</span>;i &gt;= <span class="number">0</span>;--i)&#123;</span><br><span class="line">        <span class="keyword">while</span>((<span class="type">int</span>)hull.<span class="built_in">size</span>() &gt; lower_size)&#123;</span><br><span class="line">            point a = hull[hull.<span class="built_in">size</span>()<span class="number">-2</span>];</span><br><span class="line">            point b = hull[hull.<span class="built_in">size</span>()<span class="number">-1</span>];</span><br><span class="line">            point c = p[i];</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">cross</span>(b-a,c-a) &lt;= <span class="number">0</span>)&#123;</span><br><span class="line">                hull.<span class="built_in">pop_back</span>();</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        hull.<span class="built_in">push_back</span>(p[i]);</span><br><span class="line">    &#125;</span><br><span class="line">    hull.<span class="built_in">pop_back</span>();</span><br><span class="line">    <span class="keyword">return</span> hull;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      
-      
-      <categories>
-          
-          <category> geometry </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> 计算几何 </tag>
-            
-            <tag> 凸包 </tag>
-            
-            <tag> Andrew算法 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>5.2.4 SPFA (Bellman-Ford)</title>
       <link href="/2026/05/24/5-2-4-SPFA-Bellman-Ford/"/>
       <url>/2026/05/24/5-2-4-SPFA-Bellman-Ford/</url>
@@ -107,9 +107,9 @@
       
         <tags>
             
-            <tag> SPFA </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> SPFA </tag>
             
             <tag> 负环 </tag>
             
@@ -641,9 +641,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> Dijkstra </tag>
+            
+            <tag> 最短路 </tag>
             
         </tags>
       
@@ -714,9 +714,9 @@
       
         <tags>
             
-            <tag> stl </tag>
-            
             <tag> deque </tag>
+            
+            <tag> stl </tag>
             
         </tags>
       
@@ -741,9 +741,9 @@
       
         <tags>
             
-            <tag> priority_queue </tag>
-            
             <tag> stl </tag>
+            
+            <tag> priority_queue </tag>
             
         </tags>
       
