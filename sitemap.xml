@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://mxiaocaoblog.com/2026/05/25/9-2-Convex-Hull/</loc>
+    
+    <lastmod>2026-05-25</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/2026/05/25/9-1-2D-Geometry/</loc>
+    
+    <lastmod>2026-05-25</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://mxiaocaoblog.com/2026/05/25/5-2-6-Floyd/</loc>
     
     <lastmod>2026-05-25</lastmod>
@@ -518,6 +536,48 @@
     <priority>0.2</priority>
   </url>
   
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E8%AE%A1%E7%AE%97%E5%87%A0%E4%BD%95/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E4%BA%8C%E7%BB%B4%E5%87%A0%E4%BD%95/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E5%8F%89%E7%A7%AF/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E7%82%B9%E7%A7%AF/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E5%87%B8%E5%8C%85/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/Andrew%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
   
   <url>
@@ -641,6 +701,13 @@
   
   <url>
     <loc>https://mxiaocaoblog.com/categories/stack-queue/</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/categories/geometry/</loc>
     <lastmod>2026-05-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
