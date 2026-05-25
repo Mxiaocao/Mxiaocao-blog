@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>5.2.6 Floyd</title>
+      <link href="/2026/05/25/5-2-6-Floyd/"/>
+      <url>/2026/05/25/5-2-6-Floyd/</url>
+      
+        <content type="html"><![CDATA[<h1 id="5-2-6-Floyd"><a href="#5-2-6-Floyd" class="headerlink" title="5.2.6 Floyd"></a>5.2.6 Floyd</h1><p><strong>适用条件</strong>：多源最短路（求任意两点间的最短距离）、允许存在负权边。</p><p><strong>[注]</strong>：由于其时间复杂度高达 $O(N^3)$，纯正的“暴力美学”，只适用于图极其微小的情况（通常顶点数 $N \le 400$）。但在小图里，它是最好写、最不容易出错的算法，核心代码只有五行！</p><p>Floyd 算法与 Dijkstra、SPFA 最大的不同在于，它不是用来求“单源”（从一个固定起点出发）的，而是一次性把地图上任意两个村庄之间的最短路全部算出来。</p><p>有个极其贴切的现实模型，即“航班中转（找中间人）”。 假设你要从城市 $A$ 飞往城市 $B$，当前直飞的机票要 1000 块。此时，你考虑去城市 $K$ 作为一个“中转站”。你查了一下，从 $A$ 飞 $K$ 只要 300 块，从 $K$ 飞 $B$ 只要 400 块。那么 $300 + 400 = 700 &lt; 1000$。此时，你找到了更便宜的路线。Floyd 算法的本质，就是把地图上的每一个城市，都轮流当作一次中转站，去尝试优化所有航班的票价。</p><h2 id="必备概念"><a href="#必备概念" class="headerlink" title="必备概念"></a>必备概念</h2><p>只需要记下一个最核心的数据结构：</p><ul><li><code>dist[N][N]</code>：一个二维数组（邻接矩阵），存储的是目前从点 $i$ 到点 $j$ 的最短距离。<ul><li>起初，它只记录“直飞”的距离（也就是输入的边）。</li><li>随着算法运行，它会不断被“中转航班”更新，最终变成全局最短距离。</li></ul></li></ul><p><strong>沙盘推演：</strong></p><p>地图情报：城市 1、2、3。直飞航线：1-&gt;2 票价 8，2-&gt;3 票价 1，1-&gt;3 票价 10。</p><ul><li><p><strong>初始状态：</strong></p><p><code>dist[1][2] = 8</code></p><p><code>dist[2][3] = 1</code></p><p><code>dist[1][3] = 10</code></p></li><li><p><strong>第一步：所有人尝试把城市 1 当作中转站</strong></p><p>2 说：“我要去 3，如果去 1 中转……”（毫无意义，绕远了）。没人的票价被更新。</p></li><li><p><strong>第二步：所有人尝试把城市 2 当作中转站（高潮来了）</strong></p><p>1 说：“我要去 3，目前的票价是 <code>dist[1][3] = 10</code>。如果我先去 2，再去 3，票价是 <code>dist[1][2] + dist[2][3] = 8 + 1 = 9</code>。”</p><p>因为 $9 &lt; 10$，<strong>路线被优化！</strong> 更新底牌：<code>dist[1][3] = 9</code>。</p></li><li><p><strong>第三步：所有人尝试把城市 3 当作中转站</strong></p><p>也没有人能得到更便宜的票价。</p></li><li><p><strong>最终收网：</strong></p><p>任意两点间的最短距离都已经锁定。</p></li></ul><h2 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a>代码解析</h2><ol><li><p>初始化</p><p>在 Floyd 算法中，初始化非常关键，必须遵守三条原则：</p><ol><li>自己到自己的距离是 0（<code>dist[i][i] = 0</code>）</li><li>一开始互相没路的点，距离是无穷大（<code>inf</code>）</li><li>如果有两点之间有多条边（重边），只记录最短的那条</li></ol><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//初始化为无穷大</span></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;++i)&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">1</span>;j &lt;= n;++j)&#123;</span><br><span class="line">        <span class="keyword">if</span>(i == j) dist[i][j] = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">else</span> dist[i][j] = INF;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//读入边，注意重边</span></span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= m;++i)&#123;</span><br><span class="line">    <span class="type">int</span> u,v,w; cin &gt;&gt; u &gt;&gt; v &gt;&gt; w;</span><br><span class="line">    dist[u][v] = <span class="built_in">min</span>(dist[u][v],w);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li><li><p>核心循环</p><p>Floyd 算法的核心是三层for循环</p><p>这一块要记住变量 $k$必须写在最外层循环，因为 Floyd 的本质是动态规划。它指 在只允许经过前 $k$ 个城市作为中转站的情况下，任意两点的最短距离。如果把 $k$ 写在内层，就会导致前面还没彻底算清楚的中转方案被提前跳过，答案全错。</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">1</span>;k &lt;= n;++k)&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;++i)&#123; <span class="comment">//起点</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">1</span>;j &lt;= n;++j)&#123; <span class="comment">//终点</span></span><br><span class="line">            <span class="keyword">if</span>(dist[i][k] &lt; INF &amp;&amp; dist[k][j] &lt; INF)&#123;</span><br><span class="line">                <span class="keyword">if</span>(dist[i][j] &gt; dist[i][k] + dist[k][j])&#123;</span><br><span class="line">                    dist[i][j] = dist[i][k] + dist[k][j];</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li></ol><p><strong>综合代码</strong></p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">const</span> <span class="type">int</span> N = <span class="number">505</span>;</span><br><span class="line"><span class="type">const</span> <span class="type">int</span> INF = <span class="number">0x3f3f3f3f</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> dist[N][N];</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">floyd</span><span class="params">(<span class="type">int</span> n,<span class="type">int</span> m)</span></span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;++i)&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">1</span>;j &lt;= n;++j)&#123;</span><br><span class="line">            <span class="keyword">if</span>(i == j) dist[i][j] = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">else</span> dist[i][j] = INF;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= m;++i)&#123;</span><br><span class="line">        <span class="type">int</span> u,v,w; cin &gt;&gt; u &gt;&gt; v &gt;&gt; w;</span><br><span class="line">        dist[u][v] = <span class="built_in">min</span>(dist[u][v],w);</span><br><span class="line">        dist[v][u] = <span class="built_in">min</span>(dist[v][u],w); <span class="comment">//无向图</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span>(<span class="type">int</span> k = <span class="number">1</span>;k &lt;= n;++k)&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>;i &lt;= n;++i)&#123;</span><br><span class="line">            <span class="keyword">for</span>(<span class="type">int</span> j = <span class="number">1</span>;j &lt;= n;++j)&#123;</span><br><span class="line">                <span class="keyword">if</span>(dist[i][k] &lt; INF &amp;&amp; dist[k][j] &lt; INF)&#123;</span><br><span class="line">                    <span class="keyword">if</span>(dist[i][j] &gt; dist[i][k] + dist[k][j])&#123;</span><br><span class="line">                        dist[i][j] = dist[i][k] + dist[k][j];</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> graph </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 最短路 </tag>
+            
+            <tag> Floyd </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>5.2.4 SPFA (Bellman-Ford)</title>
       <link href="/2026/05/24/5-2-4-SPFA-Bellman-Ford/"/>
       <url>/2026/05/24/5-2-4-SPFA-Bellman-Ford/</url>
@@ -20,9 +47,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> SPFA </tag>
+            
+            <tag> 最短路 </tag>
             
             <tag> 负环 </tag>
             
@@ -554,9 +581,9 @@
       
         <tags>
             
-            <tag> Dijkstra </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> Dijkstra </tag>
             
         </tags>
       
