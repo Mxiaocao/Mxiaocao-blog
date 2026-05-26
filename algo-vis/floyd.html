@@ -13,27 +13,27 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    padding: 10px;
     min-height: 100vh;
   }
-  h2 { margin-bottom: 20px; color: #e94560; }
+  h2 { margin-bottom: 10px; color: #e94560; font-size: 20px; }
   .container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
   .graph-panel {
     background: #16213e;
     border-radius: 12px;
-    padding: 20px;
+    padding: 12px;
     border: 1px solid #0f3460;
   }
   .matrix-panel {
     background: #16213e;
     border-radius: 12px;
-    padding: 20px;
+    padding: 12px;
     border: 1px solid #0f3460;
   }
   .matrix-panel h3 { margin-bottom: 12px; color: #e94560; text-align: center; }
   table { border-collapse: collapse; }
   td {
-    width: 70px; height: 50px;
+    width: 58px; height: 40px;
     text-align: center;
     border: 1px solid #0f3460;
     font-size: 18px;
@@ -50,10 +50,10 @@
     0%,100% { transform: scale(1); }
     50% { transform: scale(1.1); }
   }
-  .controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .controls { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; position: sticky; bottom: 0; background: #1a1a2e; padding: 10px 0; z-index: 10; }
   button {
-    padding: 10px 20px; border: none; border-radius: 8px;
-    cursor: pointer; font-size: 15px; font-weight: bold;
+    padding: 8px 16px; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 14px; font-weight: bold;
     transition: all 0.2s;
   }
   button:hover { transform: translateY(-2px); }
@@ -63,7 +63,7 @@
   .btn-speed { background: #222831; color: #eee; }
   button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
   .info {
-    margin-top: 15px; padding: 12px 20px;
+    margin-top: 8px; padding: 10px 16px;
     background: #16213e; border-radius: 8px;
     border-left: 3px solid #e94560;
     font-size: 15px; max-width: 600px; text-align: center;
@@ -119,7 +119,7 @@
 </head>
 <body>
 <h2>Floyd-Warshall 算法可视化</h2>
-<div class="input-panel" id="inputPanel">
+<div class="input-panel collapsed" id="inputPanel">
   <div class="input-panel-header" id="panelToggle">
     <h3>自定义图参数</h3>
     <span class="toggle-icon">▼</span>
