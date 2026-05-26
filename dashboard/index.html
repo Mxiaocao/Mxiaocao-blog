@@ -7,7 +7,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://mxiaocaoblog.com/img/2.jpg">
 <meta property="article:published_time" content="2026-05-25T16:00:00.000Z">
-<meta property="article:modified_time" content="2026-05-26T14:20:07.309Z">
+<meta property="article:modified_time" content="2026-05-26T14:26:26.409Z">
 <meta property="article:author" content="Mxiaocao">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://mxiaocaoblog.com/img/2.jpg"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://mxiaocaoblog.com/dashboard/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//www.clarity.ms"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=5.5.4"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.1.0/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
@@ -253,8 +253,8 @@ btf.addGlobalFn('pjaxComplete', () => {
 </div>
 
 <div class="update-note">
-  数据更新于 <strong>2026-05-26</strong> &nbsp;|&nbsp;
-  修改本页 <code>statsData</code> 对象即可更新统计
+  <span id="updateTime">正在加载数据...</span> &nbsp;|&nbsp;
+  CF / AtCoder 数据来自公开 API，其他平台手动维护
 </div>
 
 <p>&lt;/div&gt;</p>
@@ -263,51 +263,25 @@ btf.addGlobalFn('pjaxComplete', () => {
 (function() {
 
 /* ══════════════════════════════════════════
-   修改下面的数据即可更新仪表盘
+   CONFIG — 修改这里的账号和手动数据
    ══════════════════════════════════════════ */
-const statsData = {
-  platforms: {
-    'Codeforces': 45,
-    '洛谷':       38,
-    'HDOJ':       22,
-    'LeetCode':   30,
-    'AtCoder':    15,
-    '其他':       10
+const CONFIG = {
+  handles: {
+    codeforces: 'Mxiaocao',
+    atcoder:    ''       // 填你的 AtCoder 用户名
   },
-  difficulty: {
-    '入门 / 800':     18,
-    '普及− / 1000':   22,
-    '普及 / 1200':    25,
-    '提高 / 1500':    20,
-    '省选 / 1800':    12,
-    'NOI / 2000+':     8
-  },
-  monthly: [
-    { month: '2025-06', count: 8 },
-    { month: '2025-07', count: 12 },
-    { month: '2025-08', count: 6 },
-    { month: '2025-09', count: 10 },
-    { month: '2025-10', count: 15 },
-    { month: '2025-11', count: 19 },
-    { month: '2025-12', count: 11 },
-    { month: '2026-01', count: 22 },
-    { month: '2026-02', count: 14 },
-    { month: '2026-03', count: 18 },
-    { month: '2026-04', count: 25 },
-    { month: '2026-05', count: 30 }
-  ]
+  // 以下平台没有公开 API，手动维护数量
+  manual: {
+    '洛谷':     38,
+    'HDOJ':     22,
+    'LeetCode': 30,
+    '其他':     10
+  }
 };
 /* ══════════════════════════════════════════ */
 
-// ── Update stat cards ──
-const platformValues = Object.values(statsData.platforms);
-const total = platformValues.reduce((a, b) => a + b, 0);
-document.getElementById('cntTotal').textContent = total;
-document.getElementById('cntCF').textContent = statsData.platforms['Codeforces'];
-document.getElementById('cntLG').textContent = statsData.platforms['洛谷'];
-document.getElementById('cntHDOJ').textContent = statsData.platforms['HDOJ'];
-document.getElementById('cntLC').textContent = statsData.platforms['LeetCode'];
-document.getElementById('cntATC').textContent = statsData.platforms['AtCoder'];
+const CACHE_KEY = 'cp_dashboard_v2';
+const CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
 
 // ── Chart defaults ──
 Chart.defaults.color = '#aaa';
@@ -316,90 +290,248 @@ Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.padding = 16;
 Chart.defaults.plugins.legend.labels.color = '#aaa';
 
-const chartOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
+const chartOpts = {
+  responsive: true, maintainAspectRatio: true,
   plugins: { legend: { position: 'bottom' } }
 };
 
-// ── Platform Doughnut ──
-new Chart(document.getElementById('platformChart'), {
-  type: 'doughnut',
-  data: {
-    labels: Object.keys(statsData.platforms),
-    datasets: [{
-      data: Object.values(statsData.platforms),
-      backgroundColor: ['#ff9800','#3498db','#46d573','#ffd369','#9b59b6','#555'],
-      borderColor: '#16213e',
-      borderWidth: 3,
-      hoverBorderColor: '#e94560'
-    }]
-  },
-  options: {
-    ...chartOptions,
-    cutout: '55%',
-    plugins: {
-      ...chartOptions.plugins,
-      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} 题 (${Math.round(ctx.raw/total*100)}%)` } }
-    }
-  }
-});
+// ── Chart instances (created once, updated with API data) ──
+let platformChart, difficultyChart, monthlyChart;
 
-// ── Difficulty Bar ──
-new Chart(document.getElementById('difficultyChart'), {
-  type: 'bar',
-  data: {
-    labels: Object.keys(statsData.difficulty),
-    datasets: [{
-      label: '题数',
-      data: Object.values(statsData.difficulty),
-      backgroundColor: Object.values(statsData.difficulty).map((v, i) => {
-        const colors = ['#46d573','#8bc34a','#ffd369','#ff9800','#e94560','#9b59b6'];
-        return colors[i] || '#555';
-      }),
-      borderRadius: 6,
-      borderSkipped: false
-    }]
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: { grid: { color: '#1a2a4a' }, beginAtZero: true, ticks: { stepSize: 5, font: { size: 11 } } }
+function createCharts() {
+  platformChart = new Chart(document.getElementById('platformChart'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: '#16213e', borderWidth: 3 }] },
+    options: { ...chartOpts, cutout: '55%' }
+  });
+  difficultyChart = new Chart(document.getElementById('difficultyChart'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: '题数', data: [], backgroundColor: [], borderRadius: 6 }] },
+    options: { ...chartOpts,
+      scales: { x: { grid: { display: false } }, y: { grid: { color: '#1a2a4a' }, beginAtZero: true } }
     }
-  }
-});
+  });
+  monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: '刷题数', data: [], borderColor: '#e94560', backgroundColor: 'rgba(233,69,96,0.08)', fill: true, tension: 0.4, pointBackgroundColor: '#e94560', pointRadius: 5, borderWidth: 3 }] },
+    options: { ...chartOpts,
+      scales: { x: { grid: { display: false } }, y: { grid: { color: '#1a2a4a' }, beginAtZero: true } }
+    }
+  });
+}
 
-// ── Monthly Line ──
-const months = statsData.monthly.map(d => {
-  const [y, m] = d.month.split('-');
-  return parseInt(m, 10) + '月';
-});
-new Chart(document.getElementById('monthlyChart'), {
-  type: 'line',
-  data: {
-    labels: months,
-    datasets: [{
-      label: '刷题数',
-      data: statsData.monthly.map(d => d.count),
-      borderColor: '#e94560',
-      backgroundColor: 'rgba(233,69,96,0.08)',
-      fill: true,
-      tension: 0.4,
-      pointBackgroundColor: '#e94560',
-      pointRadius: 5,
-      pointHoverRadius: 8,
-      borderWidth: 3
-    }]
-  },
-  options: {
-    ...chartOptions,
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-      y: { grid: { color: '#1a2a4a' }, beginAtZero: true, ticks: { stepSize: 5, font: { size: 11 } } }
+// ── Helpers ──
+function $(id) { return document.getElementById(id); }
+
+function setNum(id, val) { $(id).textContent = val; }
+
+function ratingBucket(r) {
+  if (r <= 1000) return '入门 (≤1000)';
+  if (r <= 1200) return '普及− (1100-1200)';
+  if (r <= 1500) return '普及 (1300-1500)';
+  if (r <= 1900) return '提高 (1600-1900)';
+  if (r <= 2400) return '省选 (2000-2400)';
+  return 'NOI (2500+)';
+}
+
+const DIFF_ORDER = ['入门 (≤1000)','普及− (1100-1200)','普及 (1300-1500)','提高 (1600-1900)','省选 (2000-2400)','NOI (2500+)'];
+const DIFF_COLORS = ['#46d573','#8bc34a','#ffd369','#ff9800','#e94560','#9b59b6'];
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('zh-CN', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// ── Cache ──
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (Date.now() - data._ts > CACHE_TTL) return null;
+    return data;
+  } catch(e) { return null; }
+}
+function saveCache(data) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...data, _ts: Date.now() })); } catch(e) {}
+}
+
+// ── API fetchers ──
+async function fetchCF(handle) {
+  const url = `https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=100000`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const json = await resp.json();
+  if (json.status !== 'OK') throw new Error(json.comment || 'CF API error');
+
+  const solved = new Map(); // key -> max rating
+  const monthly = {};
+  for (const sub of json.result) {
+    if (sub.verdict !== 'OK') continue;
+    const p = sub.problem;
+    const key = `${p.contestId || ''}${p.index || ''}`;
+    const r = p.rating || 0;
+    if (!solved.has(key) || r > solved.get(key).rating) {
+      solved.set(key, { rating: r });
+    }
+    const ts = sub.creationTimeSeconds;
+    if (ts) {
+      const m = new Date(ts * 1000).toISOString().slice(0, 7);
+      if (!monthly[m]) monthly[m] = new Set();
+      monthly[m].add(key);
     }
   }
-});
+
+  // Difficulty buckets
+  const diff = {};
+  for (const [_, v] of solved) {
+    if (!v.rating) continue;
+    const b = ratingBucket(v.rating);
+    diff[b] = (diff[b] || 0) + 1;
+  }
+
+  // Monthly counts
+  const monthlyArr = Object.entries(monthly)
+    .map(([m, s]) => ({ month: m, count: s.size }))
+    .sort((a, b) => a.month.localeCompare(b.month));
+
+  return { count: solved.size, diff, monthly: monthlyArr };
+}
+
+async function fetchATC(handle) {
+  const resp = await fetch(`https://kenkoooo.com/atcoder/atcoder-api/v3/ac_rank?user=${encodeURIComponent(handle)}`);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const data = await resp.json();
+  return { count: data.length };
+}
+
+// ── Render ──
+function renderAll(cfCount, atcCount, diffMap, monthlyArr, updatedAt) {
+  const manual = CONFIG.manual;
+  const lg = manual['洛谷'], hdoj = manual['HDOJ'], lc = manual['LeetCode'], other = manual['其他'];
+  const total = cfCount + atcCount + lg + hdoj + lc + other;
+  const platLabels = ['Codeforces', 'AtCoder', '洛谷', 'HDOJ', 'LeetCode', '其他'];
+  const platData = [cfCount, atcCount, lg, hdoj, lc, other];
+  const platColors = ['#ff9800', '#9b59b6', '#3498db', '#46d573', '#ffd369', '#555'];
+
+  // Stat cards
+  setNum('cntTotal', total);
+  setNum('cntCF', cfCount);
+  setNum('cntATC', atcCount);
+  setNum('cntLG', lg);
+  setNum('cntHDOJ', hdoj);
+  setNum('cntLC', lc);
+
+  // Platform chart
+  platformChart.data.labels = platLabels;
+  platformChart.data.datasets[0].data = platData;
+  platformChart.data.datasets[0].backgroundColor = platColors;
+  platformChart.update();
+
+  // Difficulty chart (CF only + manual fallback)
+  let diffLabels, diffData;
+  if (diffMap && Object.keys(diffMap).length > 0) {
+    diffLabels = DIFF_ORDER.filter(k => diffMap[k] !== undefined);
+    diffData = diffLabels.map(k => diffMap[k]);
+  } else {
+    diffLabels = DIFF_ORDER;
+    diffData = DIFF_ORDER.map(() => 0);
+  }
+  difficultyChart.data.labels = diffLabels;
+  difficultyChart.data.datasets[0].data = diffData;
+  difficultyChart.data.datasets[0].backgroundColor = diffLabels.map((_, i) => DIFF_COLORS[i] || '#555');
+  difficultyChart.update();
+
+  // Monthly chart
+  let mArr = monthlyArr && monthlyArr.length > 0 ? monthlyArr : [];
+  // Show last 12 months
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(d.toISOString().slice(0, 7));
+  }
+  const countMap = {};
+  for (const { month, count } of mArr) countMap[month] = count;
+  const mlabels = months.map(m => {
+    const [y, mo] = m.split('-');
+    return parseInt(mo, 10) + '月';
+  });
+  const mdata = months.map(m => countMap[m] || 0);
+  monthlyChart.data.labels = mlabels;
+  monthlyChart.data.datasets[0].data = mdata;
+  monthlyChart.update();
+
+  // Time
+  if (updatedAt) {
+    $('updateTime').textContent = '数据更新于 ' + updatedAt;
+  } else {
+    $('updateTime').textContent = '数据加载完成';
+  }
+}
+
+// ── Init ──
+async function init() {
+  createCharts();
+
+  // Show initial skeleton
+  setNum('cntTotal', '...');
+  setNum('cntCF', '...');
+  setNum('cntATC', '...');
+  setNum('cntLG', CONFIG.manual['洛谷']);
+  setNum('cntHDOJ', CONFIG.manual['HDOJ']);
+  setNum('cntLC', CONFIG.manual['LeetCode']);
+
+  let cfCount = 0, atcCount = 0, diffMap = null, monthlyArr = null, updatedAt = null;
+
+  // Try cache first
+  const cached = loadCache();
+  if (cached) {
+    cfCount = cached.cf || 0;
+    atcCount = cached.atc || 0;
+    diffMap = cached.diff || null;
+    monthlyArr = cached.monthly || null;
+    updatedAt = cached._updated || null;
+    renderAll(cfCount, atcCount, diffMap, monthlyArr, updatedAt + ' (缓存)');
+  }
+
+  // Fetch live in parallel
+  const fetchers = [];
+  if (CONFIG.handles.codeforces) {
+    fetchers.push(
+      fetchCF(CONFIG.handles.codeforces).then(data => {
+        cfCount = data.count;
+        diffMap = data.diff;
+        monthlyArr = data.monthly;
+      }).catch(e => {
+        console.warn('CF fetch failed:', e);
+        if (!cached) $('updateTime').textContent = 'Codeforces 数据加载失败，请检查用户名';
+      })
+    );
+  }
+  if (CONFIG.handles.atcoder) {
+    fetchers.push(
+      fetchATC(CONFIG.handles.atcoder).then(data => {
+        atcCount = data.count;
+      }).catch(e => {
+        console.warn('ATC fetch failed:', e);
+      })
+    );
+  }
+
+  await Promise.all(fetchers);
+
+  updatedAt = new Date().toLocaleString('zh-CN');
+  renderAll(cfCount, atcCount, diffMap, monthlyArr, updatedAt);
+  $('updateTime').textContent = '数据更新于 ' + updatedAt;
+
+  // Save cache
+  if (cfCount > 0 || atcCount > 0) {
+    saveCache({ cf: cfCount, atc: atcCount, diff: diffMap, monthly: monthlyArr, _updated: updatedAt });
+  }
+}
+
+init();
 
 })();
 </script>
@@ -411,7 +543,7 @@ new Chart(document.getElementById('monthlyChart'), {
           </div>
           <ul class="card-category-list" id="aside-cat-list">
             <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/about/"><span class="card-category-list-name">about</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/codeforces/"><span class="card-category-list-name">codeforces</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/cpp-basics/"><span class="card-category-list-name">cpp-basics</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/data-structures/"><span class="card-category-list-name">data-structures</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/dp/"><span class="card-category-list-name">dp</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/geometry/"><span class="card-category-list-name">geometry</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/graph/"><span class="card-category-list-name">graph</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/hdoj/"><span class="card-category-list-name">hdoj</span><span class="card-category-list-count">2</span></a></li>
-          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E8%AE%A1%E7%AE%97%E5%87%A0%E4%BD%95/" style="font-size: 1.3em; color: #99a1ac">计算几何</a> <a href="/tags/%E6%AC%A7%E6%8B%89%E7%AD%9B/" style="font-size: 1.1em; color: #999">欧拉筛</a> <a href="/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/tags/%E4%BA%8C%E7%BB%B4%E5%87%A0%E4%BD%95/" style="font-size: 1.1em; color: #999">二维几何</a> <a href="/tags/%E5%8F%89%E7%A7%AF/" style="font-size: 1.1em; color: #999">叉积</a> <a href="/tags/%E7%82%B9%E7%A7%AF/" style="font-size: 1.1em; color: #999">点积</a> <a href="/tags/Floyd/" style="font-size: 1.1em; color: #999">Floyd</a> <a href="/tags/Prim/" style="font-size: 1.1em; color: #999">Prim</a> <a href="/tags/%E7%BA%BF%E6%80%A7dp/" style="font-size: 1.1em; color: #999">线性dp</a> <a href="/tags/SPFA/" style="font-size: 1.1em; color: #999">SPFA</a> <a href="/tags/01Trie/" style="font-size: 1.1em; color: #999">01Trie</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 1.1em; color: #999">并查集</a> <a href="/tags/priority-queue/" style="font-size: 1.1em; color: #999">priority_queue</a> <a href="/tags/stl/" style="font-size: 1.3em; color: #99a1ac">stl</a> <a href="/tags/%E5%9B%BE%E8%AE%BA/" style="font-size: 1.1em; color: #999">图论</a> <a href="/tags/%E5%87%B8%E5%8C%85/" style="font-size: 1.1em; color: #999">凸包</a> <a href="/tags/MST/" style="font-size: 1.1em; color: #999">MST</a> <a href="/tags/Andrew%E7%AE%97%E6%B3%95/" style="font-size: 1.1em; color: #999">Andrew算法</a> <a href="/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.3em; color: #99a1ac">数学</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.5em; color: #99a9bf">最短路</a> <a href="/tags/%E4%B9%98%E6%B3%95%E9%80%86%E5%85%83/" style="font-size: 1.1em; color: #999">乘法逆元</a> <a href="/tags/dp/" style="font-size: 1.1em; color: #999">dp</a> <a href="/tags/Kruskal/" style="font-size: 1.1em; color: #999">Kruskal</a> <a href="/tags/%E8%B4%9F%E7%8E%AF/" style="font-size: 1.1em; color: #999">负环</a> <a href="/tags/%E5%BC%BA%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/" style="font-size: 1.1em; color: #999">强连通分量</a> <a href="/tags/%E8%B4%A8%E6%95%B0/" style="font-size: 1.1em; color: #999">质数</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 1.1em; color: #999">最小生成树</a> <a href="/tags/deque/" style="font-size: 1.1em; color: #999">deque</a> <a href="/tags/string/" style="font-size: 1.1em; color: #999">string</a> <a href="/tags/Tarjan/" style="font-size: 1.1em; color: #999">Tarjan</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a></div></div><div class="card-widget card-archives">
+          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/%E8%B4%9F%E7%8E%AF/" style="font-size: 1.1em; color: #999">负环</a> <a href="/tags/Tarjan/" style="font-size: 1.1em; color: #999">Tarjan</a> <a href="/tags/%E7%BA%BF%E6%80%A7dp/" style="font-size: 1.1em; color: #999">线性dp</a> <a href="/tags/%E6%9C%80%E7%9F%AD%E8%B7%AF/" style="font-size: 1.5em; color: #99a9bf">最短路</a> <a href="/tags/MST/" style="font-size: 1.1em; color: #999">MST</a> <a href="/tags/%E5%8F%89%E7%A7%AF/" style="font-size: 1.1em; color: #999">叉积</a> <a href="/tags/stl/" style="font-size: 1.3em; color: #99a1ac">stl</a> <a href="/tags/%E6%9C%80%E5%B0%8F%E7%94%9F%E6%88%90%E6%A0%91/" style="font-size: 1.1em; color: #999">最小生成树</a> <a href="/tags/string/" style="font-size: 1.1em; color: #999">string</a> <a href="/tags/priority-queue/" style="font-size: 1.1em; color: #999">priority_queue</a> <a href="/tags/%E8%B4%A8%E6%95%B0/" style="font-size: 1.1em; color: #999">质数</a> <a href="/tags/Andrew%E7%AE%97%E6%B3%95/" style="font-size: 1.1em; color: #999">Andrew算法</a> <a href="/tags/%E7%82%B9%E7%A7%AF/" style="font-size: 1.1em; color: #999">点积</a> <a href="/tags/01Trie/" style="font-size: 1.1em; color: #999">01Trie</a> <a href="/tags/Dijkstra/" style="font-size: 1.1em; color: #999">Dijkstra</a> <a href="/tags/deque/" style="font-size: 1.1em; color: #999">deque</a> <a href="/tags/%E4%BA%8C%E7%BB%B4%E5%87%A0%E4%BD%95/" style="font-size: 1.1em; color: #999">二维几何</a> <a href="/tags/%E6%AC%A7%E6%8B%89%E7%AD%9B/" style="font-size: 1.1em; color: #999">欧拉筛</a> <a href="/tags/%E4%B9%98%E6%B3%95%E9%80%86%E5%85%83/" style="font-size: 1.1em; color: #999">乘法逆元</a> <a href="/tags/Prim/" style="font-size: 1.1em; color: #999">Prim</a> <a href="/tags/SPFA/" style="font-size: 1.1em; color: #999">SPFA</a> <a href="/tags/%E5%BC%BA%E8%BF%9E%E9%80%9A%E5%88%86%E9%87%8F/" style="font-size: 1.1em; color: #999">强连通分量</a> <a href="/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">拓扑排序</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E5%87%A0%E4%BD%95/" style="font-size: 1.3em; color: #99a1ac">计算几何</a> <a href="/tags/Floyd/" style="font-size: 1.1em; color: #999">Floyd</a> <a href="/tags/Kruskal/" style="font-size: 1.1em; color: #999">Kruskal</a> <a href="/tags/%E5%B9%B6%E6%9F%A5%E9%9B%86/" style="font-size: 1.1em; color: #999">并查集</a> <a href="/tags/%E5%87%B8%E5%8C%85/" style="font-size: 1.1em; color: #999">凸包</a> <a href="/tags/%E6%95%B0%E5%AD%A6/" style="font-size: 1.3em; color: #99a1ac">数学</a> <a href="/tags/dp/" style="font-size: 1.1em; color: #999">dp</a> <a href="/tags/%E5%9B%BE%E8%AE%BA/" style="font-size: 1.1em; color: #999">图论</a></div></div><div class="card-widget card-archives">
     <div class="item-headline">
       <i class="fas fa-archive"></i>
       <span>归档</span>
@@ -430,7 +562,7 @@ new Chart(document.getElementById('monthlyChart'), {
         </li>
       
     </ul>
-  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">33</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">85k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-26T14:20:43.015Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Mxiaocao</span></div><div class="footer_custom_text">浙ICP备2026013521号-1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">简</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">33</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">85k</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-05-26T14:26:51.194Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By Mxiaocao</span></div><div class="footer_custom_text">浙ICP备2026013521号-1</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="translateLink" type="button" title="简繁转换">简</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=5.5.4"></script><script src="/js/main.js?v=5.5.4"></script><script src="/js/tw_cn.js?v=5.5.4"></script><script src="https://cdn.jsdelivr.net/npm/medium-zoom@1.1.0/dist/medium-zoom.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar@0.1.16/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
   const loadMathjax = () => {
     if (!window.MathJax) {
       window.MathJax = {
