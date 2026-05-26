@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Andrew 凸包算法可视化</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; display: flex; flex-direction: column; align-items: center; padding: 10px; min-height: 100vh; }
+h2 { margin-bottom: 10px; color: #e94560; font-size: 20px; }
+.container { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+.graph-panel { background: #16213e; border-radius: 12px; padding: 12px; border: 1px solid #0f3460; }
+.data-panel { background: #16213e; border-radius: 12px; padding: 12px; border: 1px solid #0f3460; min-width: 200px; }
+.data-panel h3 { margin-bottom: 10px; color: #e94560; text-align: center; font-size: 15px; }
+.phase-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 13px; font-weight: bold; margin-bottom: 8px; }
+.phase-lower { background: #0f3460; color: #46d573; }
+.phase-upper { background: #533483; color: #ffd369; }
+.stack-list { display: flex; flex-wrap: wrap; gap: 4px; min-height: 32px; padding: 8px; background: #0f3460; border-radius: 8px; margin-bottom: 14px; align-items: center; }
+.stack-item { background: #1a508b; color: #ddd; padding: 3px 8px; border-radius: 4px; font-size: 12px; }
+.stack-item.arrow { background: transparent; color: #888; padding: 0 2px; }
+.cross-display { text-align: center; font-size: 14px; margin: 8px 0; min-height: 20px; color: #aaa; }
+.cross-display span { font-weight: bold; }
+.cross-neg { color: #e94560; }
+.cross-pos { color: #46d573; }
+.updated { animation: pulse 0.6s; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.controls { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; position: sticky; bottom: 0; background: #1a1a2e; padding: 10px 0; z-index: 10; }
+button { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; transition: all 0.2s; }
+button:hover { transform: translateY(-2px); }
+.btn-step { background: #e94560; color: #fff; }
+.btn-auto { background: #0f3460; color: #fff; }
+.btn-reset { background: #533483; color: #fff; }
+.btn-speed { background: #222831; color: #eee; }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.info { margin-top: 8px; padding: 10px 16px; background: #16213e; border-radius: 8px; border-left: 3px solid #e94560; font-size: 15px; max-width: 700px; text-align: center; min-height: 24px; }
+.info span { color: #e94560; font-weight: bold; }
+.status { margin-top: 10px; font-size: 13px; color: #888; text-align: center; }
+svg text { user-select: none; }
+svg .grid-line { stroke: #1a2a4a; stroke-width: 0.5; }
+svg .axis-line { stroke: #2a3a5a; stroke-width: 1; }
+svg .hull-edge { stroke: #46d573; stroke-width: 3; fill: none; }
+svg .hull-edge.upper { stroke: #ffd369; }
+svg .hull-edge.transient { stroke: #e94560; stroke-width: 2; stroke-dasharray: 6,4; }
+svg .vec-line { stroke: #ff9800; stroke-width: 2; stroke-dasharray: 5,5; fill: none; marker-end: url(#arrowhead); }
+svg .vec-line.pop { stroke: #e94560; }
+.input-panel { background: #16213e; border-radius: 12px; border: 1px solid #0f3460; max-width: 820px; width: 100%; margin-bottom: 20px; overflow: hidden; }
+.input-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; cursor: pointer; user-select: none; background: rgba(233,69,96,0.08); transition: background 0.2s; }
+.input-panel-header:hover { background: rgba(233,69,96,0.15); }
+.input-panel-header h3 { margin: 0; font-size: 16px; color: #e94560; }
+.toggle-icon { font-size: 14px; color: #e94560; transition: transform 0.3s; }
+.input-panel.collapsed .toggle-icon { transform: rotate(-90deg); }
+.panel-body { padding: 16px 20px; transition: all 0.3s; overflow: hidden; }
+.input-panel.collapsed .panel-body { max-height: 0; padding: 0 20px; opacity: 0; }
+.input-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+.input-group { display: flex; flex-direction: column; gap: 4px; }
+.input-group label { font-size: 13px; color: #aaa; }
+.input-group textarea { background: #0f3460; border: 1px solid #1a508b; border-radius: 6px; color: #eee; padding: 8px 12px; font-size: 14px; font-family: 'Consolas','Courier New',monospace; outline: none; transition: border-color 0.2s; width: 100%; min-width: 260px; height: 80px; resize: vertical; }
+.input-group textarea:focus { border-color: #e94560; }
+.preset-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.preset-btn { padding: 6px 14px; border: 1px solid #1a508b; border-radius: 6px; background: transparent; color: #aaa; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+.preset-btn:hover { border-color: #e94560; color: #eee; }
+.preset-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+.btn-build { padding: 10px 28px; border: none; border-radius: 8px; background: #00adb5; color: #fff; cursor: pointer; font-size: 15px; font-weight: bold; transition: all 0.2s; }
+.btn-build:hover { background: #018c93; transform: translateY(-1px); }
+.error-msg { color: #e94560; font-size: 13px; min-height: 18px; margin-top: 2px; white-space: pre-line; }
+</style>
+</head>
+<body>
+<h2>Andrew 凸包算法可视化</h2>
+<div class="input-panel collapsed" id="inputPanel">
+  <div class="input-panel-header" id="panelToggle"><h3>自定义点集</h3><span class="toggle-icon">▼</span></div>
+  <div class="panel-body">
+    <div class="input-row">
+      <div class="preset-btns" id="presetBtns"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group" style="flex:1;min-width:280px;">
+        <label>点坐标（每行：x y）</label>
+        <textarea id="pointInput" placeholder="1 1&#10;2 5&#10;3 3&#10;4 6&#10;5 4&#10;6 5&#10;7 1&#10;8 3"></textarea>
+      </div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="input-row"><button class="btn-build" id="btnBuild">生成并重置</button></div>
+  </div>
+</div>
+<div class="container">
+  <div class="graph-panel"><svg id="graph" width="500" height="380"></svg></div>
+  <div class="data-panel">
+    <h3>当前阶段</h3>
+    <div style="text-align:center;"><span class="phase-badge phase-lower" id="phaseBadge">下凸壳</span></div>
+    <h3>凸壳栈</h3>
+    <div class="stack-list" id="stackList"><span style="color:#666;font-size:13px;">空</span></div>
+    <div class="cross-display" id="crossDisplay"></div>
+  </div>
+</div>
+<div class="info" id="info">准备开始</div>
+<div class="status" id="status"></div>
+<div class="controls">
+  <button class="btn-step" id="btnStep">▶ 下一步</button>
+  <button class="btn-auto" id="btnAuto">▶ 自动播放</button>
+  <button class="btn-speed" id="btnSpeed">速度: 1x</button>
+  <button class="btn-reset" id="btnReset">↻ 重置</button>
+</div>
+
+<svg width="0" height="0">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff9800" />
+    </marker>
+  </defs>
+</svg>
+
+<script>
+let points = [], presets;
+let steps = [], currentStep = 0, autoTimer = null, speed = 1;
+
+// ── Presets ──
+function definePresets() {
+  return {
+    '8points': {
+      name: '8点 (默认)',
+      points: [[1,2],[2,5],[3,3],[4,6],[5,4],[6,5],[7,1],[8,3]]
+    },
+    'simple5': {
+      name: '5点简单',
+      points: [[1,1],[5,1],[5,4],[3,6],[1,4]]
+    },
+    'square': {
+      name: '方形+内点',
+      points: [[1,1],[5,1],[5,5],[1,5],[3,2],[3,3],[2,3]]
+    }
+  };
+}
+
+// ── Input parsing ──
+function parsePointInput(text) {
+  const pts = [], errors = [];
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = line.split(/\s+/);
+    if (parts.length !== 2) { errors.push(`第${i+1}行需要2个数字，得到 ${parts.length} 个`); continue; }
+    const x = Number(parts[0]), y = Number(parts[1]);
+    if (isNaN(x) || isNaN(y)) { errors.push(`第${i+1}行含非数字`); continue; }
+    pts.push([x, y]);
+  }
+  return { pts, errors };
+}
+
+// ── Coordinate mapping ──
+function computeViewBox(pts) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const [x, y] of pts) {
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  }
+  const dx = (maxX - minX) || 2, dy = (maxY - minY) || 2;
+  const padX = dx * 0.15 + 0.8, padY = dy * 0.15 + 0.8;
+  return { minX: minX - padX, maxX: maxX + padX, minY: minY - padY, maxY: maxY + padY };
+}
+
+function toScreen(p, vb, w, h) {
+  return {
+    x: (p[0] - vb.minX) / (vb.maxX - vb.minX) * w,
+    y: h - (p[1] - vb.minY) / (vb.maxY - vb.minY) * h
+  };
+}
+
+// ── Algorithm step building ──
+function cross(ax, ay, bx, by) {
+  return ax * by - ay * bx;
+}
+
+function buildSteps() {
+  const n = points.length;
+  steps = [];
+
+  const sorted = points.map((p, i) => ({ x: p[0], y: p[1], origIdx: i }));
+  sorted.sort((a, b) => a.x !== b.x ? a.x - b.x : a.y - b.y);
+
+  steps.push({
+    type: 'init_sort', phase: 'lower',
+    hull: [], currentIdx: -1,
+    desc: `点集已按 x 坐标排序（x 相同按 y）。共 <span>${n}</span> 个点，开始扫描下凸壳`,
+    sorted: sorted.map(p => [p.x, p.y])
+  });
+
+  if (n <= 2) {
+    const hull = Array.from({length: n}, (_, i) => i);
+    steps.push({ type: 'done', phase: 'done', hull, currentIdx: -1, desc: `仅 ${n} 个点，全部在凸包上` });
+    return;
+  }
+
+  // ── Lower hull ──
+  let hull = [];
+  for (let i = 0; i < n; i++) {
+    steps.push({
+      type: 'examine', phase: 'lower',
+      hull: [...hull], currentIdx: i,
+      desc: `扫描点 <span>P${i}</span>(${sorted[i].x},${sorted[i].y})，检查是否能加入下凸壳`
+    });
+
+    while (hull.length >= 2) {
+      const a = hull[hull.length - 2], b = hull[hull.length - 1], c = i;
+      const ax = sorted[a].x, ay = sorted[a].y;
+      const bx = sorted[b].x, by = sorted[b].y;
+      const cx = sorted[c].x, cy = sorted[c].y;
+      const cv = cross(bx - ax, by - ay, cx - ax, cy - ay);
+
+      if (cv <= 0) {
+        steps.push({
+          type: 'pop', phase: 'lower',
+          hull: [...hull], currentIdx: i, poppedIdx: b,
+          vecA: a, vecB: b, vecC: c, crossValue: cv,
+          desc: `叉积 cross(P${b}-P${a}, P${c}-P${a}) = <span class="cross-neg">${cv} ≤ 0</span>，非左转！<span>P${b} 弹出</span>`
+        });
+        hull.pop();
+      } else {
+        steps.push({
+          type: 'check', phase: 'lower',
+          hull: [...hull], currentIdx: i,
+          vecA: a, vecB: b, vecC: c, crossValue: cv,
+          desc: `叉积 cross(P${b}-P${a}, P${c}-P${a}) = <span class="cross-pos">${cv} > 0</span>，左转 ✓，保留 P${b}`
+        });
+        break;
+      }
+    }
+
+    hull.push(i);
+    steps.push({
+      type: 'push', phase: 'lower',
+      hull: [...hull], currentIdx: i,
+      desc: `P${i} <span>入栈</span>。当前栈大小: ${hull.length}`
+    });
+  }
+
+  steps.push({
+    type: 'lower_done', phase: 'lower',
+    hull: [...hull], currentIdx: -1,
+    desc: `<span>下凸壳完成！</span> 栈中有 ${hull.length} 个点，开始扫描上凸壳（从右到左）`
+  });
+
+  // ── Upper hull ──
+  const lowerSize = hull.length;
+  for (let i = n - 2; i >= 0; i--) {
+    steps.push({
+      type: 'examine', phase: 'upper',
+      hull: [...hull], currentIdx: i,
+      desc: `逆序扫描点 <span>P${i}</span>(${sorted[i].x},${sorted[i].y})，检查是否能加入上凸壳`
+    });
+
+    while (hull.length > lowerSize) {
+      const a = hull[hull.length - 2], b = hull[hull.length - 1], c = i;
+      const ax = sorted[a].x, ay = sorted[a].y;
+      const bx = sorted[b].x, by = sorted[b].y;
+      const cx = sorted[c].x, cy = sorted[c].y;
+      const cv = cross(bx - ax, by - ay, cx - ax, cy - ay);
+
+      if (cv <= 0) {
+        steps.push({
+          type: 'pop', phase: 'upper',
+          hull: [...hull], currentIdx: i, poppedIdx: b,
+          vecA: a, vecB: b, vecC: c, crossValue: cv,
+          desc: `叉积 cross(P${b}-P${a}, P${c}-P${a}) = <span class="cross-neg">${cv} ≤ 0</span>，非左转！<span>P${b} 弹出</span>`
+        });
+        hull.pop();
+      } else {
+        steps.push({
+          type: 'check', phase: 'upper',
+          hull: [...hull], currentIdx: i,
+          vecA: a, vecB: b, vecC: c, crossValue: cv,
+          desc: `叉积 cross(P${b}-P${a}, P${c}-P${a}) = <span class="cross-pos">${cv} > 0</span>，左转 ✓，保留 P${b}`
+        });
+        break;
+      }
+    }
+
+    hull.push(i);
+    steps.push({
+      type: 'push', phase: 'upper',
+      hull: [...hull], currentIdx: i,
+      desc: `P${i} <span>入栈</span>。当前栈大小: ${hull.length}`
+    });
+  }
+
+  // Remove duplicate last point
+  hull.pop();
+
+  steps.push({
+    type: 'done', phase: 'done',
+    hull: [...hull], currentIdx: -1,
+    desc: `<span>凸包完成！</span> 共 ${hull.length} 个顶点，顺时针围成最小凸多边形`
+  });
+}
+
+// ── Draw ──
+let vb, svgW = 500, svgH = 380;
+
+function drawGraph(s) {
+  const svg = document.getElementById('graph');
+  svg.innerHTML = '';
+
+  const sortedPts = s.sorted || points;
+  const n = sortedPts.length;
+  vb = computeViewBox(sortedPts);
+
+  // Grid
+  for (let i = 0; i <= 10; i++) {
+    const x = svgW * i / 10;
+    const y = svgH * i / 10;
+    const gx = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    gx.setAttribute('x1', x); gx.setAttribute('y1', 0); gx.setAttribute('x2', x); gx.setAttribute('y2', svgH);
+    gx.setAttribute('class', 'grid-line'); svg.appendChild(gx);
+    const gy = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    gy.setAttribute('x1', 0); gy.setAttribute('y1', y); gy.setAttribute('x2', svgW); gy.setAttribute('y2', y);
+    gy.setAttribute('class', 'grid-line'); svg.appendChild(gy);
+  }
+
+  const hullSet = new Set(s.hull || []);
+  const hullOrder = s.hull || [];
+
+  // Vectors (during check/pop)
+  if ((s.type === 'check' || s.type === 'pop') && s.vecA !== undefined) {
+    const a = toScreen(sortedPts[s.vecA], vb, svgW, svgH);
+    const b = toScreen(sortedPts[s.vecB], vb, svgW, svgH);
+    const c = toScreen(sortedPts[s.vecC], vb, svgW, svgH);
+    const cls = s.type === 'pop' ? 'vec-line pop' : 'vec-line';
+
+    // Vector A→B
+    const l1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l1.setAttribute('x1', a.x); l1.setAttribute('y1', a.y);
+    l1.setAttribute('x2', b.x); l1.setAttribute('y2', b.y);
+    l1.setAttribute('class', cls); svg.appendChild(l1);
+
+    // Vector A→C
+    const l2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l2.setAttribute('x1', a.x); l2.setAttribute('y1', a.y);
+    l2.setAttribute('x2', c.x); l2.setAttribute('y2', c.y);
+    l2.setAttribute('class', cls); svg.appendChild(l2);
+  }
+
+  // Hull edges
+  for (let i = 1; i < hullOrder.length; i++) {
+    const pi = toScreen(sortedPts[hullOrder[i - 1]], vb, svgW, svgH);
+    const pj = toScreen(sortedPts[hullOrder[i]], vb, svgW, svgH);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', pi.x); line.setAttribute('y1', pi.y);
+    line.setAttribute('x2', pj.x); line.setAttribute('y2', pj.y);
+    line.setAttribute('class', s.phase === 'upper' ? 'hull-edge upper' : 'hull-edge');
+    svg.appendChild(line);
+  }
+
+  // Done: close the hull
+  if (s.type === 'done' && hullOrder.length >= 2) {
+    const first = toScreen(sortedPts[hullOrder[0]], vb, svgW, svgH);
+    const last = toScreen(sortedPts[hullOrder[hullOrder.length - 1]], vb, svgW, svgH);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', last.x); line.setAttribute('y1', last.y);
+    line.setAttribute('x2', first.x); line.setAttribute('y2', first.y);
+    line.setAttribute('class', 'hull-edge'); svg.appendChild(line);
+  }
+
+  // Points
+  for (let i = 0; i < n; i++) {
+    const sp = toScreen(sortedPts[i], vb, svgW, svgH);
+    let fill = '#0f3460', stroke = '#1a508b', r = 16, label = `P${i}`;
+
+    if (s.type === 'done' && hullSet.has(i)) {
+      fill = '#1a6b3a'; stroke = '#46d573';
+    } else if (hullSet.has(i)) {
+      fill = '#1a5c3a'; stroke = '#46d573';
+    }
+    if (s.currentIdx === i) {
+      fill = '#ffd369'; stroke = '#fff'; r = 18;
+    }
+    if (s.poppedIdx === i) {
+      fill = '#e94560'; stroke = '#fff'; r = 18;
+    }
+    // Special markers for first and last sorted points
+    if (i === 0) stroke = '#ff9800';
+    if (i === n - 1) stroke = '#ff9800';
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', sp.x); circle.setAttribute('cy', sp.y);
+    circle.setAttribute('r', r); circle.setAttribute('fill', fill);
+    circle.setAttribute('stroke', stroke); circle.setAttribute('stroke-width', '2.5');
+    g.appendChild(circle);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    txt.setAttribute('x', sp.x); txt.setAttribute('y', sp.y + 4);
+    txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('fill', '#fff');
+    txt.setAttribute('font-size', '11'); txt.setAttribute('font-weight', 'bold');
+    txt.textContent = label; g.appendChild(txt);
+
+    // Coordinate text below point
+    const coord = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    coord.setAttribute('x', sp.x); coord.setAttribute('y', sp.y + r + 13);
+    coord.setAttribute('text-anchor', 'middle'); coord.setAttribute('fill', '#888');
+    coord.setAttribute('font-size', '9');
+    coord.textContent = `(${sortedPts[i][0]},${sortedPts[i][1]})`; g.appendChild(coord);
+
+    svg.appendChild(g);
+  }
+
+  // Axis labels
+  const xl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  xl.setAttribute('x', svgW - 20); xl.setAttribute('y', svgH - 8);
+  xl.setAttribute('text-anchor', 'end'); xl.setAttribute('fill', '#555'); xl.setAttribute('font-size', '10');
+  xl.textContent = `x: ${vb.minX.toFixed(1)} ~ ${vb.maxX.toFixed(1)}`; svg.appendChild(xl);
+  const yl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  yl.setAttribute('x', 8); yl.setAttribute('y', 14);
+  yl.setAttribute('text-anchor', 'start'); yl.setAttribute('fill', '#555'); yl.setAttribute('font-size', '10');
+  yl.textContent = `y: ${vb.minY.toFixed(1)} ~ ${vb.maxY.toFixed(1)}`; svg.appendChild(yl);
+}
+
+function renderStack(s) {
+  const el = document.getElementById('stackList');
+  const hull = s.hull || [];
+  if (hull.length === 0) {
+    el.innerHTML = '<span style="color:#666;font-size:13px;">空</span>';
+    return;
+  }
+  el.innerHTML = hull.map((idx, i) =>
+    (i > 0 ? '<span class="stack-item arrow">→</span>' : '') +
+    `<span class="stack-item">P${idx}(${points[idx][0]},${points[idx][1]})</span>`
+  ).join('');
+}
+
+function renderPhase(s) {
+  const badge = document.getElementById('phaseBadge');
+  if (s.phase === 'lower') {
+    badge.textContent = '下凸壳';
+    badge.className = 'phase-badge phase-lower';
+  } else if (s.phase === 'upper') {
+    badge.textContent = '上凸壳';
+    badge.className = 'phase-badge phase-upper';
+  } else {
+    badge.textContent = '完成';
+    badge.className = 'phase-badge phase-lower';
+  }
+}
+
+function renderCross(s) {
+  const el = document.getElementById('crossDisplay');
+  if (s.crossValue !== undefined) {
+    const cls = s.crossValue > 0 ? 'cross-pos' : 'cross-neg';
+    el.innerHTML = `叉积 = <span class="${cls}">${s.crossValue}</span> ${s.crossValue > 0 ? '✓ 左转' : '✗ 右转/共线'}`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function render(s) {
+  drawGraph(s);
+  renderStack(s);
+  renderPhase(s);
+  renderCross(s);
+  document.getElementById('info').innerHTML = s.desc;
+  const cnt = (s.hull || []).length;
+  document.getElementById('status').textContent =
+    s.type === 'done' ? `凸包完成：${cnt} 个顶点` :
+    s.phase === 'lower' ? `下凸壳 · 栈大小: ${cnt}` :
+    s.phase === 'upper' ? `上凸壳 · 栈大小: ${cnt}` : '';
+}
+
+// ── Controls ──
+function step() {
+  if (currentStep >= steps.length - 1) return;
+  currentStep++; render(steps[currentStep]); updateButtons();
+}
+function updateButtons() {
+  document.getElementById('btnStep').disabled = (currentStep >= steps.length - 1);
+  document.getElementById('btnAuto').textContent = autoTimer ? '⏸ 暂停' : '▶ 自动播放';
+}
+function autoPlay() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; updateButtons(); return; }
+  autoTimer = setInterval(() => {
+    if (currentStep >= steps.length - 1) { clearInterval(autoTimer); autoTimer = null; updateButtons(); return; }
+    step();
+  }, 1200 / speed);
+  updateButtons();
+}
+function reset() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  currentStep = 0; buildSteps(); render(steps[0]); updateButtons();
+}
+
+function handleBuildGraph() {
+  const raw = document.getElementById('pointInput').value;
+  const errorEl = document.getElementById('errorMsg');
+  const { pts, errors } = parsePointInput(raw);
+  if (pts.length < 2) { errorEl.textContent = '至少需要 2 个点'; return; }
+  if (pts.length > 15) { errorEl.textContent = '最多支持 15 个点'; return; }
+  if (errors.length > 0) { errorEl.textContent = errors.join('\n'); return; }
+  errorEl.textContent = '';
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  points = pts;
+  currentStep = 0; buildSteps(); render(steps[0]); updateButtons();
+}
+
+function loadPreset(key) {
+  const p = presets[key]; if (!p) return;
+  document.getElementById('pointInput').value = p.points.map(pt => pt.join(' ')).join('\n');
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.preset-btn[data-preset="${key}"]`); if (btn) btn.classList.add('active');
+  handleBuildGraph();
+}
+
+function renderPresetButtons() {
+  const container = document.getElementById('presetBtns');
+  for (const [key, p] of Object.entries(presets)) {
+    const btn = document.createElement('button'); btn.className = 'preset-btn';
+    btn.dataset.preset = key; btn.textContent = p.name; btn.onclick = () => loadPreset(key);
+    container.appendChild(btn);
+  }
+}
+
+document.getElementById('btnStep').onclick = step;
+document.getElementById('btnAuto').onclick = autoPlay;
+document.getElementById('btnReset').onclick = reset;
+document.getElementById('btnSpeed').onclick = function() {
+  speed = speed >= 5 ? 1 : speed + 1; this.textContent = '速度: ' + speed + 'x';
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = setInterval(step, 1200 / speed); }
+};
+document.getElementById('panelToggle').onclick = () => document.getElementById('inputPanel').classList.toggle('collapsed');
+document.getElementById('btnBuild').onclick = handleBuildGraph;
+
+presets = definePresets();
+renderPresetButtons();
+loadPreset('8points');
+</script>
+</body>
+</html>
