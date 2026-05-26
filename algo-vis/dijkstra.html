@@ -161,53 +161,66 @@ function generateGraph(nodeCount, edgeList) {
   N = nodeCount;
 }
 
+function treeEdgesFromPre(pre, ok) {
+  const set = [];
+  for (let i = 1; i <= N; i++) {
+    if (pre[i] !== 0 && ok[i]) set.push([pre[i], i]);
+  }
+  return set;
+}
+
 function buildSteps() {
-  const dist = [], ok = [];
+  const dist = [], ok = [], pre = [];
   const adj = Array.from({length: N+1}, () => []);
   for (const e of graph.edges) {
     adj[e.u].push({ to: e.v, w: e.w });
     adj[e.v].push({ to: e.u, w: e.w });
   }
-  for (let i = 1; i <= N; i++) { dist[i] = INF; ok[i] = false; }
+  for (let i = 1; i <= N; i++) { dist[i] = INF; ok[i] = false; pre[i] = 0; }
   dist[source] = 0;
 
-  steps = [{ type: 'init', node: source, dist: [...dist], ok: [...ok], desc: `初始化：源点 <span>${source}</span> dist=0，其余点 dist=∞`, settled: [...ok] }];
+  steps = [{ type: 'init', node: source, dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: [], desc: `初始化：源点 <span>${source}</span> dist=0，其余点 dist=∞`, settled: [...ok] }];
 
   for (let iter = 1; iter < N; iter++) {
-    // Find min dist among unvisited
     let mindist = INF, k = -1;
     for (let j = 1; j <= N; j++) {
       if (!ok[j] && dist[j] < mindist) { mindist = dist[j]; k = j; }
     }
-    if (k === -1) break; // disconnected
-    steps.push({ type: 'pick', node: k, dist: [...dist], ok: [...ok], desc: `选择 dist 最小的未确定节点 <span>${k}</span>（dist=${mindist}），标记为已确定`, settled: [...ok] });
+    if (k === -1) break;
+    steps.push({ type: 'pick', node: k, dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: treeEdgesFromPre(pre, ok), desc: `选择 dist 最小的未确定节点 <span>${k}</span>（dist=${mindist}），标记为已确定`, settled: [...ok] });
 
     ok[k] = true;
-    steps.push({ type: 'settle', node: k, dist: [...dist], ok: [...ok], desc: `节点 <span>${k}</span> 已确定，开始松弛它的邻边`, settled: [...ok] });
+    steps.push({ type: 'settle', node: k, dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: treeEdgesFromPre(pre, ok), desc: `节点 <span>${k}</span> 已确定，开始松弛它的邻边`, settled: [...ok] });
 
     for (const { to: j, w } of adj[k]) {
       if (ok[j]) continue;
       const old = dist[j], via = dist[k] + w;
       if (via < old) {
         dist[j] = via;
-        steps.push({ type: 'relax', node: k, edge: [k, j], from: old, to: via, dist: [...dist], ok: [...ok], desc: `<span>更新！</span>dist[${j}] ${old} → ${via}（经${k}中转: ${dist[k]}+${w}=${via} < ${old}）`, settled: [...ok] });
+        pre[j] = k;
+        steps.push({ type: 'relax', node: k, edge: [k, j], from: old, to: via, dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: treeEdgesFromPre(pre, ok), desc: `<span>更新！</span>dist[${j}] ${old} → ${via}（经${k}中转: ${dist[k]}+${w}=${via} < ${old}）`, settled: [...ok] });
       } else {
-        steps.push({ type: 'norelax', node: k, edge: [k, j], dist: [...dist], ok: [...ok], desc: `dist[${j}]=${old}，经${k}: ${dist[k]}+${w}=${via}，没有更优`, settled: [...ok] });
+        steps.push({ type: 'norelax', node: k, edge: [k, j], dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: treeEdgesFromPre(pre, ok), desc: `dist[${j}]=${old}，经${k}: ${dist[k]}+${w}=${via}，没有更优`, settled: [...ok] });
       }
     }
   }
-  steps.push({ type: 'done', dist: [...dist], ok: [...ok], desc: '算法结束！所有节点最短距离已确定', settled: [...ok] });
+  steps.push({ type: 'done', dist: [...dist], ok: [...ok], pre: [...pre], treeEdges: treeEdgesFromPre(pre, ok), desc: '算法结束！所有节点最短距离已确定', settled: [...ok] });
 }
 
 function drawGraph(s) {
   const svg = document.getElementById('graph');
   svg.innerHTML = '';
+
+  const treeSet = new Set((s.treeEdges || []).map(e => `${Math.min(e[0],e[1])},${Math.max(e[0],e[1])}`));
+  let activeKey = null;
+  if (s.edge) activeKey = `${Math.min(s.edge[0],s.edge[1])},${Math.max(s.edge[0],s.edge[1])}`;
+
   for (const e of graph.edges) {
     const u = graph.nodes[e.u-1], v = graph.nodes[e.v-1];
+    const key = `${Math.min(e.u,e.v)},${Math.max(e.u,e.v)}`;
     let stroke = '#555', strokeW = 2;
-    if (s.edge && ((e.u===s.edge[0]&&e.v===s.edge[1])||(e.v===s.edge[0]&&e.u===s.edge[1]))) {
-      stroke = '#e94560'; strokeW = 3;
-    }
+    if (key === activeKey) { stroke = '#ff9800'; strokeW = 3; }
+    else if (treeSet.has(key)) { stroke = '#46d573'; strokeW = 3; }
     const line = document.createElementNS('http://www.w3.org/2000/svg','line');
     line.setAttribute('x1',u.x); line.setAttribute('y1',u.y);
     line.setAttribute('x2',v.x); line.setAttribute('y2',v.y);
@@ -216,7 +229,9 @@ function drawGraph(s) {
     const mx = (u.x+v.x)/2, my = (u.y+v.y)/2 - 8;
     const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
     txt.setAttribute('x',mx); txt.setAttribute('y',my);
-    txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill','#aaa'); txt.setAttribute('font-size','14');
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('fill', treeSet.has(key) ? '#46d573' : '#aaa');
+    txt.setAttribute('font-size','14');
     txt.textContent = e.w; svg.appendChild(txt);
   }
   for (const nd of graph.nodes) {
@@ -248,16 +263,17 @@ function drawGraph(s) {
 
 function renderDataTable(s) {
   const tbl = document.getElementById('dataTable');
-  let html = '<tr><th>节点</th><th>dist[i]</th><th>状态</th></tr>';
+  let html = '<tr><th>节点</th><th>dist[i]</th><th>前驱</th><th>状态</th></tr>';
   for (let i = 1; i <= N; i++) {
     let cls = '', status = '未确定';
     if (i === source) cls = 'src-row';
     if (s.settled && s.settled[i]) { cls += ' settled'; status = '已确定 ✓'; }
     if (s.node === i && s.type !== 'init' && !s.settled[i]) cls += ' current';
     const d = s.dist[i];
+    const p = (s.pre && s.pre[i]) ? s.pre[i] : '-';
     html += `<tr class="${cls}"><td>${i}</td><td>${
       d >= INF ? '<span class="inf">∞</span>' : d
-    }</td><td>${status}</td></tr>`;
+    }</td><td>${p}</td><td>${status}</td></tr>`;
   }
   tbl.innerHTML = html;
 }
