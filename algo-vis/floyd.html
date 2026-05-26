@@ -74,10 +74,76 @@
   svg text { user-select: none; }
   svg .edge-label { font-size: 14px; fill: #aaa; }
   svg .node circle { transition: fill 0.3s; }
+  .input-panel {
+    background: #16213e; border-radius: 12px; border: 1px solid #0f3460;
+    max-width: 820px; width: 100%; margin-bottom: 20px; overflow: hidden;
+  }
+  .input-panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+    background: rgba(233,69,96,0.08); transition: background 0.2s;
+  }
+  .input-panel-header:hover { background: rgba(233,69,96,0.15); }
+  .input-panel-header h3 { margin: 0; font-size: 16px; color: #e94560; }
+  .toggle-icon { font-size: 14px; color: #e94560; transition: transform 0.3s; }
+  .input-panel.collapsed .toggle-icon { transform: rotate(-90deg); }
+  .panel-body { padding: 16px 20px; transition: all 0.3s; overflow: hidden; }
+  .input-panel.collapsed .panel-body { max-height: 0; padding: 0 20px; opacity: 0; }
+  .input-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .input-group { display: flex; flex-direction: column; gap: 4px; }
+  .input-group label { font-size: 13px; color: #aaa; }
+  .input-group input, .input-group textarea {
+    background: #0f3460; border: 1px solid #1a508b; border-radius: 6px;
+    color: #eee; padding: 8px 12px; font-size: 14px; font-family: 'Consolas','Courier New',monospace;
+    outline: none; transition: border-color 0.2s;
+  }
+  .input-group input:focus, .input-group textarea:focus { border-color: #e94560; }
+  .input-group input { width: 70px; }
+  .input-group textarea { width: 100%; min-width: 260px; height: 80px; resize: vertical; }
+  .preset-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .preset-btn {
+    padding: 6px 14px; border: 1px solid #1a508b; border-radius: 6px;
+    background: transparent; color: #aaa; cursor: pointer; font-size: 13px;
+    transition: all 0.2s;
+  }
+  .preset-btn:hover { border-color: #e94560; color: #eee; }
+  .preset-btn.active { background: #e94560; border-color: #e94560; color: #fff; }
+  .btn-build {
+    padding: 10px 28px; border: none; border-radius: 8px;
+    background: #00adb5; color: #fff; cursor: pointer; font-size: 15px; font-weight: bold;
+    transition: all 0.2s;
+  }
+  .btn-build:hover { background: #018c93; transform: translateY(-1px); }
+  .error-msg { color: #e94560; font-size: 13px; min-height: 18px; margin-top: 2px; white-space: pre-line; }
 </style>
 </head>
 <body>
 <h2>Floyd-Warshall 算法可视化</h2>
+<div class="input-panel" id="inputPanel">
+  <div class="input-panel-header" id="panelToggle">
+    <h3>自定义图参数</h3>
+    <span class="toggle-icon">▼</span>
+  </div>
+  <div class="panel-body">
+    <div class="input-row">
+      <div class="input-group">
+        <label>节点数 N (2-8)</label>
+        <input type="number" id="nodeCount" min="2" max="8" value="3">
+      </div>
+      <div class="preset-btns" id="presetBtns"></div>
+    </div>
+    <div class="input-row">
+      <div class="input-group" style="flex:1;min-width:280px;">
+        <label>边列表（每行：u v w，空格分隔）</label>
+        <textarea id="edgeInput" placeholder="1 2 8&#10;1 3 10&#10;2 3 1"></textarea>
+      </div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="input-row">
+      <button class="btn-build" id="btnBuild">生成图并重置</button>
+    </div>
+  </div>
+</div>
 <div class="container">
   <div class="graph-panel">
     <svg id="graph" width="380" height="320"></svg>
@@ -97,27 +163,168 @@
 </div>
 
 <script>
-// Example data matching the post: cities 1,2,3
-const N = 3;
-const graph = {
-  nodes: [
-    { id:1, x:60,  y:260, label:'1' },
-    { id:2, x:190, y:80,  label:'2' },
-    { id:3, x:320, y:260, label:'3' },
-  ],
-  edges: [
-    { u:1, v:2, w:8  },
-    { u:2, v:3, w:1  },
-    { u:1, v:3, w:10 },
-  ]
-};
-
+let N, graph, presets;
 const INF = 999;
-let dist, state;
+let dist;
 let steps = [];
 let currentStep = 0;
 let autoTimer = null;
 let speed = 1;
+
+// ── Presets ──
+function definePresets() {
+  return {
+    '3city': {
+      name: '3城市', nodeCount: 3,
+      edges: [[1,2,8],[1,3,10],[2,3,1]]
+    },
+    '4city': {
+      name: '4城市', nodeCount: 4,
+      edges: [[1,2,3],[1,4,7],[2,3,2],[3,4,1],[2,4,5]]
+    },
+    '5complex': {
+      name: '5复杂', nodeCount: 5,
+      edges: [[1,2,2],[1,3,4],[2,4,7],[3,4,3],[3,5,1],[4,5,1],[2,3,1],[1,5,10]]
+    },
+    'full4': {
+      name: '4完全图', nodeCount: 4,
+      edges: [[1,2,1],[1,3,5],[1,4,2],[2,3,3],[2,4,4],[3,4,1]]
+    }
+  };
+}
+
+// ── Parse edge input ──
+function parseEdgeInput(text) {
+  const edges = [];
+  const errors = [];
+  const lines = text.split(/\r?\n/);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    const parts = line.split(/\s+/);
+    if (parts.length !== 3) {
+      errors.push(`第${i+1}行格式错误，需要三个数字（u v w），实际得到 ${parts.length} 个`);
+      continue;
+    }
+    const u = Number(parts[0]), v = Number(parts[1]), w = Number(parts[2]);
+    if (isNaN(u) || isNaN(v) || isNaN(w)) {
+      errors.push(`第${i+1}行包含非数字内容: "${line}"`);
+      continue;
+    }
+    if (u < 1 || v < 1) {
+      errors.push(`第${i+1}行节点编号必须 >= 1: "${line}"`);
+      continue;
+    }
+    edges.push([u, v, w]);
+  }
+  return { edges, errors };
+}
+
+// ── Generate graph with circle layout ──
+function generateGraph(nodeCount, edgeList) {
+  const margin = 55;
+  let R;
+  if (nodeCount <= 4) R = 120;
+  else if (nodeCount <= 6) R = 145;
+  else R = 165;
+  const side = 2 * (R + margin);
+  const cx = side / 2, cy = side / 2;
+
+  const svg = document.getElementById('graph');
+  svg.setAttribute('width', side);
+  svg.setAttribute('height', side);
+  svg.setAttribute('viewBox', `0 0 ${side} ${side}`);
+
+  const nodes = [];
+  for (let i = 1; i <= nodeCount; i++) {
+    const angle = (2 * Math.PI * (i - 1)) / nodeCount - Math.PI / 2;
+    nodes.push({
+      id: i,
+      x: Math.round(cx + R * Math.cos(angle)),
+      y: Math.round(cy + R * Math.sin(angle)),
+      label: String(i)
+    });
+  }
+
+  // Deduplicate edges: keep min weight per unordered pair
+  const edgeMap = new Map();
+  for (const [u, v, w] of edgeList) {
+    if (u === v) continue; // skip self-loops
+    if (u < 1 || u > nodeCount || v < 1 || v > nodeCount) continue;
+    const key = u < v ? `${u},${v}` : `${v},${u}`;
+    if (!edgeMap.has(key) || w < edgeMap.get(key).w) {
+      edgeMap.set(key, { u, v, w });
+    }
+  }
+  const edges = Array.from(edgeMap.values());
+
+  graph = { nodes, edges };
+  N = nodeCount;
+}
+
+// ── Handle build ──
+function handleBuildGraph() {
+  const nc = parseInt(document.getElementById('nodeCount').value, 10);
+  const errorEl = document.getElementById('errorMsg');
+
+  if (isNaN(nc) || nc < 2 || nc > 8) {
+    errorEl.textContent = '节点数 N 必须在 2 到 8 之间';
+    return;
+  }
+
+  const raw = document.getElementById('edgeInput').value;
+  const { edges, errors } = parseEdgeInput(raw);
+
+  // Check for out-of-range node references
+  for (const [u, v] of edges) {
+    if (u > nc) { errorEl.textContent = `边 (${u},${v}) 节点 ${u} 超出范围（N=${nc}）`; return; }
+    if (v > nc) { errorEl.textContent = `边 (${u},${v}) 节点 ${v} 超出范围（N=${nc}）`; return; }
+  }
+
+  if (errors.length > 0) {
+    errorEl.textContent = errors.join('\n');
+    return;
+  }
+
+  errorEl.textContent = '';
+
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+
+  // Deactivate all preset buttons (user has custom input)
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+
+  generateGraph(nc, edges);
+  currentStep = 0;
+  initDist();
+  buildSteps();
+  render(steps[0]);
+  updateButtons();
+}
+
+// ── Load preset ──
+function loadPreset(key) {
+  const p = presets[key];
+  if (!p) return;
+  document.getElementById('nodeCount').value = p.nodeCount;
+  document.getElementById('edgeInput').value = p.edges.map(e => e.join(' ')).join('\n');
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.preset-btn[data-preset="${key}"]`);
+  if (btn) btn.classList.add('active');
+  handleBuildGraph();
+}
+
+// ── Render preset buttons ──
+function renderPresetButtons() {
+  const container = document.getElementById('presetBtns');
+  for (const [key, p] of Object.entries(presets)) {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn';
+    btn.dataset.preset = key;
+    btn.textContent = p.name;
+    btn.onclick = () => loadPreset(key);
+    container.appendChild(btn);
+  }
+}
 
 function initDist() {
   dist = [];
@@ -312,7 +519,7 @@ document.getElementById('btnStep').onclick = step;
 document.getElementById('btnAuto').onclick = autoPlay;
 document.getElementById('btnReset').onclick = reset;
 document.getElementById('btnSpeed').onclick = function() {
-  speed = speed >= 3 ? 1 : speed + 1;
+  speed = speed >= 5 ? 1 : speed + 1;
   this.textContent = '速度: ' + speed + 'x';
   if (autoTimer) {
     clearInterval(autoTimer);
@@ -321,10 +528,16 @@ document.getElementById('btnSpeed').onclick = function() {
 };
 
 // Initialize
-initDist();
-buildSteps();
-render(steps[0]);
-updateButtons();
+presets = definePresets();
+renderPresetButtons();
+
+// Panel toggle
+document.getElementById('panelToggle').onclick = function() {
+  document.getElementById('inputPanel').classList.toggle('collapsed');
+};
+document.getElementById('btnBuild').onclick = handleBuildGraph;
+
+loadPreset('3city');
 </script>
 </body>
 </html>
