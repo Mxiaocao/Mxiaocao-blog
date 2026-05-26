@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floyd-Warshall 算法可视化</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #1a1a2e;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  h2 { margin-bottom: 20px; color: #e94560; }
+  .container { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .graph-panel {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #0f3460;
+  }
+  .matrix-panel {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #0f3460;
+  }
+  .matrix-panel h3 { margin-bottom: 12px; color: #e94560; text-align: center; }
+  table { border-collapse: collapse; }
+  td {
+    width: 70px; height: 50px;
+    text-align: center;
+    border: 1px solid #0f3460;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s;
+  }
+  .row-label, .col-label { color: #888; font-size: 13px; font-weight: normal; }
+  .inf { color: #666; }
+  .highlight-k { background: rgba(233,69,96,0.3) !important; }
+  .highlight-i { background: rgba(0,173,181,0.3) !important; }
+  .highlight-j { background: rgba(255,211,105,0.3) !important; }
+  .highlight-update { background: rgba(46,213,115,0.5) !important; animation: pulse 0.6s; }
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  .controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button {
+    padding: 10px 20px; border: none; border-radius: 8px;
+    cursor: pointer; font-size: 15px; font-weight: bold;
+    transition: all 0.2s;
+  }
+  button:hover { transform: translateY(-2px); }
+  .btn-step { background: #e94560; color: #fff; }
+  .btn-auto { background: #0f3460; color: #fff; }
+  .btn-reset { background: #533483; color: #fff; }
+  .btn-speed { background: #222831; color: #eee; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .info {
+    margin-top: 15px; padding: 12px 20px;
+    background: #16213e; border-radius: 8px;
+    border-left: 3px solid #e94560;
+    font-size: 15px; max-width: 600px; text-align: center;
+    min-height: 24px;
+  }
+  .info span { color: #e94560; font-weight: bold; }
+  .status { margin-top: 10px; font-size: 13px; color: #888; text-align: center; }
+  svg text { user-select: none; }
+  svg .edge-label { font-size: 14px; fill: #aaa; }
+  svg .node circle { transition: fill 0.3s; }
+</style>
+</head>
+<body>
+<h2>Floyd-Warshall 算法可视化</h2>
+<div class="container">
+  <div class="graph-panel">
+    <svg id="graph" width="380" height="320"></svg>
+  </div>
+  <div class="matrix-panel">
+    <h3>dist[i][j] 距离矩阵</h3>
+    <table id="matrix"></table>
+  </div>
+</div>
+<div class="info" id="info">准备开始</div>
+<div class="status" id="status">k=?, i=?, j=?</div>
+<div class="controls">
+  <button class="btn-step" id="btnStep">&#9654; 下一步</button>
+  <button class="btn-auto" id="btnAuto">&#9654; 自动播放</button>
+  <button class="btn-speed" id="btnSpeed">速度: 1x</button>
+  <button class="btn-reset" id="btnReset">&#8635; 重置</button>
+</div>
+
+<script>
+// Example data matching the post: cities 1,2,3
+const N = 3;
+const graph = {
+  nodes: [
+    { id:1, x:60,  y:260, label:'1' },
+    { id:2, x:190, y:80,  label:'2' },
+    { id:3, x:320, y:260, label:'3' },
+  ],
+  edges: [
+    { u:1, v:2, w:8  },
+    { u:2, v:3, w:1  },
+    { u:1, v:3, w:10 },
+  ]
+};
+
+const INF = 999;
+let dist, state;
+let steps = [];
+let currentStep = 0;
+let autoTimer = null;
+let speed = 1;
+
+function initDist() {
+  dist = [];
+  for (let i = 1; i <= N; i++) {
+    dist[i] = [];
+    for (let j = 1; j <= N; j++) {
+      dist[i][j] = (i === j) ? 0 : INF;
+    }
+  }
+  for (let e of graph.edges) {
+    dist[e.u][e.v] = Math.min(dist[e.u][e.v], e.w);
+    dist[e.v][e.u] = Math.min(dist[e.v][e.u], e.w);
+  }
+}
+
+function buildSteps() {
+  // Capture initial state
+  steps = [{k:0, i:0, j:0, changed:null, desc:'初始状态：直飞票价', matrix: JSON.parse(JSON.stringify(dist))}];
+
+  for (let k = 1; k <= N; k++) {
+    steps.push({k:k, i:0, j:0, changed:null, desc:`开始尝试以城市 ${k} 作为中转站`, matrix: JSON.parse(JSON.stringify(dist))});
+    for (let i = 1; i <= N; i++) {
+      for (let j = 1; j <= N; j++) {
+        if (i === j) continue;
+        if (dist[i][k] < INF && dist[k][j] < INF) {
+          let old = dist[i][j];
+          let via = dist[i][k] + dist[k][j];
+          if (via < old) {
+            dist[i][j] = via;
+            steps.push({
+              k:k, i:i, j:j, changed:true,
+              desc:`<span>优化！</span>dist[${i}][${j}] 从 ${old} 变成 ${via}（${i}→${k}→${j}：${dist[i][k]}+${dist[k][j]}=${via} < ${old}）`,
+              matrix: JSON.parse(JSON.stringify(dist))
+            });
+          } else {
+            steps.push({
+              k:k, i:i, j:j, changed:false,
+              desc:`dist[${i}][${j}]=${old}，经${k}中转: ${dist[i][k]}+${dist[k][j]}=${via}，没有更优`,
+              matrix: JSON.parse(JSON.stringify(dist))
+            });
+          }
+        }
+      }
+    }
+  }
+  steps.push({k:0, i:0, j:0, changed:null, desc:'算法结束！所有点对最短路径已求出', matrix: JSON.parse(JSON.stringify(dist))});
+}
+
+function drawGraph(s) {
+  const svg = document.getElementById('graph');
+  svg.innerHTML = '';
+
+  // Draw edges
+  for (let e of graph.edges) {
+    const u = graph.nodes[e.u-1], v = graph.nodes[e.v-1];
+    let stroke = '#555', strokeW = 2;
+    // Highlight if this edge participates in current step
+    if (s.k > 0 && s.i > 0 && s.j > 0 && s.changed) {
+      if ((e.u === s.i && e.v === s.k) || (e.v === s.i && e.u === s.k) ||
+          (e.u === s.k && e.v === s.j) || (e.v === s.k && e.u === s.j)) {
+        stroke = '#e94560'; strokeW = 3;
+      }
+    }
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',u.x); line.setAttribute('y1',u.y);
+    line.setAttribute('x2',v.x); line.setAttribute('y2',v.y);
+    line.setAttribute('stroke',stroke); line.setAttribute('stroke-width',strokeW);
+    svg.appendChild(line);
+
+    // Edge label
+    const mx = (u.x+v.x)/2, my = (u.y+v.y)/2 - 8;
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',mx); txt.setAttribute('y',my);
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('fill','#aaa'); txt.setAttribute('font-size','14');
+    txt.textContent = e.w;
+    svg.appendChild(txt);
+  }
+
+  // Draw nodes
+  for (let nd of graph.nodes) {
+    let fill = '#0f3460';
+    let stroke = '#e94560';
+    if (nd.id === s.k) { fill = '#e94560'; stroke = '#fff'; }
+    else if (nd.id === s.i) { fill = '#00adb5'; stroke = '#fff'; }
+    else if (nd.id === s.j) { fill = '#ffd369'; stroke = '#fff'; }
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx',nd.x); circle.setAttribute('cy',nd.y);
+    circle.setAttribute('r',26); circle.setAttribute('fill',fill);
+    circle.setAttribute('stroke',stroke); circle.setAttribute('stroke-width','2');
+    g.appendChild(circle);
+
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',nd.x); txt.setAttribute('y',nd.y+6);
+    txt.setAttribute('text-anchor','middle'); txt.setAttribute('fill','#fff');
+    txt.setAttribute('font-size','18'); txt.setAttribute('font-weight','bold');
+    txt.textContent = nd.label;
+    g.appendChild(txt);
+
+    if (nd.id === s.k) {
+      const ktxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      ktxt.setAttribute('x',nd.x); ktxt.setAttribute('y',nd.y-36);
+      ktxt.setAttribute('text-anchor','middle'); ktxt.setAttribute('fill','#e94560');
+      ktxt.setAttribute('font-size','12'); ktxt.setAttribute('font-weight','bold');
+      ktxt.textContent = 'k='+nd.id;
+      g.appendChild(ktxt);
+    }
+
+    svg.appendChild(g);
+  }
+}
+
+function renderMatrix(s) {
+  const tbl = document.getElementById('matrix');
+  let html = '<tr><td class="col-label">i\\j</td>';
+  for (let j = 1; j <= N; j++) html += `<td class="col-label">${j}</td>`;
+  html += '</tr>';
+
+  for (let i = 1; i <= N; i++) {
+    html += '<tr>';
+    html += `<td class="row-label">${i}</td>`;
+    for (let j = 1; j <= N; j++) {
+      let cls = '';
+      if (s.k > 0 && s.i === i && s.j === j && s.changed) cls = 'highlight-update';
+      else if (s.k > 0 && i === s.k) cls = 'highlight-k';
+      else if (s.k > 0 && i === s.i && j !== s.i) cls = 'highlight-i';
+      else if (s.k > 0 && j === s.j && i !== s.j) cls = 'highlight-j';
+
+      let val = s.matrix[i][j];
+      let display = val >= INF ? '<span class="inf">∞</span>' : val;
+      html += `<td class="${cls}">${display}</td>`;
+    }
+    html += '</tr>';
+  }
+  tbl.innerHTML = html;
+}
+
+function render(s) {
+  drawGraph(s);
+  renderMatrix(s);
+  document.getElementById('info').innerHTML = s.desc;
+  if (s.k > 0) {
+    document.getElementById('status').textContent = `k=${s.k}, i=${s.i||'?'}, j=${s.j||'?'}`;
+  } else {
+    document.getElementById('status').textContent = '';
+  }
+}
+
+function step() {
+  if (currentStep >= steps.length - 1) return;
+  currentStep++;
+  render(steps[currentStep]);
+  updateButtons();
+}
+
+function updateButtons() {
+  document.getElementById('btnStep').disabled = (currentStep >= steps.length - 1);
+  document.getElementById('btnAuto').textContent = autoTimer ? '⏸ 暂停' : '▶ 自动播放';
+}
+
+function autoPlay() {
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = null;
+    updateButtons();
+    return;
+  }
+  autoTimer = setInterval(() => {
+    if (currentStep >= steps.length - 1) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      updateButtons();
+      return;
+    }
+    step();
+  }, 1200 / speed);
+  updateButtons();
+}
+
+function reset() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  currentStep = 0;
+  initDist();
+  buildSteps();
+  render(steps[0]);
+  updateButtons();
+}
+
+document.getElementById('btnStep').onclick = step;
+document.getElementById('btnAuto').onclick = autoPlay;
+document.getElementById('btnReset').onclick = reset;
+document.getElementById('btnSpeed').onclick = function() {
+  speed = speed >= 3 ? 1 : speed + 1;
+  this.textContent = '速度: ' + speed + 'x';
+  if (autoTimer) {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(step, 1200 / speed);
+  }
+};
+
+// Initialize
+initDist();
+buildSteps();
+render(steps[0]);
+updateButtons();
+</script>
+</body>
+</html>
