@@ -169,9 +169,9 @@ function buildSteps() {
     adj[e.v].push({ to: e.u, w: e.w });
   }
   for (let i = 1; i <= N; i++) { dist[i] = INF; ok[i] = false; }
-  dist[source] = 0; ok[source] = true;
+  dist[source] = 0;
 
-  steps = [{ type: 'init', node: source, dist: [...dist], ok: [...ok], desc: `初始化：源点 <span>${source}</span> dist=0，已确定。其余点 dist=∞`, settled: [...ok] }];
+  steps = [{ type: 'init', node: source, dist: [...dist], ok: [...ok], desc: `初始化：源点 <span>${source}</span> dist=0，其余点 dist=∞`, settled: [...ok] }];
 
   for (let iter = 1; iter < N; iter++) {
     // Find min dist among unvisited
