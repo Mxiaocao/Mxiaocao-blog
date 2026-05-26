@@ -1,4 +1,4 @@
-https://mxiaocaoblog.com/dashboard/index.html
+https://mxiaocaoblog.com/about/index.html
 https://mxiaocaoblog.com/2026/05/25/9-2-Convex-Hull/
 https://mxiaocaoblog.com/2026/05/24/5-3-2-MST/
 https://mxiaocaoblog.com/2026/05/24/5-2-4-SPFA-Bellman-Ford/
@@ -19,7 +19,6 @@ https://mxiaocaoblog.com/2026/05/18/Lambda/
 https://mxiaocaoblog.com/2026/05/14/Linked-List/
 https://mxiaocaoblog.com/2026/05/14/stack/
 https://mxiaocaoblog.com/link/index.html
-https://mxiaocaoblog.com/about/index.html
 https://mxiaocaoblog.com/2026/05/15/hdoj8/
 https://mxiaocaoblog.com/2026/05/13/Team-Weekly-Contest-2026-5-10/
 https://mxiaocaoblog.com/2026/05/14/hdoj1/
