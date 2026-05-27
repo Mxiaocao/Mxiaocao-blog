@@ -85,6 +85,6 @@ https://mxiaocaoblog.com/categories/leetcode/
 https://mxiaocaoblog.com/categories/team-weekly-contest/
 https://mxiaocaoblog.com/categories/codeforces/
 https://mxiaocaoblog.com/categories/hdoj/
-https://mxiaocaoblog.com/categories/seq-list/
 https://mxiaocaoblog.com/categories/about/
+https://mxiaocaoblog.com/categories/seq-list/
 https://mxiaocaoblog.com/categories/stack-queue/
