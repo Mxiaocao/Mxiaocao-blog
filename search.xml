@@ -107,9 +107,9 @@
       
         <tags>
             
-            <tag> SPFA </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> SPFA </tag>
             
             <tag> 负环 </tag>
             
@@ -641,9 +641,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> Dijkstra </tag>
+            
+            <tag> 最短路 </tag>
             
         </tags>
       
