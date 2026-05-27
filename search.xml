@@ -107,9 +107,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> SPFA </tag>
+            
+            <tag> 最短路 </tag>
             
             <tag> 负环 </tag>
             
@@ -641,9 +641,9 @@
       
         <tags>
             
-            <tag> Dijkstra </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> Dijkstra </tag>
             
         </tags>
       
@@ -714,9 +714,9 @@
       
         <tags>
             
-            <tag> stl </tag>
-            
             <tag> deque </tag>
+            
+            <tag> stl </tag>
             
         </tags>
       
@@ -741,9 +741,9 @@
       
         <tags>
             
-            <tag> priority_queue </tag>
-            
             <tag> stl </tag>
+            
+            <tag> priority_queue </tag>
             
         </tags>
       
