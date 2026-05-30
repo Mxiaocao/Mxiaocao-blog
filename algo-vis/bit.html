@@ -1,258 +1,261 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>树状数组 BIT 交互演示</title>
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-h1 { margin: 20px 0 10px; font-size: 24px; }
-.subtitle { color: #888; font-size: 13px; margin-bottom: 15px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>树状数组 (BIT) 跳跃演示</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a2e;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        h2 { margin-bottom: 5px; }
+        p { color: #888; }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #16213e;
+            border: 1px solid #0f3460;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            background: #0a0f1e;
+            color: #eee;
+            text-align: center;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            transition: opacity 0.2s;
+            font-weight: 600;
+        }
+        button:hover { opacity: 0.8; }
+        .btn-add { background-color: #ff9800; }
+        .btn-sum { background-color: #03a9f4; }
+        .btn-reset { background-color: #555; }
 
-.container { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; padding: 0 20px; }
+        .viz-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .cell-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .cell {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #0f3460;
+            border: 2px solid #1a4a7a;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            color: #ccc;
+        }
+        .label {
+            font-size: 12px;
+            color: #888;
+        }
 
-.panel { background: #16213e; border: 1px solid #0f3460; border-radius: 12px; padding: 20px; min-width: 360px; }
-.panel h2 { font-size: 16px; color: #e94560; margin-bottom: 12px; }
+        .highlight-add {
+            background-color: #ff9800 !important;
+            color: #fff;
+            border-color: #ffb74d;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+        }
+        .highlight-sum {
+            background-color: #03a9f4 !important;
+            color: #fff;
+            border-color: #29b6f6;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(3, 169, 244, 0.5);
+        }
 
-.arr-row { display: flex; gap: 4px; align-items: flex-end; min-height: 120px; justify-content: center; flex-wrap: wrap; margin: 10px 0; }
-.arr-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all 0.3s; }
-.arr-box { width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-.arr-idx { font-size: 11px; color: #888; }
-
-.cell-normal .arr-box { background: #0f3460; color: #ccc; border: 2px solid transparent; }
-.cell-highlight .arr-box { background: #e94560; color: #fff; border-color: #ff6b81; transform: scale(1.15); box-shadow: 0 0 20px rgba(233,69,96,0.5); }
-.cell-query .arr-box { background: #03a9f4; color: #fff; border-color: #29b6f6; transform: scale(1.1); box-shadow: 0 0 16px rgba(3,169,244,0.4); }
-.cell-update .arr-box { background: #ff9800; color: #fff; border-color: #ffb74d; transform: scale(1.1); box-shadow: 0 0 16px rgba(255,152,0,0.4); }
-.cell-dimmed .arr-box { opacity: 0.35; }
-
-.legend { display: flex; gap: 15px; margin: 8px 0; font-size: 12px; }
-.legend span { display: flex; align-items: center; gap: 4px; }
-.legend .dot { width: 12px; height: 12px; border-radius: 3px; }
-
-.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.controls input { width: 60px; padding: 6px 8px; border-radius: 6px; border: 1px solid #0f3460; background: #0a0f1e; color: #eee; font-size: 14px; text-align: center; }
-.controls input[type="range"] { width: 100%; }
-.controls button { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-.btn-add { background: #4caf50; color: #fff; }
-.btn-add:hover { background: #66bb6a; }
-.btn-query { background: #03a9f4; color: #fff; }
-.btn-query:hover { background: #29b6f6; }
-.btn-reset { background: #555; color: #fff; }
-.btn-reset:hover { background: #777; }
-
-.result { margin-top: 10px; padding: 8px 12px; border-radius: 6px; background: #0a0f1e; font-size: 13px; min-height: 24px; }
-.result .val { color: #ff9800; font-weight: 700; }
-
-.step-info { font-size: 13px; color: #aaa; margin: 8px 0; min-height: 20px; }
-
-.tree-view { margin-top: 12px; }
-.tree-node { display: flex; align-items: center; gap: 8px; margin: 3px 0; font-size: 13px; }
-.tree-idx { color: #e94560; font-weight: 700; min-width: 30px; }
-.tree-range { color: #888; font-size: 11px; }
-.tree-val { color: #ff9800; font-weight: 600; }
-
-.speed-control { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; }
-.speed-control input { flex: 1; }
-
-.footer { margin-top: 15px; font-size: 12px; color: #555; }
-.footer a { color: #e94560; }
-</style>
+        #log-panel {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 650px;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            min-height: 150px;
+            border: 1px solid #30363d;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .log-entry { margin: 4px 0; padding-bottom: 4px; border-bottom: 1px dashed #21262d; }
+        .log-header { color: #f1c40f; margin-bottom: 10px; font-weight: 700; }
+    </style>
 </head>
 <body>
 
-<h1>树状数组 BIT / Fenwick Tree</h1>
-<div class="subtitle">点更新 · 前缀和查询 · lowbit 可视化</div>
-
-<div class="container">
-  <div class="panel">
-    <h2>原始数组 A[1..8]</h2>
-    <div id="arr-a" class="arr-row"></div>
-
-    <h2 style="margin-top:16px">树状数组 BIT[1..8]</h2>
-    <div id="arr-bit" class="arr-row"></div>
-
-    <div class="legend">
-      <span><span class="dot" style="background:#e94560"></span> 操作目标</span>
-      <span><span class="dot" style="background:#ff9800"></span> 更新传递</span>
-      <span><span class="dot" style="background:#03a9f4"></span> 查询累加</span>
-    </div>
-
-    <div class="step-info" id="step-info"></div>
+    <h2>树状数组跳跃引擎</h2>
+    <p>观察 C 数组的低位 (lowbit) 跳跃轨迹 — x → x ± lowbit(x)</p>
 
     <div class="controls">
-      <span style="font-size:13px;line-height:36px">下标:</span>
-      <input id="idx" type="number" min="1" max="8" value="3">
-      <span style="font-size:13px;line-height:36px">值:</span>
-      <input id="val" type="number" min="1" max="10" value="5">
-      <button class="btn-add" onclick="doAdd()">点更新 +</button>
-      <button class="btn-query" onclick="doQuery()">前缀和查询</button>
-      <button class="btn-reset" onclick="doReset()">重置</button>
+        <label for="xInput">位置 x (1-16): </label>
+        <input type="number" id="xInput" min="1" max="16" value="6">
+        <button class="btn-add" onclick="runAdd()">模拟 add(x)</button>
+        <button class="btn-sum" onclick="runSum()">模拟 sum(x)</button>
+        <button class="btn-reset" onclick="resetViz()">重置</button>
     </div>
 
-    <div class="result" id="result"></div>
-    <div class="speed-control">
-      速度: <input id="speed" type="range" min="200" max="1500" value="600">
-      <span id="speed-label">600ms</span>
+    <div class="viz-container">
+        <div class="row" id="c-row"></div>
+        <div class="row" id="a-row"></div>
     </div>
-  </div>
 
-  <div class="panel">
-    <h2>BIT 树形结构</h2>
-    <div class="tree-view" id="tree-view"></div>
-    <div style="margin-top:8px;font-size:12px;color:#888">
-      BIT[i] 覆盖区间: [i - lowbit(i) + 1, i]<br>
-      父节点: i + lowbit(i)<br>
-      lowbit(i) = i & (-i)
+    <div id="log-panel">
+        <div class="log-header">> 终端就绪。等待操作...</div>
     </div>
-  </div>
-</div>
 
-<div class="footer">
-  算法可视化 — <a href="/2026/05/30/6-4-BIT/">回到树状数组文章</a>
-</div>
+    <script>
+        const N = 16;
+        const cRow = document.getElementById('c-row');
+        const aRow = document.getElementById('a-row');
+        const logPanel = document.getElementById('log-panel');
+        let isAnimating = false;
 
-<script>
-const N = 8;
-let A = new Array(N+1).fill(0);
-let BIT = new Array(N+1).fill(0);
-let speed = 600;
-let busy = false;
+        const lowbit = (x) => x & -x;
+        const toBin = (x) => x.toString(2).padStart(5, '0');
 
-function lowbit(x) { return x & (-x); }
+        function initUI() {
+            cRow.innerHTML = '';
+            aRow.innerHTML = '';
+            for (let i = 1; i <= N; i++) {
+                const cContainer = document.createElement('div');
+                cContainer.className = 'cell-container';
+                cContainer.innerHTML = '<div class="label">C['+i+']</div><div class="cell" id="c-'+i+'">0</div>';
+                cRow.appendChild(cContainer);
 
-function initData() {
-  // Random initial values
-  const vals = [0,3,2,5,1,4,6,3,7];
-  for (let i=1; i<=N; i++) {
-    A[i] = vals[i];
-    _bitAdd(i, vals[i]);
-  }
-}
+                const aContainer = document.createElement('div');
+                aContainer.className = 'cell-container';
+                aContainer.innerHTML = '<div class="cell" id="a-'+i+'">0</div><div class="label">A['+i+']</div>';
+                aRow.appendChild(aContainer);
+            }
+        }
 
-function _bitAdd(i, v) {
-  while (i <= N) { BIT[i] += v; i += lowbit(i); }
-}
+        function resetViz() {
+            if(isAnimating) return;
+            document.querySelectorAll('.cell').forEach(el => {
+                el.classList.remove('highlight-add', 'highlight-sum');
+                el.innerText = '0';
+            });
+            logPanel.innerHTML = '<div class="log-header">> 状态已重置。</div>';
+        }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+        function log(msg) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerText = '> ' + msg;
+            logPanel.appendChild(entry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+        }
 
-function highlight(arr, indices, cls, dimOthers) {
-  for (let i=1; i<=N; i++) {
-    const cell = document.querySelector('#arr-' + arr + ' .arr-cell:nth-child(' + i + ')');
-    if (!cell) continue;
-    cell.className = 'arr-cell';
-    if (indices.has(i)) cell.classList.add(cls);
-    else if (dimOthers) cell.classList.add('cell-dimmed');
-  }
-}
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-function renderAll() {
-  renderArr('arr-a', A);
-  renderArr('arr-bit', BIT);
-  renderTree();
-}
+        async function runAdd() {
+            if (isAnimating) return;
+            let x = parseInt(document.getElementById('xInput').value);
+            if (isNaN(x) || x < 1 || x > N) return alert("请输入 1 到 16 之间的有效数字");
 
-function renderArr(id, data) {
-  const el = document.getElementById(id);
-  el.innerHTML = '';
-  for (let i=1; i<=N; i++) {
-    el.innerHTML += '<div class="arr-cell cell-normal"><div class="arr-box">'+data[i]+'</div><div class="arr-idx">['+i+']</div></div>';
-  }
-}
+            resetViz();
+            isAnimating = true;
+            log('=== 开始模拟 add('+x+', k) ===');
+            log('目标：原数组 A['+x+'] 发生改变，开始向上寻找受牵连的 C 数组父节点');
 
-function renderTree() {
-  const el = document.getElementById('tree-view');
-  let html = '';
-  for (let i=1; i<=N; i++) {
-    const lo = i - lowbit(i) + 1;
-    const hi = i;
-    html += '<div class="tree-node">';
-    html += '<span class="tree-idx">BIT['+i+']</span>';
-    html += '<span class="tree-range">覆盖 ['+lo+','+hi+']</span>';
-    html += '<span class="tree-val"> = '+BIT[i]+'</span>';
-    html += '<span style="font-size:10px;color:#666;margin-left:4px">→ 父: '+(i+lowbit(i)<=N?i+lowbit(i):'无')+'</span>';
-    html += '</div>';
-  }
-  el.innerHTML = html;
-}
+            const aCell = document.getElementById('a-'+x);
+            aCell.classList.add('highlight-add');
+            aCell.innerText = '+k';
+            await sleep(800);
 
-async function doAdd() {
-  if (busy) return;
-  busy = true;
-  const i = parseInt(document.getElementById('idx').value);
-  const v = parseInt(document.getElementById('val').value);
-  if (i<1||i>N) { busy=false; return; }
+            let step = 1;
+            while (x <= N) {
+                let lb = lowbit(x);
+                log('[步数 '+step+'] 当前 x = '+x+' (二进制 '+toBin(x)+')。lowbit = '+lb+'。更新 C['+x+']');
 
-  document.getElementById('step-info').innerHTML = '&#x1F504; 点更新: A['+i+'] += '+v+' → 向上传递到所有包含 i 的 BIT 节点';
-  document.getElementById('result').innerHTML = '';
+                const cCell = document.getElementById('c-'+x);
+                cCell.classList.add('highlight-add');
+                cCell.innerText = '+k';
 
-  // Highlight A[i]
-  highlight('arr-a', new Set([i]), 'cell-highlight', true);
-  await sleep(speed);
+                await sleep(1000);
+                x += lb;
+                if (x <= N) log('       └─> 下一个跳跃点: '+(x - lb)+' + '+lb+' = '+x);
+                step++;
+            }
+            log('=== 抵达边界 (x > 16)，更新结束 ===');
+            isAnimating = false;
+        }
 
-  A[i] += v;
-  renderArr('arr-a', A);
+        async function runSum() {
+            if (isAnimating) return;
+            let x = parseInt(document.getElementById('xInput').value);
+            if (isNaN(x) || x < 1 || x > N) return alert("请输入 1 到 16 之间的有效数字");
 
-  // Update BIT: traverse i += lowbit(i)
-  let cur = i;
-  while (cur <= N) {
-    highlight('arr-bit', new Set([cur]), 'cell-update', true);
-    await sleep(speed/2);
-    BIT[cur] += v;
-    renderArr('arr-bit', BIT);
-    cur += lowbit(cur);
-    await sleep(speed/2);
-  }
+            resetViz();
+            isAnimating = true;
+            log('=== 开始模拟 sum('+x+') ===');
+            log('目标：剥洋葱式地将不重叠的 C 数组拼块加起来');
 
-  document.getElementById('step-info').innerHTML = '&#x2705; 更新完成。A['+i+'] = '+A[i];
-  renderAll();
-  busy = false;
-}
+            let step = 1;
+            let formula = [];
+            while (x > 0) {
+                let lb = lowbit(x);
+                log('[步数 '+step+'] 当前 x = '+x+' (二进制 '+toBin(x)+')。lowbit = '+lb+'。拿到 C['+x+']');
+                formula.push('C['+x+']');
 
-async function doQuery() {
-  if (busy) return;
-  busy = true;
-  const i = parseInt(document.getElementById('idx').value);
-  if (i<1||i>N) { busy=false; return; }
+                const cCell = document.getElementById('c-'+x);
+                cCell.classList.add('highlight-sum');
+                cCell.innerText = '✓';
 
-  document.getElementById('step-info').innerHTML = '&#x1F50D; 前缀和查询: sum(A[1..'+i+']) → 累加 BIT 从 '+i+' 向下跳 lowbit';
-  document.getElementById('result').innerHTML = '';
+                await sleep(1000);
+                x -= lb;
+                if(x > 0) log('       └─> 寻找左侧拼图块: '+(x + lb)+' - '+lb+' = '+x);
+                step++;
+            }
+            log('=== 查询结束。前缀和 = '+formula.join(' + ')+' ===');
+            isAnimating = false;
+        }
 
-  let sum = 0;
-  let cur = i;
-  const steps = [];
-  while (cur > 0) {
-    highlight('arr-bit', new Set([cur]), 'cell-query', true);
-    await sleep(speed/2);
-    sum += BIT[cur];
-    steps.push('BIT['+cur+']='+BIT[cur]);
-    cur -= lowbit(cur);
-    await sleep(speed/2);
-  }
-
-  document.getElementById('result').innerHTML = '前缀和 sum[1..'+i+'] = <span class="val">'+steps.join(' + ')+' = '+sum+'</span>';
-  document.getElementById('step-info').innerHTML = '&#x2705; 查询完成';
-  highlight('arr-bit', new Set(), 'cell-normal', false);
-  renderAll();
-  busy = false;
-}
-
-function doReset() {
-  A = new Array(N+1).fill(0);
-  BIT = new Array(N+1).fill(0);
-  document.getElementById('result').innerHTML = '';
-  document.getElementById('step-info').innerHTML = '';
-  initData();
-  renderAll();
-}
-
-document.getElementById('speed').addEventListener('input', function() {
-  speed = parseInt(this.value);
-  document.getElementById('speed-label').textContent = speed + 'ms';
-});
-
-initData();
-renderAll();
-</script>
+        initUI();
+    </script>
 </body>
 </html>
