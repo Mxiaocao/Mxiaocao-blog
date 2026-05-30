@@ -1,182 +1,863 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>树状数组 BIT 柱状结构</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#eee;display:flex;flex-direction:column;align-items:center;padding:30px 20px;min-height:100vh}
-h2{margin-bottom:4px}
-.sub{color:#888;font-size:13px;margin-bottom:15px}
-.controls{margin:15px 0;padding:12px 18px;background:#16213e;border:1px solid #0f3460;border-radius:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
-.controls input{width:70px;padding:7px;font-size:15px;border:1px solid #0f3460;border-radius:4px;background:#0a0f1e;color:#eee;text-align:center}
-.controls button{padding:8px 16px;font-size:14px;cursor:pointer;border:none;border-radius:4px;color:#fff;font-weight:600;transition:opacity 0.2s}
-.controls button:hover{opacity:0.8}
-.btn-add{background:#ff9800}
-.btn-sum{background:#03a9f4}
-.btn-reset{background:#555}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>树状数组交互动画</title>
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --ink: #202327;
+      --muted: #6d7178;
+      --line: #d8d1c4;
+      --panel: #fffdf8;
+      --accent: #0f766e;
+      --accent-soft: #d9f3ee;
+      --warn: #c2410c;
+      --sum: #7c3aed;
+      --sum-soft: #ece4ff;
+      --array: #2563eb;
+      --array-soft: #dfeaff;
+      --shadow: 0 18px 42px rgba(34, 38, 42, 0.1);
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+    }
 
-canvas{display:block;margin:10px 0}
+    * {
+      box-sizing: border-box;
+    }
 
-#log-panel{margin-top:15px;width:100%;max-width:700px;background:#0d1117;color:#c9d1d9;padding:12px 15px;border-radius:8px;font-family:Consolas,monospace;font-size:12px;min-height:60px;border:1px solid #30363d;max-height:180px;overflow-y:auto}
-.log-entry{margin:3px 0;padding-bottom:3px;border-bottom:1px dashed #21262d}
-</style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 36%),
+        linear-gradient(315deg, rgba(124, 58, 237, 0.12), transparent 34%),
+        var(--bg);
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      max-width: 680px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .speed {
+      display: grid;
+      gap: 7px;
+      min-width: 190px;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.75);
+    }
+
+    .speed label {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .speed input {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, 0.92);
+      box-shadow: var(--shadow);
+    }
+
+    .visual {
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    .controls {
+      display: grid;
+      gap: 14px;
+      padding: 16px;
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.16);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .btn {
+      min-height: 42px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 118, 110, 0.22);
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .btn.secondary {
+      color: var(--ink);
+      border-color: var(--line);
+      background: #fff;
+    }
+
+    .btn.sum {
+      background: var(--sum);
+    }
+
+    .status {
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    .status strong {
+      color: var(--accent);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 27px;
+      padding: 4px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .dot.sum {
+      background: var(--sum);
+    }
+
+    .dot.array {
+      background: var(--array);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(54px, 1fr));
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .cell {
+      position: relative;
+      display: grid;
+      grid-template-rows: 20px 48px 20px;
+      align-items: center;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    .box {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 700;
+      transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .idx, .range {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .box.array {
+      background: var(--array-soft);
+      border-color: rgba(37, 99, 235, 0.28);
+    }
+
+    .box.active-add {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.18);
+      transform: translateY(-5px) scale(1.03);
+    }
+
+    .box.active-sum {
+      background: var(--sum-soft);
+      border-color: var(--sum);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.17);
+      transform: translateY(-5px) scale(1.03);
+    }
+
+    .box.covered {
+      background: #fff7ed;
+      border-color: rgba(194, 65, 12, 0.34);
+    }
+
+    .fenwick-diagram {
+      position: relative;
+      min-width: 720px;
+      height: 380px;
+      margin: 0 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        linear-gradient(to right, rgba(32, 35, 39, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(32, 35, 39, 0.08) 1px, transparent 1px),
+        #fff;
+      background-size: 12.5% 100%, 100% 72px;
+    }
+
+    .diagram-wrap {
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .range-node {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      height: 58px;
+      border: 1px solid rgba(32, 35, 39, 0.68);
+      background: rgba(255, 253, 248, 0.94);
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .branch {
+      position: absolute;
+      width: 3px;
+      background: #202327;
+      border-radius: 999px;
+      transform: translateX(-50%);
+      transition: background 0.2s ease, box-shadow 0.2s ease, width 0.2s ease;
+    }
+
+    .tree-label {
+      position: absolute;
+      width: 72px;
+      display: grid;
+      gap: 3px;
+      justify-items: center;
+      transform: translateX(-50%);
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1.1;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .tree-label small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .range-node.active-add,
+    .tree-label.active-add {
+      color: var(--accent);
+    }
+
+    .range-node.active-add {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.18);
+      transform: translateY(-3px);
+    }
+
+    .branch.active-add {
+      width: 5px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.14);
+    }
+
+    .range-node.active-sum,
+    .tree-label.active-sum {
+      color: var(--sum);
+    }
+
+    .range-node.active-sum {
+      background: var(--sum-soft);
+      border-color: var(--sum);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.17);
+      transform: translateY(-3px);
+    }
+
+    .branch.active-sum {
+      width: 5px;
+      background: var(--sum);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.13);
+    }
+
+    .tree-label.active-add,
+    .tree-label.active-sum {
+      transform: translateX(-50%) translateY(-4px);
+      font-weight: 700;
+    }
+
+    .formula {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .formula-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      line-height: 1.65;
+      min-height: 94px;
+    }
+
+    .formula-card code {
+      color: var(--warn);
+      font-family: "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .trace {
+      display: grid;
+      gap: 10px;
+      max-height: 310px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .trace-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px 11px;
+      line-height: 1.55;
+    }
+
+    .trace-item.current {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .answer {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 11px;
+      min-height: 76px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      font-size: 22px;
+    }
+
+    @media (max-width: 900px) {
+      .topbar, .layout {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .speed {
+        width: 100%;
+      }
+
+      .bars {
+        grid-template-columns: repeat(4, minmax(58px, 1fr));
+      }
+
+      .fenwick-diagram {
+        min-width: 680px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      .control-row, .button-row, .formula, .answer {
+        grid-template-columns: 1fr;
+      }
+
+      .visual, .controls {
+        padding: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
-<h2>树状数组 BIT — 柱状高度 = lowbit</h2>
-<div class="sub">每列高度 = lowbit(i) = 该节点覆盖的元素个数</div>
+  <main class="app">
+    <div class="topbar">
+      <div>
+        <h1>树状数组 Fenwick Tree</h1>
+        <p class="subtitle">输入下标和值，观察 `add(i, delta)` 如何沿着 `i += lowbit(i)` 更新节点；输入下标，观察 `sum(i)` 如何沿着 `i -= lowbit(i)` 累加前缀。</p>
+      </div>
+      <div class="speed">
+        <label for="speed">动画速度</label>
+        <input id="speed" type="range" min="180" max="1000" step="20" value="560">
+      </div>
+    </div>
 
-<div class="controls">
-  <label>N: <input id="nInput" type="number" min="4" max="16" value="16"></label>
-  <button class="btn-add" onclick="build()">构建</button>
-  <label>位置: <input id="xInput" type="number" min="1" max="16" value="6"></label>
-  <button class="btn-add" onclick="runAdd()" style="background:#ff9800">add(x)</button>
-  <button class="btn-sum" onclick="runSum()">sum(x)</button>
-  <button class="btn-reset" onclick="build()">重置</button>
-</div>
+    <section class="layout">
+      <div class="panel visual">
+        <div class="legend">
+          <span class="chip"><span class="dot array"></span>原数组 a[i]</span>
+          <span class="chip"><span class="dot"></span>add 更新路径</span>
+          <span class="chip"><span class="dot sum"></span>sum 访问路径</span>
+        </div>
 
-<canvas id="c"></canvas>
-<div id="log-panel"></div>
+        <div class="section-title">
+          <span>原数组</span>
+          <span>下标从 1 开始</span>
+        </div>
+        <div id="arrayRow" class="bars"></div>
 
-<script>
-const c=document.getElementById('c'),ctx=c.getContext('2d');
-const logPanel=document.getElementById('log-panel');
-let N=16,A=[],BIT=[],animating=false;
+        <div class="section-title">
+          <span>树状数组 c[i]</span>
+          <span>c[i] 管辖区间：[i-lowbit(i)+1, i]</span>
+        </div>
+        <div class="diagram-wrap">
+          <div id="treeRow" class="fenwick-diagram"></div>
+        </div>
 
-function lowbit(x){return x&-x;}
-function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
-function log(msg){const d=document.createElement('div');d.className='log-entry';d.textContent='> '+msg;logPanel.appendChild(d);logPanel.scrollTop=logPanel.scrollHeight;}
+        <div class="section-title">
+          <span>当前访问节点覆盖的区间</span>
+          <span id="rangeText">等待操作</span>
+        </div>
 
-function build(){
-  if(animating)return;
-  N=parseInt(document.getElementById('nInput').value)||16;
-  document.getElementById('xInput').max=N;
-  A=new Array(N+1).fill(0);BIT=new Array(N+1).fill(0);
-  logPanel.innerHTML='';
-  for(let i=1;i<=N;i++){A[i]=Math.floor(Math.random()*9)+1;}
-  for(let i=1;i<=N;i++){let j=i;while(j<=N){BIT[j]+=A[i];j+=lowbit(j);}}
-  draw();
-  log('构建完成。N='+N+', A随机初始化');
-}
+        <div class="formula">
+          <div class="formula-card">
+            <strong>add(i, delta)</strong><br>
+            <code>while i &lt;= n: c[i] += delta; i += lowbit(i)</code>
+          </div>
+          <div class="formula-card">
+            <strong>sum(i)</strong><br>
+            <code>while i &gt; 0: ans += c[i]; i -= lowbit(i)</code>
+          </div>
+        </div>
+      </div>
 
-function draw(hlCells=null,hlColor='#ff9800'){
-  const baseY=380, maxH=280, cellW=38, gap=6, padLeft=50, padTop=20;
-  const totalW=padLeft*2+N*cellW+(N-1)*gap;
-  c.width=totalW;c.height=baseY+70;
+      <aside class="panel controls">
+        <div class="control-row">
+          <div class="field">
+            <label for="indexInput">下标 i</label>
+            <input id="indexInput" type="number" min="1" max="8" value="3">
+          </div>
+          <div class="field">
+            <label for="deltaInput">增加值 delta</label>
+            <input id="deltaInput" type="number" min="-99" max="99" value="4">
+          </div>
+        </div>
 
-  ctx.clearRect(0,0,c.width,c.height);
+        <div class="button-row">
+          <button id="addBtn" class="btn">add</button>
+          <button id="sumBtn" class="btn sum">sum</button>
+          <button id="resetBtn" class="btn secondary">重置</button>
+        </div>
 
-  // Draw A row at bottom
-  ctx.fillStyle='#888';ctx.font='12px Consolas';ctx.textAlign='center';
-  for(let i=1;i<=N;i++){
-    const x=padLeft+(i-1)*(cellW+gap);
-    const y=baseY+10;
-    // A cell
-    ctx.fillStyle='#0f3460';ctx.strokeStyle='#1a4a7a';ctx.lineWidth=1.5;
-    ctx.fillRect(x,y,cellW,28);
-    ctx.strokeRect(x,y,cellW,28);
-    ctx.fillStyle='#ccc';ctx.font='bold 13px Consolas';
-    ctx.fillText(A[i],x+cellW/2,y+20);
-    // A label
-    ctx.fillStyle='#888';ctx.font='11px Consolas';
-    ctx.fillText('A['+i+']',x+cellW/2,y+48);
-  }
+        <div id="status" class="status">选择一个操作开始动画。</div>
 
-  // Draw BIT columns — height proportional to lowbit
-  const maxLb=lowbit(N);
-  for(let i=1;i<=N;i++){
-    const x=padLeft+(i-1)*(cellW+gap);
-    const lb=lowbit(i);
-    const h=(lb/maxLb)*maxH;
-    const y=baseY-h;
+        <div class="answer">
+          <div class="metric">
+            <span>n</span>
+            <strong>8</strong>
+          </div>
+          <div class="metric">
+            <span>lowbit(i)</span>
+            <strong id="lowbitMetric">1</strong>
+          </div>
+          <div class="metric">
+            <span>sum 结果</span>
+            <strong id="answerMetric">-</strong>
+          </div>
+        </div>
 
-    let fill='#0f3460',stroke='#1a4a7a';
-    if(hlCells&&hlCells.has(i)){fill=hlColor;stroke='#fff';}
+        <div>
+          <div class="section-title">
+            <span>步骤日志</span>
+            <span id="pathText">path: -</span>
+          </div>
+          <div id="trace" class="trace"></div>
+        </div>
+      </aside>
+    </section>
+  </main>
 
-    // Draw column
-    ctx.fillStyle=fill;ctx.strokeStyle=stroke;ctx.lineWidth=2;
-    const rx=4;
-    ctx.beginPath();ctx.moveTo(x+rx,y);ctx.lineTo(x+cellW-rx,y);
-    ctx.quadraticCurveTo(x+cellW,y,x+cellW,y+rx);
-    ctx.lineTo(x+cellW,y+h);ctx.lineTo(x,y+h);
-    ctx.lineTo(x,y+rx);ctx.quadraticCurveTo(x,y,x+rx,y);
-    ctx.closePath();ctx.fill();ctx.stroke();
+  <script>
+    const n = 8;
+    const initial = [0, 2, 1, 3, 5, 4, 2, 6, 1];
+    let arr = initial.slice();
+    let bit = Array(n + 1).fill(0);
+    let running = false;
 
-    // BIT value inside column
-    ctx.fillStyle=hlCells&&hlCells.has(i)?'#fff':'#ccc';
-    ctx.font='bold 14px Consolas';ctx.textAlign='center';
-    const midY=y+h/2;
-    ctx.fillText(BIT[i],x+cellW/2,midY+5);
+    const els = {
+      arrayRow: document.querySelector("#arrayRow"),
+      treeRow: document.querySelector("#treeRow"),
+      rangeText: document.querySelector("#rangeText"),
+      indexInput: document.querySelector("#indexInput"),
+      deltaInput: document.querySelector("#deltaInput"),
+      addBtn: document.querySelector("#addBtn"),
+      sumBtn: document.querySelector("#sumBtn"),
+      resetBtn: document.querySelector("#resetBtn"),
+      speed: document.querySelector("#speed"),
+      status: document.querySelector("#status"),
+      lowbitMetric: document.querySelector("#lowbitMetric"),
+      answerMetric: document.querySelector("#answerMetric"),
+      pathText: document.querySelector("#pathText"),
+      trace: document.querySelector("#trace")
+    };
 
-    // Index and range below column
-    ctx.fillStyle='#888';ctx.font='11px Consolas';
-    ctx.fillText('BIT['+i+']',x+cellW/2,baseY+10);
-    // Lowbit indicator above column
-    ctx.fillText('w='+lb, x+cellW/2, y-4);
-
-    // Draw parent line upward
-    const p=i+lowbit(i);
-    if(p<=N){
-      const px=padLeft+(p-1)*(cellW+gap)+cellW/2;
-      ctx.strokeStyle='rgba(233,69,96,0.3)';ctx.lineWidth=1;
-      ctx.setLineDash([3,3]);
-      ctx.beginPath();ctx.moveTo(x+cellW/2,y);ctx.lineTo(px,y);ctx.stroke();
-      ctx.setLineDash([]);
+    function lowbit(x) {
+      return x & -x;
     }
-  }
 
-  // Title
-  ctx.fillStyle='#eee';ctx.font='bold 16px Consolas';ctx.textAlign='left';
-  ctx.fillText('BIT 柱状图 (w = lowbit = 覆盖宽度)',padLeft,padTop);
-}
+    function clampIndex(value) {
+      const num = Number.parseInt(value, 10);
+      if (Number.isNaN(num)) return 1;
+      return Math.max(1, Math.min(n, num));
+    }
 
-async function runAdd(){
-  if(animating)return;
-  let x=parseInt(document.getElementById('xInput').value);
-  if(x<1||x>N)return;
-  animating=true;logPanel.innerHTML='';
-  log('add('+x+',1): A['+x+'] += 1');
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-  A[x]+=1;
-  let cur=x,step=1;
-  while(cur<=N){
-    const hl=new Set([cur]);
-    draw(hl,'#ff9800');
-    BIT[cur]+=1;
-    log('[步'+step+'] BIT['+cur+'] += 1 → '+BIT[cur]+'  (lowbit='+lowbit(cur)+')');
-    await sleep(500);
-    cur+=lowbit(cur);
-    step++;
-  }
-  draw();
-  log('完成');
-  animating=false;
-}
+    function buildBitFromArray() {
+      bit = Array(n + 1).fill(0);
+      for (let i = 1; i <= n; i++) {
+        let x = i;
+        while (x <= n) {
+          bit[x] += arr[i];
+          x += lowbit(x);
+        }
+      }
+    }
 
-async function runSum(){
-  if(animating)return;
-  let x=parseInt(document.getElementById('xInput').value);
-  if(x<1||x>N)return;
-  animating=true;logPanel.innerHTML='';
-  log('sum('+x+'): 前缀和查询');
+    function rangeOf(i) {
+      const lb = lowbit(i);
+      return [i - lb + 1, i];
+    }
 
-  let sum=0,cur=x,step=1,parts=[];
-  while(cur>0){
-    const hl=new Set([cur]);
-    draw(hl,'#03a9f4');
-    sum+=BIT[cur];parts.push('BIT['+cur+']');
-    log('[步'+step+'] += BIT['+cur+'] = '+BIT[cur]+'  (lowbit='+lowbit(cur)+')');
-    await sleep(500);
-    cur-=lowbit(cur);
-    step++;
-  }
-  draw();
-  log('sum[1..'+x+'] = '+parts.join(' + ')+' = '+sum);
-  animating=false;
-}
+    function renderCells() {
+      els.arrayRow.innerHTML = "";
 
-build();
-</script>
+      for (let i = 1; i <= n; i++) {
+        const arrayCell = document.createElement("div");
+        arrayCell.className = "cell";
+        arrayCell.dataset.index = i;
+        arrayCell.innerHTML = `
+          <span class="idx">a[${i}]</span>
+          <span class="box array" id="a-${i}">${arr[i]}</span>
+          <span class="range">idx ${i}</span>
+        `;
+        els.arrayRow.appendChild(arrayCell);
+      }
+      renderDiagram();
+    }
+
+    function renderDiagram() {
+      els.treeRow.innerHTML = "";
+      for (let i = 1; i <= n; i++) {
+        const [left, right] = rangeOf(i);
+        const level = Math.log2(lowbit(i));
+        const top = 222 - level * 72;
+        const start = ((left - 1) / n) * 100;
+        const width = ((right - left + 1) / n) * 100;
+        const center = ((i - 0.5) / n) * 100;
+
+        const node = document.createElement("div");
+        node.className = "range-node";
+        node.id = `range-${i}`;
+        node.style.left = `calc(${start}% + 4px)`;
+        node.style.width = `calc(${width}% - 8px)`;
+        node.style.top = `${top}px`;
+        node.textContent = `${left}:${right}`;
+        node.title = `c[${i}] = ${bit[i]}, 覆盖 [${left}, ${right}]`;
+        els.treeRow.appendChild(node);
+
+        const branch = document.createElement("div");
+        branch.className = "branch";
+        branch.id = `branch-${i}`;
+        branch.style.left = `${center}%`;
+        branch.style.top = `${top + 58}px`;
+        branch.style.height = `${300 - (top + 58)}px`;
+        els.treeRow.appendChild(branch);
+
+        const label = document.createElement("div");
+        label.className = "tree-label";
+        label.id = `label-${i}`;
+        label.style.left = `${center}%`;
+        label.style.top = "310px";
+        label.innerHTML = `<span>c[${i}]</span><small id="c-${i}">值 ${bit[i]}</small>`;
+        els.treeRow.appendChild(label);
+      }
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll(".box").forEach(node => {
+        node.classList.remove("active-add", "active-sum", "covered");
+      });
+      document.querySelectorAll(".range-node, .branch, .tree-label").forEach(node => {
+        node.classList.remove("active-add", "active-sum");
+      });
+      document.querySelectorAll(".trace-item").forEach(node => {
+        node.classList.remove("current");
+      });
+    }
+
+    function updateCell(id, value) {
+      const node = document.querySelector(`#${id}`);
+      if (!node) return;
+      node.textContent = id.startsWith("c-") ? `值 ${value}` : value;
+    }
+
+    function setBusy(value) {
+      running = value;
+      els.addBtn.disabled = value;
+      els.sumBtn.disabled = value;
+      els.resetBtn.disabled = value;
+      els.indexInput.disabled = value;
+      els.deltaInput.disabled = value;
+    }
+
+    function addTrace(text) {
+      const item = document.createElement("div");
+      item.className = "trace-item current";
+      item.textContent = text;
+      els.trace.prepend(item);
+      document.querySelectorAll(".trace-item").forEach((node, idx) => {
+        if (idx > 0) node.classList.remove("current");
+      });
+    }
+
+    function showRange(i) {
+      const [left, right] = rangeOf(i);
+      els.rangeText.textContent = `c[${i}] 覆盖 [${left}, ${right}], lowbit(${i}) = ${lowbit(i)}`;
+      els.lowbitMetric.textContent = lowbit(i);
+      for (let x = left; x <= right; x++) {
+        document.querySelector(`#a-${x}`)?.classList.add("covered");
+      }
+    }
+
+    function updateInputMetrics() {
+      const i = clampIndex(els.indexInput.value);
+      els.indexInput.value = i;
+      els.lowbitMetric.textContent = lowbit(i);
+    }
+
+    async function runAdd() {
+      if (running) return;
+      const start = clampIndex(els.indexInput.value);
+      const delta = Number.parseInt(els.deltaInput.value, 10) || 0;
+      setBusy(true);
+      clearHighlights();
+      els.answerMetric.textContent = "-";
+      els.trace.innerHTML = "";
+      const path = [];
+
+      arr[start] += delta;
+      updateCell(`a-${start}`, arr[start]);
+      document.querySelector(`#a-${start}`)?.classList.add("active-add");
+      els.status.innerHTML = `<strong>add(${start}, ${delta})</strong>：先把 a[${start}] 增加 ${delta}。`;
+      addTrace(`a[${start}] = ${arr[start]}`);
+      await sleep(Number(els.speed.value));
+
+      let i = start;
+      while (i <= n) {
+        clearHighlights();
+        path.push(i);
+        bit[i] += delta;
+        updateCell(`c-${i}`, bit[i]);
+        document.querySelector(`#range-${i}`)?.classList.add("active-add");
+        document.querySelector(`#branch-${i}`)?.classList.add("active-add");
+        document.querySelector(`#label-${i}`)?.classList.add("active-add");
+        document.querySelector(`#a-${start}`)?.classList.add("active-add");
+        showRange(i);
+        const next = i + lowbit(i);
+        els.status.innerHTML = `<strong>更新 c[${i}]</strong>：它覆盖了 a[${start}]，所以 c[${i}] += ${delta}。下一步 i = ${i} + lowbit(${i}) = ${next}。`;
+        addTrace(`c[${i}] += ${delta} -> ${bit[i]}；next = ${next}`);
+        els.pathText.textContent = `path: ${path.join(" -> ")}`;
+        await sleep(Number(els.speed.value));
+        i = next;
+      }
+
+      clearHighlights();
+      els.pathText.textContent = `path: ${path.join(" -> ")}`;
+      els.status.innerHTML = `<strong>add 完成</strong>：更新路径是 ${path.join(" -> ")}。`;
+      setBusy(false);
+    }
+
+    async function runSum() {
+      if (running) return;
+      const start = clampIndex(els.indexInput.value);
+      setBusy(true);
+      clearHighlights();
+      els.trace.innerHTML = "";
+      let ans = 0;
+      let i = start;
+      const path = [];
+      els.answerMetric.textContent = "0";
+
+      while (i > 0) {
+        clearHighlights();
+        path.push(i);
+        ans += bit[i];
+        document.querySelector(`#range-${i}`)?.classList.add("active-sum");
+        document.querySelector(`#branch-${i}`)?.classList.add("active-sum");
+        document.querySelector(`#label-${i}`)?.classList.add("active-sum");
+        showRange(i);
+        const next = i - lowbit(i);
+        els.status.innerHTML = `<strong>访问 c[${i}]</strong>：把区间贡献 ${bit[i]} 加入答案，ans = ${ans}。下一步 i = ${i} - lowbit(${i}) = ${next}。`;
+        els.answerMetric.textContent = ans;
+        addTrace(`ans += c[${i}](${bit[i]}) -> ${ans}；next = ${next}`);
+        els.pathText.textContent = `path: ${path.join(" -> ")}`;
+        await sleep(Number(els.speed.value));
+        i = next;
+      }
+
+      clearHighlights();
+      els.answerMetric.textContent = ans;
+      els.status.innerHTML = `<strong>sum(${start}) = ${ans}</strong>：访问路径是 ${path.join(" -> ")}。`;
+      els.pathText.textContent = `path: ${path.join(" -> ")}`;
+      setBusy(false);
+    }
+
+    function resetAll() {
+      arr = initial.slice();
+      buildBitFromArray();
+      renderCells();
+      els.trace.innerHTML = "";
+      els.answerMetric.textContent = "-";
+      els.pathText.textContent = "path: -";
+      els.status.textContent = "已重置。选择一个操作开始动画。";
+      updateInputMetrics();
+    }
+
+    els.addBtn.addEventListener("click", runAdd);
+    els.sumBtn.addEventListener("click", runSum);
+    els.resetBtn.addEventListener("click", resetAll);
+    els.indexInput.addEventListener("input", updateInputMetrics);
+
+    buildBitFromArray();
+    renderCells();
+    updateInputMetrics();
+  </script>
 </body>
 </html>
