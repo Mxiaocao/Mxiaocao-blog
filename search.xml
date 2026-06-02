@@ -4,20 +4,7 @@
   
     
     <entry>
-      <title></title>
-      <link href="/2026/06/01/2026-06-01/"/>
-      <url>/2026/06/01/2026-06-01/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>SOS DP（子集动态规划）</title>
+      <title>SOS DP</title>
       <link href="/2026/06/01/SOS-dp/"/>
       <url>/2026/06/01/SOS-dp/</url>
       
@@ -218,9 +205,9 @@
       
         <tags>
             
-            <tag> SPFA </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> SPFA </tag>
             
             <tag> 负环 </tag>
             
@@ -617,11 +604,11 @@
       
         <tags>
             
+            <tag> 数学 </tag>
+            
             <tag> 欧拉筛 </tag>
             
             <tag> 质数 </tag>
-            
-            <tag> 数学 </tag>
             
         </tags>
       
@@ -752,9 +739,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> Dijkstra </tag>
+            
+            <tag> 最短路 </tag>
             
         </tags>
       
