@@ -625,11 +625,11 @@
       
         <tags>
             
-            <tag> 数学 </tag>
-            
             <tag> 欧拉筛 </tag>
             
             <tag> 质数 </tag>
+            
+            <tag> 数学 </tag>
             
         </tags>
       
@@ -833,9 +833,9 @@
       
         <tags>
             
-            <tag> deque </tag>
-            
             <tag> stl </tag>
+            
+            <tag> deque </tag>
             
         </tags>
       
@@ -860,9 +860,9 @@
       
         <tags>
             
-            <tag> stl </tag>
-            
             <tag> priority_queue </tag>
+            
+            <tag> stl </tag>
             
         </tags>
       
