@@ -47,7 +47,7 @@
 
   function clampSize(width, panelHeight) {
     const margin = 10;
-    const minWidth = Math.min(360, window.innerWidth - margin * 2);
+    const minWidth = Math.min(420, window.innerWidth - margin * 2);
     const maxWidth = Math.max(minWidth, window.innerWidth - margin * 2);
     const minPanelHeight = 260;
     const maxPanelHeight = Math.max(minPanelHeight, window.innerHeight - 118);

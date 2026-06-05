@@ -12,7 +12,7 @@
   bottom: 18px;
   z-index: 1001;
   width: min(880px, calc(100vw - 28px));
-  min-width: min(360px, calc(100vw - 20px));
+  min-width: min(420px, calc(100vw - 20px));
   color: var(--mx-player-ink);
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   transform: translateX(-50%);
