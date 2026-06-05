@@ -346,7 +346,7 @@
 
 @media (max-width: 760px) {
   #mx-music-player {
-    --mx-panel-max-height: min(430px, calc(100vh - 112px));
+    --mx-panel-max-height: min(560px, calc(100vh - 112px));
     bottom: 12px;
     width: calc(100vw - 18px) !important;
     min-width: min(300px, calc(100vw - 18px));
@@ -382,18 +382,18 @@
   }
 
   #mx-music-player .mx-now {
-    max-height: 120px;
-    padding: 12px;
+    min-height: 154px;
+    padding: 14px;
     border-right: 0;
     border-bottom: 1px solid var(--mx-player-line);
     display: grid;
-    grid-template-columns: 72px minmax(0, 1fr);
-    gap: 12px;
-    overflow: hidden;
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 14px;
+    overflow: visible;
   }
 
   #mx-music-player .mx-cover-lg {
-    width: 72px;
+    width: 112px;
   }
 
   #mx-music-player .mx-now p {
@@ -401,10 +401,10 @@
   }
 
   #mx-music-player .mx-now h2 {
-    font-size: 18px;
+    font-size: 19px;
     display: -webkit-box;
     overflow: hidden;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
   }
 
@@ -429,13 +429,24 @@
   }
 
   #mx-music-player .mx-list button {
-    min-height: 46px;
-    grid-template-columns: 30px minmax(0, 1fr);
-    padding: 7px 8px;
+    min-height: 58px;
+    grid-template-columns: 30px minmax(0, 1fr) minmax(48px, auto);
+    padding: 8px;
+  }
+
+  #mx-music-player .mx-list b,
+  #mx-music-player .mx-list span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  #mx-music-player .mx-list b {
+    line-height: 1.28;
   }
 
   #mx-music-player .mx-list span {
-    display: none;
+    font-size: 11px;
   }
 }
 
