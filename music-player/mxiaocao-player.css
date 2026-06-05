@@ -33,6 +33,12 @@
   display: none;
 }
 
+#mx-music-player.mx-hidden {
+  width: 46px !important;
+  min-width: 46px;
+  height: 46px;
+}
+
 #mx-music-player .mx-show {
   display: none;
   position: absolute;
@@ -46,10 +52,12 @@
   background: var(--mx-player-accent);
   box-shadow: var(--mx-player-shadow);
   cursor: pointer;
+  touch-action: none;
 }
 
 #mx-music-player.mx-hidden .mx-show {
   display: grid;
+  inset: 0;
   place-items: center;
 }
 

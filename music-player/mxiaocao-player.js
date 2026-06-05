@@ -12,10 +12,13 @@
     repeat: false,
     seeking: false,
     dragging: false,
+    hiddenDragging: false,
+    hiddenMoved: false,
     resizing: false
   };
 
   const positionStorageKey = "mx-music-player-position";
+  const hiddenPositionStorageKey = "mx-music-player-hidden-position";
   const sizeStorageKey = "mx-music-player-size";
   const ids = {};
   let root;
@@ -142,6 +145,53 @@
     }
   }
 
+  function setHiddenPosition(left, top, save) {
+    const next = clampPosition(left, top);
+    root.style.left = `${next.left}px`;
+    root.style.top = `${next.top}px`;
+    root.style.right = "auto";
+    root.style.bottom = "auto";
+    root.style.transform = "none";
+    if (save) {
+      localStorage.setItem(hiddenPositionStorageKey, JSON.stringify(next));
+    }
+  }
+
+  function restoreHiddenPosition(fallbackRect) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(hiddenPositionStorageKey) || "null");
+      if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
+        requestAnimationFrame(() => setHiddenPosition(saved.left, saved.top, false));
+        return;
+      }
+    } catch (error) {
+      localStorage.removeItem(hiddenPositionStorageKey);
+    }
+
+    requestAnimationFrame(() => {
+      const ballRect = root.getBoundingClientRect();
+      const left = fallbackRect ? fallbackRect.right - ballRect.width : window.innerWidth - ballRect.width - 18;
+      const top = fallbackRect ? fallbackRect.bottom - ballRect.height : window.innerHeight - ballRect.height - 18;
+      setHiddenPosition(left, top, false);
+    });
+  }
+
+  function hidePlayer() {
+    const rect = root.getBoundingClientRect();
+    root.classList.remove("mx-expanded");
+    root.classList.add("mx-hidden");
+    ids.panel.setAttribute("aria-hidden", "true");
+    ids.toggle.textContent = "⌃";
+    ids.toggle.title = "展开音乐播放器";
+    restoreHiddenPosition(rect);
+  }
+
+  function showPlayer() {
+    root.classList.remove("mx-hidden");
+    restoreSize();
+    restorePosition();
+  }
+
   function bindDrag() {
     let startX = 0;
     let startY = 0;
@@ -181,13 +231,72 @@
 
     window.addEventListener("resize", () => {
       const saved = JSON.parse(localStorage.getItem(positionStorageKey) || "null");
+      const hiddenSaved = JSON.parse(localStorage.getItem(hiddenPositionStorageKey) || "null");
       const savedSize = JSON.parse(localStorage.getItem(sizeStorageKey) || "null");
       if (savedSize && Number.isFinite(savedSize.width) && Number.isFinite(savedSize.panelHeight)) {
         setSize(savedSize.width, savedSize.panelHeight, true);
       }
+      if (root.classList.contains("mx-hidden") && hiddenSaved && Number.isFinite(hiddenSaved.left) && Number.isFinite(hiddenSaved.top)) {
+        setHiddenPosition(hiddenSaved.left, hiddenSaved.top, true);
+        return;
+      }
       if (saved && Number.isFinite(saved.left) && Number.isFinite(saved.top)) {
         setPosition(saved.left, saved.top, true);
       }
+    });
+  }
+
+  function bindHiddenBall() {
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+
+    ids.show.addEventListener("pointerdown", event => {
+      if (!root.classList.contains("mx-hidden")) return;
+      const rect = root.getBoundingClientRect();
+      state.hiddenDragging = true;
+      state.hiddenMoved = false;
+      startX = event.clientX;
+      startY = event.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      ids.show.setPointerCapture(event.pointerId);
+      root.classList.add("mx-dragging");
+      event.preventDefault();
+    });
+
+    ids.show.addEventListener("pointermove", event => {
+      if (!state.hiddenDragging) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+        state.hiddenMoved = true;
+      }
+      if (state.hiddenMoved) {
+        setHiddenPosition(startLeft + dx, startTop + dy, false);
+      }
+    });
+
+    ids.show.addEventListener("pointerup", event => {
+      if (!state.hiddenDragging) return;
+      const moved = state.hiddenMoved;
+      state.hiddenDragging = false;
+      state.hiddenMoved = false;
+      ids.show.releasePointerCapture(event.pointerId);
+      root.classList.remove("mx-dragging");
+      if (moved) {
+        const rect = root.getBoundingClientRect();
+        setHiddenPosition(rect.left, rect.top, true);
+        return;
+      }
+      showPlayer();
+    });
+
+    ids.show.addEventListener("pointercancel", () => {
+      state.hiddenDragging = false;
+      state.hiddenMoved = false;
+      root.classList.remove("mx-dragging");
     });
   }
 
@@ -386,14 +495,7 @@
         }
       });
     });
-    ids.hide.addEventListener("click", () => {
-      root.classList.remove("mx-expanded");
-      root.classList.add("mx-hidden");
-      ids.panel.setAttribute("aria-hidden", "true");
-      ids.toggle.textContent = "⌃";
-      ids.toggle.title = "展开音乐播放器";
-    });
-    ids.show.addEventListener("click", () => root.classList.remove("mx-hidden"));
+    ids.hide.addEventListener("click", hidePlayer);
     ids.volume.addEventListener("input", () => {
       audio.volume = Number(ids.volume.value);
     });
@@ -422,6 +524,7 @@
       else nextTrack();
     });
     bindDrag();
+    bindHiddenBall();
     bindResize();
   }
 
