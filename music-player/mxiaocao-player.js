@@ -386,7 +386,13 @@
         }
       });
     });
-    ids.hide.addEventListener("click", () => root.classList.add("mx-hidden"));
+    ids.hide.addEventListener("click", () => {
+      root.classList.remove("mx-expanded");
+      root.classList.add("mx-hidden");
+      ids.panel.setAttribute("aria-hidden", "true");
+      ids.toggle.textContent = "⌃";
+      ids.toggle.title = "展开音乐播放器";
+    });
     ids.show.addEventListener("click", () => root.classList.remove("mx-hidden"));
     ids.volume.addEventListener("input", () => {
       audio.volume = Number(ids.volume.value);
