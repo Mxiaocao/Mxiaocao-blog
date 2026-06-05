@@ -385,30 +385,7 @@
   }
 
   #mx-music-player .mx-now {
-    min-height: 154px;
-    padding: 14px;
-    border-right: 0;
-    border-bottom: 1px solid var(--mx-player-line);
-    display: grid;
-    grid-template-columns: 112px minmax(0, 1fr);
-    gap: 14px;
-    overflow: visible;
-  }
-
-  #mx-music-player .mx-cover-lg {
-    width: 112px;
-  }
-
-  #mx-music-player .mx-now p {
-    margin-top: 2px;
-  }
-
-  #mx-music-player .mx-now h2 {
-    font-size: 19px;
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    display: none;
   }
 
   #mx-music-player .mx-controls {
