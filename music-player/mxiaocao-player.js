@@ -452,7 +452,9 @@
 
   async function loadPlaylist() {
     try {
-      const response = await fetch(endpoint("playlist", config.playlistId));
+      const response = await fetch(`${endpoint("playlist", config.playlistId)}&_=${Date.now()}`, {
+        cache: "no-store"
+      });
       state.tracks = await response.json();
       if (!Array.isArray(state.tracks) || !state.tracks.length) throw new Error("Empty playlist");
       await playTrack(0, false);
