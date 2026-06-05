@@ -257,11 +257,13 @@
   grid-template-columns: 42px 1fr 42px;
   gap: 8px;
   align-items: center;
+  touch-action: none;
 }
 
 #mx-music-player input[type="range"] {
   width: 100%;
   accent-color: var(--mx-player-accent);
+  touch-action: none;
 }
 
 #mx-music-player .mx-now {
@@ -308,6 +310,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  touch-action: none;
 }
 
 #mx-music-player .mx-list {
