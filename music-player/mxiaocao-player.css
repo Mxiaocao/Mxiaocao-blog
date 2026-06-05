@@ -346,8 +346,8 @@
 
 @media (max-width: 760px) {
   #mx-music-player {
-    --mx-panel-max-height: min(560px, calc(100vh - 112px));
-    bottom: 12px;
+    --mx-panel-max-height: min(470px, calc(100vh - 190px));
+    bottom: max(6px, env(safe-area-inset-bottom));
     width: calc(100vw - 18px) !important;
     min-width: min(300px, calc(100vw - 18px));
   }
@@ -365,7 +365,7 @@
 
   #mx-music-player .mx-panel {
     bottom: calc(100% + 8px);
-    max-height: min(var(--mx-panel-max-height), calc(100vh - 104px));
+    max-height: min(var(--mx-panel-max-height), calc(100vh - 190px));
     background: #fff;
     box-shadow: 0 20px 60px rgba(20, 28, 42, 0.28);
   }
