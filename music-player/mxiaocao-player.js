@@ -50,10 +50,11 @@
 
   function clampSize(width, panelHeight) {
     const margin = 10;
-    const contentMinWidth = root?.classList.contains("mx-expanded") ? 700 : 320;
+    const compact = window.matchMedia("(max-width: 760px)").matches;
+    const contentMinWidth = root?.classList.contains("mx-expanded") && !compact ? 700 : 320;
     const minWidth = Math.min(contentMinWidth, window.innerWidth - margin * 2);
     const maxWidth = Math.max(minWidth, window.innerWidth - margin * 2);
-    const minPanelHeight = 260;
+    const minPanelHeight = compact ? 220 : 260;
     const miniHeight = root?.querySelector(".mx-mini")?.getBoundingClientRect().height || 78;
     const rootTop = root?.getBoundingClientRect().top || window.innerHeight;
     const spaceAboveMini = Math.max(minPanelHeight, rootTop - margin - 10);
