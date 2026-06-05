@@ -139,9 +139,9 @@
       
         <tags>
             
-            <tag> 最短路 </tag>
-            
             <tag> Floyd </tag>
+            
+            <tag> 最短路 </tag>
             
         </tags>
       
@@ -760,9 +760,9 @@
       
         <tags>
             
-            <tag> Dijkstra </tag>
-            
             <tag> 最短路 </tag>
+            
+            <tag> Dijkstra </tag>
             
         </tags>
       
