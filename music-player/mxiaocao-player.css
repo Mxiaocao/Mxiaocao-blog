@@ -360,11 +360,14 @@
     grid-template-columns: 28px 42px minmax(0, 1fr) 38px 38px;
     gap: 8px;
     padding: 8px;
+    background: #fff;
   }
 
   #mx-music-player .mx-panel {
     bottom: calc(100% + 8px);
     max-height: min(var(--mx-panel-max-height), calc(100vh - 104px));
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(20, 28, 42, 0.28);
   }
 
   #mx-music-player .mx-resize,
@@ -515,4 +518,13 @@
 #mx-music-player.mx-dark .mx-icon,
 #mx-music-player.mx-dark .mx-drag {
   background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 760px) {
+  [data-theme="dark"] #mx-music-player .mx-mini,
+  [data-theme="dark"] #mx-music-player .mx-panel,
+  #mx-music-player.mx-dark .mx-mini,
+  #mx-music-player.mx-dark .mx-panel {
+    background: #161b27;
+  }
 }
