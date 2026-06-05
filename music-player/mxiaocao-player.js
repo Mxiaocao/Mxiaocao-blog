@@ -1,6 +1,6 @@
 (function () {
   const config = {
-    playlistId: "17739906691",
+    playlistId: "17472849771",
     server: "netease",
     api: "https://meting.mysqil.com/api"
   };
@@ -47,10 +47,14 @@
 
   function clampSize(width, panelHeight) {
     const margin = 10;
-    const minWidth = Math.min(420, window.innerWidth - margin * 2);
+    const contentMinWidth = root?.classList.contains("mx-expanded") ? 700 : 320;
+    const minWidth = Math.min(contentMinWidth, window.innerWidth - margin * 2);
     const maxWidth = Math.max(minWidth, window.innerWidth - margin * 2);
     const minPanelHeight = 260;
-    const maxPanelHeight = Math.max(minPanelHeight, window.innerHeight - 118);
+    const miniHeight = root?.querySelector(".mx-mini")?.getBoundingClientRect().height || 78;
+    const rootTop = root?.getBoundingClientRect().top || window.innerHeight;
+    const spaceAboveMini = Math.max(minPanelHeight, rootTop - margin - 10);
+    const maxPanelHeight = Math.max(minPanelHeight, Math.min(window.innerHeight - miniHeight - margin * 2, spaceAboveMini));
     return {
       width: Math.min(Math.max(width, minWidth), maxWidth),
       panelHeight: Math.min(Math.max(panelHeight, minPanelHeight), maxPanelHeight)
@@ -63,6 +67,28 @@
     root.style.setProperty("--mx-panel-max-height", `${next.panelHeight}px`);
     if (save) {
       localStorage.setItem(sizeStorageKey, JSON.stringify(next));
+    }
+
+    const rect = root.getBoundingClientRect();
+    if (root.style.transform === "none") {
+      setPosition(rect.left, rect.top, false);
+    }
+  }
+
+  function currentPanelHeight() {
+    const saved = JSON.parse(localStorage.getItem(sizeStorageKey) || "null");
+    const cssValue = Number.parseFloat(getComputedStyle(root).getPropertyValue("--mx-panel-max-height"));
+    return saved?.panelHeight || cssValue || 540;
+  }
+
+  function setWidth(width, save) {
+    const next = clampSize(width, currentPanelHeight());
+    root.style.width = `${next.width}px`;
+    if (save) {
+      localStorage.setItem(sizeStorageKey, JSON.stringify({
+        width: next.width,
+        panelHeight: currentPanelHeight()
+      }));
     }
 
     const rect = root.getBoundingClientRect();
@@ -165,13 +191,13 @@
     });
   }
 
-  function bindResize() {
+  function bindResizeHandle(handle, options) {
     let startX = 0;
     let startY = 0;
     let startWidth = 0;
     let startPanelHeight = 0;
 
-    ids.resize.addEventListener("pointerdown", event => {
+    handle.addEventListener("pointerdown", event => {
       const rect = root.getBoundingClientRect();
       const panelRect = ids.panel.getBoundingClientRect();
       state.resizing = true;
@@ -179,30 +205,45 @@
       startY = event.clientY;
       startWidth = rect.width;
       startPanelHeight = panelRect.height || Number.parseFloat(getComputedStyle(root).getPropertyValue("--mx-panel-max-height")) || 540;
-      ids.resize.setPointerCapture(event.pointerId);
+      handle.setPointerCapture(event.pointerId);
       root.classList.add("mx-resizing");
       event.preventDefault();
     });
 
-    ids.resize.addEventListener("pointermove", event => {
+    handle.addEventListener("pointermove", event => {
       if (!state.resizing) return;
-      setSize(startWidth + event.clientX - startX, startPanelHeight + startY - event.clientY, false);
+      const nextWidth = startWidth + event.clientX - startX;
+      if (!options.vertical) {
+        setWidth(nextWidth, false);
+        return;
+      }
+      const nextPanelHeight = options.vertical ? startPanelHeight + startY - event.clientY : startPanelHeight;
+      setSize(nextWidth, nextPanelHeight, false);
     });
 
-    ids.resize.addEventListener("pointerup", event => {
+    handle.addEventListener("pointerup", event => {
       if (!state.resizing) return;
       state.resizing = false;
-      ids.resize.releasePointerCapture(event.pointerId);
+      handle.releasePointerCapture(event.pointerId);
       root.classList.remove("mx-resizing");
       const rect = root.getBoundingClientRect();
+      if (!options.vertical) {
+        setWidth(rect.width, true);
+        return;
+      }
       const panelHeight = Number.parseFloat(getComputedStyle(root).getPropertyValue("--mx-panel-max-height")) || 540;
       setSize(rect.width, panelHeight, true);
     });
 
-    ids.resize.addEventListener("pointercancel", () => {
+    handle.addEventListener("pointercancel", () => {
       state.resizing = false;
       root.classList.remove("mx-resizing");
     });
+  }
+
+  function bindResize() {
+    bindResizeHandle(ids.resize, { vertical: true });
+    bindResizeHandle(ids.resizeRight, { vertical: false });
   }
 
   function setPlayIcon(isPlaying) {
@@ -329,10 +370,21 @@
       ids.repeat.classList.toggle("is-active", state.repeat);
     });
     ids.toggle.addEventListener("click", () => {
+      const wasExpanded = root.classList.contains("mx-expanded");
       root.classList.toggle("mx-expanded");
-      const expanded = root.classList.contains("mx-expanded");
+      const expanded = !wasExpanded;
       ids.panel.setAttribute("aria-hidden", String(!expanded));
       ids.toggle.textContent = expanded ? "⌄" : "⌃";
+      ids.toggle.title = expanded ? "收起音乐播放器" : "展开音乐播放器";
+      requestAnimationFrame(() => {
+        if (expanded) {
+          const savedSize = JSON.parse(localStorage.getItem(sizeStorageKey) || "null");
+          const currentWidth = root.getBoundingClientRect().width;
+          const panelHeight = savedSize?.panelHeight || Number.parseFloat(getComputedStyle(root).getPropertyValue("--mx-panel-max-height")) || 540;
+          setSize(currentWidth, panelHeight, false);
+          return;
+        }
+      });
     });
     ids.hide.addEventListener("click", () => root.classList.add("mx-hidden"));
     ids.show.addEventListener("click", () => root.classList.remove("mx-hidden"));
@@ -413,6 +465,7 @@
         </div>
         <button class="mx-icon" data-mx="toggle" type="button" title="展开音乐播放器">⌃</button>
         <button class="mx-icon" data-mx="hide" type="button" title="隐藏音乐播放器">×</button>
+        <button class="mx-resize-right" data-mx="resizeRight" type="button" title="调整播放器长度" aria-label="调整播放器长度"></button>
         <button class="mx-resize" data-mx="resize" type="button" title="调整播放器大小" aria-label="调整播放器大小"></button>
       </div>
       <audio data-mx="audio" preload="metadata"></audio>
@@ -422,7 +475,7 @@
     [
       "show", "panel", "coverLarge", "titleLarge", "artistLarge", "prev", "playLarge",
       "next", "shuffle", "repeat", "volume", "list", "play", "cover", "title",
-      "artist", "current", "seek", "duration", "toggle", "hide", "drag", "resize"
+      "artist", "current", "seek", "duration", "toggle", "hide", "drag", "resize", "resizeRight"
     ].forEach(name => {
       ids[name] = query(name);
     });
