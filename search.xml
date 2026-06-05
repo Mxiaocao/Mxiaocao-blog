@@ -833,9 +833,9 @@
       
         <tags>
             
-            <tag> deque </tag>
-            
             <tag> stl </tag>
+            
+            <tag> deque </tag>
             
         </tags>
       
@@ -860,9 +860,9 @@
       
         <tags>
             
-            <tag> stl </tag>
-            
             <tag> priority_queue </tag>
+            
+            <tag> stl </tag>
             
         </tags>
       
