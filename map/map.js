@@ -155,12 +155,16 @@
       '<h3>' + escapeHtml(place.name) + '</h3>' +
       '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description) + '</p>' +
       '<div class="amap-photo-grid">' + place.photos.map(function (src) {
-        return '<div class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '" onclick="showLightbox(\'' + escapeHtml(src) + '\')"></div>';
+        return '<div class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '" data-lightbox-src="' + escapeHtml(src) + '"></div>';
       }).join("") + '</div>' +
       '</div>';
   }
 
-  window.showLightbox = function (src) {
+  document.addEventListener('click', function (e) {
+    var img = e.target.closest('.amap-photo-link img');
+    if (!img) return;
+    var src = img.getAttribute('data-lightbox-src');
+    if (!src) return;
     var overlay = document.getElementById('map-lightbox');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -168,19 +172,18 @@
       overlay.className = 'map-lightbox';
       overlay.innerHTML = '<div class="map-lightbox-bg"></div><img class="map-lightbox-img" src=""><button class="map-lightbox-close">&times;</button>';
       document.body.appendChild(overlay);
-      overlay.querySelector('.map-lightbox-bg').addEventListener('click', hideLightbox);
-      overlay.querySelector('.map-lightbox-close').addEventListener('click', hideLightbox);
-      overlay.addEventListener('click', function(e) { if (e.target === overlay) hideLightbox(); });
-      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') hideLightbox(); });
+      overlay.querySelector('.map-lightbox-bg').addEventListener('click', function () { overlay.classList.remove('map-lightbox--visible'); });
+      overlay.querySelector('.map-lightbox-close').addEventListener('click', function () { overlay.classList.remove('map-lightbox--visible'); });
     }
     overlay.querySelector('.map-lightbox-img').src = src;
     overlay.classList.add('map-lightbox--visible');
-  }
-
-  window.hideLightbox = function () {
-    var overlay = document.getElementById('map-lightbox');
-    if (overlay) overlay.classList.remove('map-lightbox--visible');
-  }
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        overlay.classList.remove('map-lightbox--visible');
+        document.removeEventListener('keydown', escHandler);
+      }
+    });
+  });
 
   function syncMarkers(visiblePlaces) {
     if (!map || !window.AMap) return;
