@@ -13,10 +13,10 @@
     {
       id: "lingyin",
       name: "灵隐寺",
-      date: "2026-01-01",
-      coord: [120.1011, 30.2403],
+      date: "2025-09-21",
+      coord: [120.101406,30.240826],
       description: "路线西侧的停留点，可以记录寺院、山路和树影。",
-      photos: ["/img/4.png", "/img/5.png"],
+      photos: ["/img/lingyin-01.jpg", "/img/lingyin-02.jpg", "/img/lingyin-03.jpg", "/img/lingyin-04.jpg", "/img/lingyin-05.jpg", "/img/lingyin-06.jpg", "/img/lingyin-07.jpg", "/img/lingyin-08.jpg"],
       tags: ["杭州", "灵隐", "元旦"]
     },
     {
