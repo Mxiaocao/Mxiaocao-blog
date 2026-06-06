@@ -40,13 +40,22 @@
     {
       id: "jixian-pavilion",
       name: "集贤亭",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.161722,30.250628],
       description: "湖心小亭，烟雨朦胧时最美。",
       photos: ["/img/jixian-01.jpg"],
       tags: ["杭州", "西湖"]
     },
     {
+    {
+      id: "yongjin-park",
+      name: "涌金公园",
+      date: "2026-06-06",
+      coord: [120.157, 30.244],
+      description: "涌金门外柳如烟，西湖东岸的安静角落。",
+      photos: [],
+      tags: ["杭州", "西湖", "公园"]
+    },
       id: "silk-museum",
       name: "中国丝绸博物馆",
       date: "2026-01-01",
