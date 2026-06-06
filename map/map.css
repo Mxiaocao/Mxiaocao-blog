@@ -280,6 +280,7 @@
   border-radius: 6px;
   overflow: hidden;
   transition: transform 0.2s ease;
+  cursor: pointer;
 }
 .amap-photo-link:hover {
   transform: scale(1.03);
