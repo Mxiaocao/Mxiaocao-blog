@@ -266,11 +266,24 @@
   gap: 6px;
 }
 
+.amap-photo-link {
+  display: block;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+.amap-photo-link:hover {
+  transform: scale(1.03);
+}
+.amap-photo-link:active {
+  transform: scale(0.97);
+}
 .amap-photo-grid img {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 3 / 2;
   object-fit: cover;
   border-radius: 6px;
+  display: block;
 }
 
 @media (max-width: 900px) {

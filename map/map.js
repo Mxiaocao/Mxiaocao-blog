@@ -155,7 +155,7 @@
       '<h3>' + escapeHtml(place.name) + '</h3>' +
       '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description) + '</p>' +
       '<div class="amap-photo-grid">' + place.photos.map(function (src) {
-        return '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '">';
+        return '<a href="' + escapeHtml(src) + '" target="_blank" class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '"></a>';
       }).join("") + '</div>' +
       '</div>';
   }
