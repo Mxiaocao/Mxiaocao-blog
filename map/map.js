@@ -2,15 +2,6 @@
   var config = window.MXIAOCAO_MAP_CONFIG || {};
   var places = [
     {
-      id: "west-lake",
-      name: "西湖",
-      date: "2026-01-01",
-      coord: [120.1489, 30.2462],
-      description: "元旦下午沿湖走了一段，适合放西湖边的照片。",
-      photos: ["/img/1.jpg", "/img/3.png"],
-      tags: ["杭州", "西湖", "元旦"]
-    },
-    {
       id: "lingyin",
       name: "灵隐寺",
       date: "2025-09-21",
@@ -38,15 +29,6 @@
       tags: ["杭州", "江景"]
     },
     {
-      id: "east-station",
-      name: "杭州东站",
-      date: "2026-01-01",
-      coord: [120.2122, 30.2916],
-      description: "路线起点示例，后续可以换成真实出发点。",
-      photos: ["/img/10.png"],
-      tags: ["杭州", "交通", "元旦"]
-    },
-    {
       id: "hupao",
       name: "虎跑公园",
       date: "2026-05-19",
@@ -61,13 +43,13 @@
       date: "2026-06-06",
       coord: [120.161722,30.250628],
       description: "湖心小亭，烟雨朦胧时最美。",
-      photos: [],
+      photos: ["/img/jixian-01.jpg"],
       tags: ["杭州", "西湖"]
     },
     {
       id: "silk-museum",
       name: "中国丝绸博物馆",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.151292,30.22287],
       description: "馆藏丰富，建筑本身也是一件展品。",
       photos: [],
@@ -85,7 +67,7 @@
     {
       id: "huagang-guanyu",
       name: "花港观鱼",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.139095,30.230233],
       description: "红鲤成群，西湖十景之一。",
       photos: [],
@@ -94,7 +76,7 @@
     {
       id: "sudi",
       name: "苏堤",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.138156,30.243911],
       description: "六桥烟柳，春晓最动人。",
       photos: [],
@@ -103,7 +85,7 @@
     {
       id: "quyuan-fenghe",
       name: "曲院风荷",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.133333,30.249287],
       description: "夏日荷风，西湖十景之一。",
       photos: [],
@@ -112,7 +94,7 @@
     {
       id: "best-corner",
       name: "西湖最美转角",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.138814,30.250405],
       description: "北山街转角望湖。",
       photos: [],
@@ -121,7 +103,7 @@
     {
       id: "pinghu-qiuyue",
       name: "平湖秋月",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.146142,30.252244],
       description: "月夜湖面如镜。",
       photos: [],
@@ -130,7 +112,7 @@
     {
       id: "baidi",
       name: "白堤",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.149189,30.255701],
       description: "一株杨柳一株桃。",
       photos: [],
