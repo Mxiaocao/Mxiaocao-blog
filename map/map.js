@@ -53,7 +53,7 @@
       date: "2026-06-06",
       coord: [120.157, 30.244],
       description: "涌金门外柳如烟，西湖东岸的安静角落。",
-      photos: [],
+      photos: ["/img/yongjin-01.jpg"],
       tags: ["杭州", "西湖", "公园"]
     },
       id: "silk-museum",
