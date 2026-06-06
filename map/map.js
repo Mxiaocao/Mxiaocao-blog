@@ -20,6 +20,24 @@
       tags: ["杭州", "街区", "元旦"]
     },
     {
+      id: "dadou-road",
+      name: "大兜路历史文化街区",
+      date: "2026-06-06",
+      coord: [120.148, 30.321],
+      description: "运河边的文艺街区，咖啡馆与老墙门共存。",
+      photos: [],
+      tags: ["杭州", "街区", "运河"]
+    },
+    {
+      id: "gongchenqiao",
+      name: "拱宸桥西历史文化街区",
+      date: "2026-06-06",
+      coord: [120.138, 30.326],
+      description: "拱宸桥畔，老杭州的运河记忆。",
+      photos: [],
+      tags: ["杭州", "街区", "运河"]
+    },
+    {
       id: "qiantang",
       name: "钱塘江城市阳台",
       date: "2026-01-02",
@@ -47,15 +65,15 @@
       tags: ["杭州", "西湖"]
     },
     {
-    {
       id: "yongjin-park",
       name: "涌金公园",
-      date: "2026-06-06",
-      coord: [120.157, 30.244],
+      date: "2026-01-01",
+      coord: [120.160139,30.245915],
       description: "涌金门外柳如烟，西湖东岸的安静角落。",
-      photos: ["/img/yongjin-01.jpg"],
+      photos: [],
       tags: ["杭州", "西湖", "公园"]
     },
+    {
       id: "silk-museum",
       name: "中国丝绸博物馆",
       date: "2026-01-01",
@@ -67,7 +85,7 @@
     {
       id: "taiziwan",
       name: "太子湾",
-      date: "2026-06-06",
+      date: "2026-01-01",
       coord: [120.142177,30.22547],
       description: "春天的郁金香海。",
       photos: [],
@@ -138,26 +156,7 @@
     }
   ];
 
-  var routes = [
-    {
-      id: "new-year-hangzhou",
-      title: "元旦杭州路线",
-      date: "2026-01-01",
-      placeIds: ["east-station", "west-lake", "lingyin", "xiaohe"]
-    },
-    {
-      id: "river-walk",
-      title: "钱塘江散步路线",
-      date: "2026-01-02",
-      placeIds: ["west-lake", "qiantang"]
-    },
-    {
-      id: "mountain-hike",
-      title: "虎跑公园登山路线",
-      date: "2026-05-19",
-      placeIds: ["hupao"]
-    }
-  ];
+  var routes = [];
 
   var els = {
     empty: document.getElementById("mapEmptyState"),
@@ -235,7 +234,7 @@
     var visitsText = visits > 0 ? ' · ' + (visits + 1) + ' 次到访' : '';
     return '<article class="place-item" data-place-id="' + escapeHtml(place.id) + '">' +
       '<h3>' + escapeHtml(place.name) + '</h3>' +
-      '<div class="place-meta"><span>' + escapeHtml(place.date) + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
+      '<div class="place-meta"><span>' + totalPhotos(place) + ' 张照片' + visitsText + '</span></div>' +
       '<div class="place-tags">' + place.tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>' +
       '</article>';
   }
@@ -252,7 +251,7 @@
     var filtered = getFilteredPlaces();
     els.placeCount.textContent = filtered.length;
     els.placeList.innerHTML = filtered.map(placeCard).join("");
-    els.routeList.innerHTML = routes.map(routeCard).join("");
+    if (els.routeList) els.routeList.innerHTML = "";
     syncMarkers(filtered);
   }
 
@@ -280,19 +279,21 @@
       var allVisits = place.visits.slice().reverse();
       allVisits.forEach(function (v) {
         html += '<div class="amap-visit-section">' +
-          '<p class="amap-visit-date">' + escapeHtml(v.date) + ' · ' + escapeHtml(v.description || '') + '</p>' +
+          (v.description ? '<p class="amap-visit-date">' + escapeHtml(v.description) + '</p>' : '') +
           photosGrid(v.photos) +
           '</div>';
       });
       // Main entry as first visit
       html += '<div class="amap-visit-section">' +
-        '<p class="amap-visit-date">' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
+        (place.description ? '<p class="amap-visit-date">' + escapeHtml(place.description) + '</p>' : '') +
         photosGrid(place.photos) +
         '</div>';
     } else {
       // Single visit mode
-      html += '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
-        photosGrid(place.photos);
+      if (place.description) {
+        html += '<p>' + escapeHtml(place.description) + '</p>';
+      }
+      html += photosGrid(place.photos);
     }
     html += '</div>';
     return html;
@@ -474,8 +475,8 @@
 
     els.tagFilter.addEventListener("change", renderLists);
     els.yearFilter.addEventListener("change", renderLists);
-    els.playBtn.addEventListener("click", playRoute);
-    els.resetBtn.addEventListener("click", resetRoute);
+    if (els.playBtn) els.playBtn.addEventListener("click", playRoute);
+    if (els.resetBtn) els.resetBtn.addEventListener("click", resetRoute);
   }
 
   function loadAmap() {
