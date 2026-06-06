@@ -32,9 +32,9 @@
       id: "qiantang",
       name: "钱塘江城市阳台",
       date: "2026-01-02",
-      coord: [120.2119, 30.2412],
+      coord: [120.216803,30.241827],
       description: "江景和城市天际线照片可以放在这里。",
-      photos: ["/img/8.png", "/img/9.png"],
+      photos: ["/img/qiantang-01.jpg", "/img/qiantang-02.jpg"],
       tags: ["杭州", "江景"]
     },
     {
