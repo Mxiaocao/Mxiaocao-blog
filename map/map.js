@@ -58,7 +58,7 @@
     {
       id: "jixian-pavilion",
       name: "集贤亭",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1430, 30.2490],
       description: "湖心小亭，烟雨朦胧时最美。",
       photos: [],
@@ -67,7 +67,7 @@
     {
       id: "silk-museum",
       name: "中国丝绸博物馆",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1615, 30.2280],
       description: "馆藏丰富，建筑本身也是一件展品。",
       photos: [],
@@ -76,7 +76,7 @@
     {
       id: "taiziwan",
       name: "太子湾",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1380, 30.2220],
       description: "春天的郁金香海。",
       photos: [],
@@ -85,7 +85,7 @@
     {
       id: "huagang-guanyu",
       name: "花港观鱼",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1350, 30.2260],
       description: "红鲤成群，西湖十景之一。",
       photos: [],
@@ -94,7 +94,7 @@
     {
       id: "sudi",
       name: "苏堤",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1360, 30.2400],
       description: "六桥烟柳，春晓最动人。",
       photos: [],
@@ -103,7 +103,7 @@
     {
       id: "quyuan-fenghe",
       name: "曲院风荷",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1300, 30.2480],
       description: "夏日荷风，西湖十景之一。",
       photos: [],
@@ -112,7 +112,7 @@
     {
       id: "best-corner",
       name: "西湖最美转角",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1330, 30.2450],
       description: "北山街转角望湖。",
       photos: [],
@@ -121,7 +121,7 @@
     {
       id: "pinghu-qiuyue",
       name: "平湖秋月",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1380, 30.2520],
       description: "月夜湖面如镜。",
       photos: [],
@@ -130,7 +130,7 @@
     {
       id: "baidi",
       name: "白堤",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1430, 30.2550],
       description: "一株杨柳一株桃。",
       photos: [],
@@ -139,7 +139,7 @@
     {
       id: "wulin-night",
       name: "杭州武林夜市",
-      date: "",
+      date: "2026-06-06",
       coord: [120.1650, 30.2720],
       description: "人间烟火，小吃与手作交织。",
       photos: [],
