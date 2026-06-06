@@ -184,23 +184,6 @@
     });
   }
 
-  function interpolatePath(coords) {
-    var path = [];
-    for (var i = 0; i < coords.length - 1; i++) {
-      var from = coords[i];
-      var to = coords[i + 1];
-      for (var step = 0; step < 26; step++) {
-        var t = step / 26;
-        path.push([
-          from[0] + (to[0] - from[0]) * t,
-          from[1] + (to[1] - from[1]) * t
-        ]);
-      }
-    }
-    path.push(coords[coords.length - 1]);
-    return path;
-  }
-
   function resetRoute() {
     if (routeTimer) window.clearInterval(routeTimer);
     routeTimer = null;
@@ -212,35 +195,92 @@
     }
   }
 
+  // Fetch walking path between adjacent stops
+  function fetchSegmentPath(fromCoord, toCoord) {
+    return new Promise(function (resolve) {
+      var walking = new AMap.Walking({ map: map, hideMarkers: true });
+      walking.search(fromCoord, toCoord, function (status, result) {
+        if (status === 'complete' && result.routes && result.routes.length > 0) {
+          var path = [];
+          result.routes[0].steps.forEach(function (step) {
+            step.path.forEach(function (p) { path.push(p); });
+          });
+          resolve(path);
+        } else {
+          // Fallback: straight line if walking fails
+          resolve([
+            [fromCoord[0], fromCoord[1]],
+            [toCoord[0], toCoord[1]]
+          ]);
+        }
+      });
+    });
+  }
+
+  // Build full route path from walking directions
+  function buildRoutePath(stops) {
+    return new Promise(function (resolve) {
+      var fullPath = [];
+      var pending = stops.length - 1;
+      if (pending <= 0) { resolve(fullPath); return; }
+
+      for (var i = 0; i < stops.length - 1; i++) {
+        fetchSegmentPath(stops[i].coord, stops[i + 1].coord).then(function (segPath) {
+          fullPath.push(segPath);
+          pending--;
+          if (pending === 0) {
+            // Flatten and deduplicate adjacent points
+            var flat = [];
+            fullPath.forEach(function (seg) {
+              seg.forEach(function (p) {
+                if (flat.length === 0 ||
+                    flat[flat.length - 1][0] !== p[0] ||
+                    flat[flat.length - 1][1] !== p[1]) {
+                  flat.push(p);
+                }
+              });
+            });
+            resolve(flat);
+          }
+        });
+      }
+    });
+  }
+
   function playRoute() {
     if (!map || !window.AMap) return;
     resetRoute();
     var route = routes.find(function (item) { return item.id === activeRouteId; });
     if (!route) return;
     var stops = route.placeIds.map(byId).filter(Boolean);
-    var coords = stops.map(function (place) { return place.coord; });
-    if (coords.length < 2) return;
+    if (stops.length < 2) return;
 
-    var animatedPath = interpolatePath(coords);
-    var current = 1;
-    routeLine.setOptions({ strokeOpacity: 0.92 });
-    routeLine.setPath([animatedPath[0]]);
-    map.setZoomAndCenter(Math.max(map.getZoom(), 12), coords[0]);
-    els.playBtn.innerHTML = '<i class="fas fa-pause"></i> 播放中';
-
-    routeTimer = window.setInterval(function () {
-      current += 1;
-      routeLine.setPath(animatedPath.slice(0, current));
-      if (current % 16 === 0) map.panTo(animatedPath[current - 1]);
-      if (current >= animatedPath.length) {
-        window.clearInterval(routeTimer);
-        routeTimer = null;
-        els.playBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放';
-        var last = stops[stops.length - 1];
-        infoWindow.setContent(infoContent(last));
-        infoWindow.open(map, last.coord);
+    els.playBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 规划路线...';
+    buildRoutePath(stops).then(function (animatedPath) {
+      if (animatedPath.length < 2) {
+        els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线';
+        return;
       }
-    }, 55);
+      var current = 1;
+      routeLine.setOptions({ strokeOpacity: 0.92 });
+      routeLine.setPath([animatedPath[0]]);
+      map.setZoomAndCenter(Math.max(map.getZoom(), 12), stops[0].coord);
+      els.playBtn.innerHTML = '<i class="fas fa-pause"></i> 播放中';
+
+      routeTimer = window.setInterval(function () {
+        current += 1;
+        routeLine.setPath(animatedPath.slice(0, current));
+        if (current % 16 === 0) map.panTo(animatedPath[current - 1]);
+        if (current >= animatedPath.length) {
+          window.clearInterval(routeTimer);
+          routeTimer = null;
+          els.playBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放';
+          var last = stops[stops.length - 1];
+          infoWindow.setContent(infoContent(last));
+          infoWindow.open(map, last.coord);
+        }
+      }, 55);
+    });
   }
 
   function bindEvents() {
