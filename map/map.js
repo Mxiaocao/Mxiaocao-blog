@@ -45,6 +45,15 @@
       description: "路线起点示例，后续可以换成真实出发点。",
       photos: ["/img/10.png"],
       tags: ["杭州", "交通", "元旦"]
+    },
+    {
+      id: "hupao",
+      name: "虎跑公园",
+      date: "2026-06-06",
+      coord: [120.1345, 30.2164],
+      description: "虎跑泉水清冽，林深苔滑，适合记录山径、石阶与光影。",
+      photos: ["/img/hupao-01.jpg", "/img/hupao-02.jpg", "/img/hupao-03.jpg", "/img/hupao-04.jpg", "/img/hupao-05.jpg", "/img/hupao-06.jpg", "/img/hupao-07.jpg", "/img/hupao-08.jpg", "/img/hupao-09.jpg", "/img/hupao-10.jpg", "/img/hupao-11.jpg", "/img/hupao-12.jpg"],
+      tags: ["杭州", "虎跑", "山林"]
     }
   ];
 
