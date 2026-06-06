@@ -202,19 +202,27 @@
     });
   }
 
+  function allYears(place) {
+    var years = [place.date.slice(0, 4)];
+    if (place.visits) {
+      place.visits.forEach(function (v) { years.push(v.date.slice(0, 4)); });
+    }
+    return years;
+  }
+
   function getFilteredPlaces() {
     var tag = els.tagFilter.value;
     var year = els.yearFilter.value;
     return places.filter(function (place) {
       var tagOk = tag === "all" || place.tags.indexOf(tag) !== -1;
-      var yearOk = year === "all" || place.date.slice(0, 4) === year;
+      var yearOk = year === "all" || allYears(place).indexOf(year) !== -1;
       return tagOk && yearOk;
     });
   }
 
   function renderFilters() {
     var tags = uniq(places.reduce(function (all, place) { return all.concat(place.tags); }, [])).sort();
-    var years = uniq(places.map(function (place) { return place.date.slice(0, 4); })).sort().reverse();
+    var years = uniq(places.reduce(function (all, place) { return all.concat(allYears(place)); }, [])).sort().reverse();
     els.tagFilter.innerHTML = '<option value="all">全部标签</option>' + tags.map(function (tag) {
       return '<option value="' + escapeHtml(tag) + '">' + escapeHtml(tag) + '</option>';
     }).join("");
@@ -223,10 +231,20 @@
     }).join("");
   }
 
+  function totalPhotos(place) {
+    var n = place.photos.length;
+    if (place.visits) {
+      place.visits.forEach(function (v) { n += v.photos.length; });
+    }
+    return n;
+  }
+
   function placeCard(place) {
+    var visits = place.visits ? place.visits.length : 0;
+    var visitsText = visits > 0 ? ' · ' + (visits + 1) + ' 次到访' : '';
     return '<article class="place-item" data-place-id="' + escapeHtml(place.id) + '">' +
       '<h3>' + escapeHtml(place.name) + '</h3>' +
-      '<div class="place-meta"><span>' + escapeHtml(place.date) + '</span><span>' + place.photos.length + ' 张照片</span></div>' +
+      '<div class="place-meta"><span>' + escapeHtml(place.date) + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
       '<div class="place-tags">' + place.tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>' +
       '</article>';
   }
@@ -254,14 +272,39 @@
     }
   }
 
+  function photosGrid(photos) {
+    if (!photos.length) return '';
+    return '<div class="amap-photo-grid">' + photos.map(function (src) {
+      return '<div class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="" data-lightbox-src="' + escapeHtml(src) + '"></div>';
+    }).join("") + '</div>';
+  }
+
   function infoContent(place) {
-    return '<div class="amap-photo-window">' +
-      '<h3>' + escapeHtml(place.name) + '</h3>' +
-      '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description) + '</p>' +
-      '<div class="amap-photo-grid">' + place.photos.map(function (src) {
-        return '<div class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '" data-lightbox-src="' + escapeHtml(src) + '"></div>';
-      }).join("") + '</div>' +
-      '</div>';
+    var html = '<div class="amap-photo-window">' +
+      '<h3>' + escapeHtml(place.name) + '</h3>';
+
+    if (place.visits && place.visits.length > 0) {
+      // Multi-visit mode
+      // Latest visit first
+      var allVisits = place.visits.slice().reverse();
+      allVisits.forEach(function (v) {
+        html += '<div class="amap-visit-section">' +
+          '<p class="amap-visit-date">' + escapeHtml(v.date) + ' · ' + escapeHtml(v.description || '') + '</p>' +
+          photosGrid(v.photos) +
+          '</div>';
+      });
+      // Main entry as first visit
+      html += '<div class="amap-visit-section">' +
+        '<p class="amap-visit-date">' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
+        photosGrid(place.photos) +
+        '</div>';
+    } else {
+      // Single visit mode
+      html += '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
+        photosGrid(place.photos);
+    }
+    html += '</div>';
+    return html;
   }
 
   document.addEventListener('click', function (e) {
