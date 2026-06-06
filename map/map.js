@@ -248,10 +248,9 @@
   }
 
   function showPlace(place) {
-    if (map) {
-      map.setZoomAndCenter(Math.max(map.getZoom(), 14), place.coord);
-      if (infoWindow) infoWindow.open(map, place.coord);
-      if (infoWindow) infoWindow.setContent(infoContent(place));
+    if (map && infoWindow) {
+      infoWindow.setContent(infoContent(place));
+      infoWindow.open(map, place.coord);
     }
   }
 
