@@ -229,6 +229,15 @@
   z-index: 2;
 }
 
+.map-empty-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+  animation: map-pulse 1.8s ease-in-out infinite;
+}
+@keyframes map-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
 .map-empty-state h3 {
   margin: 0 0 8px;
   font-size: 20px;
