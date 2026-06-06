@@ -160,7 +160,7 @@
       '</div>';
   }
 
-  function showLightbox(src) {
+  window.showLightbox = function (src) {
     var overlay = document.getElementById('map-lightbox');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -177,7 +177,7 @@
     overlay.classList.add('map-lightbox--visible');
   }
 
-  function hideLightbox() {
+  window.hideLightbox = function () {
     var overlay = document.getElementById('map-lightbox');
     if (overlay) overlay.classList.remove('map-lightbox--visible');
   }
