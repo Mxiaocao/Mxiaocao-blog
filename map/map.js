@@ -474,6 +474,17 @@
       map.addControl(new AMap.ToolBar({ position: "RB" }));
     });
     infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -28) });
+    // Photo popup: disable scroll zoom when hovering, re-enable when leaving
+    document.addEventListener('mouseover', function (e) {
+      if (e.target.closest('.amap-photo-link')) {
+        map.setStatus({ scrollWheel: false });
+      }
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest('.amap-photo-link') && !e.relatedTarget.closest('.amap-photo-link')) {
+        map.setStatus({ scrollWheel: true });
+      }
+    });
     routeLine = new AMap.Polyline({
       path: [config.center || [120.1551, 30.2741], config.center || [120.1551, 30.2741]],
       strokeColor: "#e94560",
