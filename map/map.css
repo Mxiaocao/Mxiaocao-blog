@@ -262,6 +262,19 @@
   font-size: 17px;
 }
 
+.amap-visit-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  margin: 0 0 8px;
+  border-radius: 999px;
+  background: rgba(127, 127, 127, 0.12);
+  padding: 0 8px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .amap-photo-window p {
   margin: 0 0 10px;
   color: #555;
@@ -269,19 +282,34 @@
   line-height: 1.6;
 }
 .amap-visit-section {
-  padding-top: 8px;
+  position: relative;
+  padding: 0 0 10px 14px;
   margin-top: 8px;
-  border-top: 1px dashed #ddd;
+  border-left: 2px solid #ddd;
 }
-.amap-visit-section:first-of-type {
-  padding-top: 0;
-  margin-top: 0;
-  border-top: none;
+
+.amap-visit-section::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--btn-bg, #49b1f5);
 }
-.amap-visit-date {
+
+.amap-visit-section:last-child {
+  padding-bottom: 0;
+}
+
+.amap-visit-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
   color: #888;
   font-size: 12px;
-  margin-bottom: 6px;
+  font-weight: 700;
 }
 
 .amap-photo-grid {

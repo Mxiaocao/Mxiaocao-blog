@@ -11,22 +11,13 @@
       tags: ["杭州", "灵隐", "元旦"]
     },
     {
-      id: "east-station",
-      name: "杭州东站",
-      date: "2026-01-01",
-      coord: [120.21201, 30.291716],
-      description: "杭州行程的常用起点，适合记录抵达和出发。",
+      id: "longxiangqiao-station",
+      name: "龙翔桥地铁站出入口",
+      kind: "transit",
+      coord: [120.164434,30.253826],
+      description: "湖滨一带的起点，出站后就能往西湖边走。",
       photos: [],
-      tags: ["杭州", "交通", "元旦"]
-    },
-    {
-      id: "west-lake",
-      name: "西湖",
-      date: "2026-01-01",
-      coord: [120.143222, 30.245902],
-      description: "杭州足迹的核心地标，路线可以从这里延伸到湖滨、苏堤和北山街。",
-      photos: [],
-      tags: ["杭州", "西湖", "元旦"]
+      tags: ["杭州", "交通"]
     },
     {
       id: "xiaohe",
@@ -34,7 +25,7 @@
       date: "2026-01-01",
       coord: [120.1403, 30.3201],
       description: "适合放街区、河道、夜景或者随手拍。",
-      photos: ["/img/6.png", "/img/7.png"],
+      photos: ["/img/xiaohe-01.jpg", "/img/xiaohe-02.jpg", "/img/xiaohe-03.jpg", "/img/xiaohe-04.jpg", "/img/xiaohe-05.jpg", "/img/xiaohe-06.jpg", "/img/xiaohe-07.jpg"],
       tags: ["杭州", "街区", "元旦"]
     },
     {
@@ -43,7 +34,7 @@
       date: "2026-06-06",
       coord: [120.148, 30.321],
       description: "运河边的文艺街区，咖啡馆与老墙门共存。",
-      photos: [],
+      photos: ["/img/dadou-01.jpg", "/img/dadou-02.jpg", "/img/dadou-03.jpg", "/img/dadou-04.jpg", "/img/dadou-05.jpg", "/img/dadou-06.jpg", "/img/dadou-07.jpg", "/img/dadou-08.jpg"],
       tags: ["杭州", "街区", "运河"]
     },
     {
@@ -52,7 +43,7 @@
       date: "2026-06-06",
       coord: [120.138, 30.326],
       description: "拱宸桥畔，老杭州的运河记忆。",
-      photos: [],
+      photos: ["/img/gongchenqiao-01.jpg", "/img/gongchenqiao-02.jpg", "/img/gongchenqiao-03.jpg", "/img/gongchenqiao-04.jpg", "/img/gongchenqiao-05.jpg", "/img/gongchenqiao-06.jpg", "/img/gongchenqiao-07.jpg", "/img/gongchenqiao-08.jpg", "/img/gongchenqiao-09.jpg", "/img/gongchenqiao-10.jpg", "/img/gongchenqiao-11.jpg", "/img/gongchenqiao-12.jpg"],
       tags: ["杭州", "街区", "运河"]
     },
     {
@@ -106,8 +97,27 @@
       date: "2026-01-01",
       coord: [120.142177,30.22547],
       description: "春天的郁金香海。",
-      photos: [],
-      tags: ["杭州", "公园"]
+      photos: ["/img/taiziwan-01.jpg", "/img/taiziwan-02.jpg"],
+      tags: ["杭州", "公园"],
+      visits: [
+        {
+          date: "2026-04-06",
+          description: "清明再访，郁金香满园盛放。",
+          photos: [
+            "/img/taiziwan-20260406-01.jpg",
+            "/img/taiziwan-20260406-02.jpg",
+            "/img/taiziwan-20260406-03.jpg",
+            "/img/taiziwan-20260406-04.jpg",
+            "/img/taiziwan-20260406-05.jpg",
+            "/img/taiziwan-20260406-06.jpg",
+            "/img/taiziwan-20260406-07.jpg",
+            "/img/taiziwan-20260406-08.jpg",
+            "/img/taiziwan-20260406-09.jpg",
+            "/img/taiziwan-20260406-10.jpg",
+            "/img/taiziwan-20260406-11.jpg"
+          ]
+        }
+      ]
     },
     {
       id: "huagang-guanyu",
@@ -171,6 +181,96 @@
       description: "人间烟火，小吃与手作交织。",
       photos: [],
       tags: ["杭州", "夜市"]
+    },
+    {
+      id: "guo-zhuang",
+      name: "郭庄",
+      date: "2026-01-01",
+      coord: [120.132267,30.243918],
+      description: "西湖边的古典私家园林，一步一景。",
+      photos: [],
+      tags: ["杭州", "西湖", "园林"]
+    },
+    {
+      id: "jingci-temple",
+      name: "南屏晚钟（净慈寺）",
+      date: "2026-01-01",
+      coord: [120.149165,30.228643],
+      description: "南屏晚钟，千年古刹。",
+      photos: [],
+      tags: ["杭州", "寺庙", "十景"]
+    },
+    {
+      id: "shenzhou-base",
+      name: "神州基地",
+      date: "2026-01-01",
+      coord: [120.133221,30.240751],
+      description: "杨公堤畔，日出摄影的隐秘角落。",
+      photos: [],
+      tags: ["杭州", "西湖", "日出"]
+    },
+    {
+      id: "maojiabu",
+      name: "茅家埠",
+      date: "2026-01-01",
+      coord: [120.125404,30.238325],
+      description: "湿地风光，芦苇荡与茶田交错。",
+      photos: [],
+      tags: ["杭州", "西湖", "湿地"]
+    },
+    {
+      id: "liulang-wenying",
+      name: "柳浪闻莺",
+      date: "2026-01-01",
+      coord: [120.156326,30.240389],
+      description: "西湖十景之一，柳丝如浪，莺啼婉转。",
+      photos: [],
+      tags: ["杭州", "西湖", "十景"]
+    },
+    {
+      id: "xiling-bridge",
+      name: "西泠桥",
+      date: "2026-01-01",
+      coord: [120.138493,30.251888],
+      description: "连接孤山与北山街的桥，沿湖路线的重要转折点。",
+      photos: [],
+      tags: ["杭州", "西湖", "桥"]
+    },
+    {
+      id: "xiling-seal-society",
+      name: "西泠印社",
+      date: "2026-01-01",
+      coord: [120.139948,30.250279],
+      description: "孤山上的金石篆刻名社。",
+      photos: [],
+      tags: ["杭州", "西湖", "人文"]
+    },
+    {
+      id: "guanghua-fudan",
+      name: "光华复旦",
+      date: "2026-01-01",
+      coord: [120.142416,30.25006],
+      description: "孤山一带的题刻景观。",
+      photos: [],
+      tags: ["杭州", "西湖", "人文"]
+    },
+    {
+      id: "xiangji-temple",
+      name: "香积寺",
+      date: "2026-01-01",
+      coord: [120.146556,30.298666],
+      description: "运河边的寺院，适合接到拱墅段路线里。",
+      photos: [],
+      tags: ["杭州", "寺庙", "运河"]
+    },
+    {
+      id: "wo-pa-laopo",
+      name: "我怕老婆·家烧小排档",
+      kind: "food",
+      coord: [120.159994,30.265529],
+      description: "藏在武林路巷子里的小排档，温州风味。",
+      photos: ["/img/paolaopo-01.jpg"],
+      tags: ["杭州", "美食", "排档"]
     }
   ];
 
@@ -179,13 +279,34 @@
       id: "new-year-hangzhou",
       title: "元旦杭州路线",
       date: "2026-01-01",
-      placeIds: ["east-station", "west-lake", "lingyin", "xiaohe"]
+      placeIds: [
+        "longxiangqiao-station",
+        "jixian-pavilion",
+        "silk-museum",
+        "jingci-temple",
+        "taiziwan",
+        "huagang-guanyu",
+        "sudi",
+        "quyuan-fenghe",
+        "sudi",
+        "xiling-bridge",
+        "best-corner",
+        "xiling-seal-society",
+        "guanghua-fudan",
+        "pinghu-qiuyue",
+        "baidi",
+        "wulin-night",
+        "xiangji-temple",
+        "dadou-road",
+        "xiaohe",
+        "gongchenqiao"
+      ]
     },
     {
       id: "river-walk",
       title: "钱塘江散步路线",
       date: "2026-01-02",
-      placeIds: ["west-lake", "qiantang"]
+      placeIds: ["qiantang"]
     },
     {
       id: "mountain-hike",
@@ -212,7 +333,7 @@
   var infoWindow = null;
   var markers = {};
   var routeLine = null;
-  var activeRouteId = routes[0].id;
+  var activeRouteId = routes.length > 0 ? routes[0].id : null;
   var routeTimer = null;
 
   function byId(id) {
@@ -229,12 +350,41 @@
     });
   }
 
-  function allYears(place) {
-    var years = [place.date.slice(0, 4)];
-    if (place.visits) {
-      place.visits.forEach(function (v) { years.push(v.date.slice(0, 4)); });
+  function placeVisits(place) {
+    var visits = [];
+    if (place.date) {
+      visits.push({
+        date: place.date,
+        description: place.description || "",
+        photos: place.photos || []
+      });
     }
-    return years;
+
+    if (place.visits) {
+      place.visits.forEach(function (visit) {
+        if (!visit.date) return;
+        visits.push({
+          date: visit.date,
+          description: visit.description || "",
+          photos: visit.photos || []
+        });
+      });
+    }
+
+    return visits.sort(function (a, b) {
+      return b.date.localeCompare(a.date);
+    });
+  }
+
+  function placeKindLabel(place) {
+    if (place.kind === "food") return "美食";
+    if (place.kind === "shop") return "店铺";
+    if (place.kind === "transit") return "交通点";
+    return "收藏点";
+  }
+
+  function allYears(place) {
+    return placeVisits(place).map(function (visit) { return visit.date.slice(0, 4); });
   }
 
   function getFilteredPlaces() {
@@ -259,19 +409,20 @@
   }
 
   function totalPhotos(place) {
-    var n = place.photos.length;
-    if (place.visits) {
-      place.visits.forEach(function (v) { n += v.photos.length; });
-    }
-    return n;
+    var visitPhotos = placeVisits(place).reduce(function (n, visit) {
+      return n + visit.photos.length;
+    }, 0);
+
+    return visitPhotos || (place.photos || []).length;
   }
 
   function placeCard(place) {
-    var visits = place.visits ? place.visits.length : 0;
-    var visitsText = visits > 0 ? ' · ' + (visits + 1) + ' 次到访' : '';
+    var visits = placeVisits(place);
+    var dateText = visits.length ? escapeHtml(visits[0].date) : placeKindLabel(place);
+    var visitsText = visits.length > 1 ? ' · ' + visits.length + ' 次到访' : '';
     return '<article class="place-item" data-place-id="' + escapeHtml(place.id) + '">' +
       '<h3>' + escapeHtml(place.name) + '</h3>' +
-      '<div class="place-meta"><span>' + escapeHtml(place.date) + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
+      '<div class="place-meta"><span>' + dateText + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
       '<div class="place-tags">' + place.tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>' +
       '</article>';
   }
@@ -309,26 +460,24 @@
   function infoContent(place) {
     var html = '<div class="amap-photo-window">' +
       '<h3>' + escapeHtml(place.name) + '</h3>';
+    var visits = placeVisits(place);
 
-    if (place.visits && place.visits.length > 0) {
-      // Multi-visit mode
-      // Latest visit first
-      var allVisits = place.visits.slice().reverse();
-      allVisits.forEach(function (v) {
+    if (visits.length > 1) {
+      html += '<div class="amap-visit-count">' + visits.length + ' 次到访</div>';
+      visits.forEach(function (visit) {
         html += '<div class="amap-visit-section">' +
-          '<p class="amap-visit-date">' + escapeHtml(v.date) + ' · ' + escapeHtml(v.description || '') + '</p>' +
-          photosGrid(v.photos) +
+          '<div class="amap-visit-head">' + escapeHtml(visit.date) + '</div>' +
+          '<p>' + escapeHtml(visit.description || '') + '</p>' +
+          photosGrid(visit.photos) +
           '</div>';
       });
-      // Main entry as first visit
-      html += '<div class="amap-visit-section">' +
-        '<p class="amap-visit-date">' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
-        photosGrid(place.photos) +
-        '</div>';
+    } else if (visits.length === 1) {
+      html += '<p>' + escapeHtml(visits[0].date) + ' · ' + escapeHtml(visits[0].description || '') + '</p>' +
+        photosGrid(visits[0].photos);
     } else {
-      // Single visit mode
-      html += '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
-        photosGrid(place.photos);
+      html += '<div class="amap-visit-count">' + escapeHtml(placeKindLabel(place)) + '</div>' +
+        '<p>' + escapeHtml(place.description || '') + '</p>' +
+        photosGrid(place.photos || []);
     }
     html += '</div>';
     return html;
@@ -386,7 +535,7 @@
   function resetRoute() {
     if (routeTimer) window.clearInterval(routeTimer);
     routeTimer = null;
-    els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线';
+    if (els.playBtn) els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线';
     if (map && routeLine) {
       var center = config.center || [120.1551, 30.2741];
       routeLine.setOptions({ strokeOpacity: 0 });
@@ -456,17 +605,17 @@
     var stops = route.placeIds.map(byId).filter(Boolean);
     if (stops.length < 2) return;
 
-    els.playBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 规划路线...';
+    els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> 规划路线...');
     buildRoutePath(stops).then(function (animatedPath) {
       if (animatedPath.length < 2) {
-        els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线';
+        els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线');
         return;
       }
       var current = 1;
       routeLine.setOptions({ strokeOpacity: 0.92 });
       routeLine.setPath([animatedPath[0]]);
       map.setZoomAndCenter(Math.max(map.getZoom(), 12), stops[0].coord);
-      els.playBtn.innerHTML = '<i class="fas fa-pause"></i> 播放中';
+      els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-pause"></i> 播放中');
 
       routeTimer = window.setInterval(function () {
         current += 1;
@@ -475,7 +624,7 @@
         if (current >= animatedPath.length) {
           window.clearInterval(routeTimer);
           routeTimer = null;
-          els.playBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放';
+          els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放');
           var last = stops[stops.length - 1];
           infoWindow.setContent(infoContent(last));
           infoWindow.open(map, last.coord);
@@ -502,18 +651,20 @@
       if (place) showPlace(place);
     });
 
-    els.routeList.addEventListener("click", function (event) {
-      var item = event.target.closest("[data-route-id]");
-      if (!item) return;
-      activeRouteId = item.dataset.routeId;
-      resetRoute();
-      renderLists();
-    });
+    if (els.routeList) {
+      els.routeList.addEventListener("click", function (event) {
+        var item = event.target.closest("[data-route-id]");
+        if (!item) return;
+        activeRouteId = item.dataset.routeId;
+        resetRoute();
+        renderLists();
+      });
+    }
 
     els.tagFilter.addEventListener("change", renderLists);
     els.yearFilter.addEventListener("change", renderLists);
-    els.playBtn.addEventListener("click", playRoute);
-    els.resetBtn.addEventListener("click", resetRoute);
+    els.playBtn && els.playBtn.addEventListener("click", playRoute);
+    els.resetBtn && els.resetBtn.addEventListener("click", resetRoute);
   }
 
   function loadAmap() {
