@@ -597,6 +597,73 @@
     });
   }
 
+  function pointToArray(point) {
+    if (Array.isArray(point)) return point;
+    if (point && typeof point.getLng === "function" && typeof point.getLat === "function") {
+      return [point.getLng(), point.getLat()];
+    }
+    return [point.lng, point.lat];
+  }
+
+  function distanceMeters(a, b) {
+    a = pointToArray(a);
+    b = pointToArray(b);
+    var lat1 = a[1] * Math.PI / 180;
+    var lat2 = b[1] * Math.PI / 180;
+    var dLat = lat2 - lat1;
+    var dLng = (b[0] - a[0]) * Math.PI / 180;
+    var sinLat = Math.sin(dLat / 2);
+    var sinLng = Math.sin(dLng / 2);
+    var h = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+    return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+  }
+
+  function interpolatePoint(a, b, ratio) {
+    a = pointToArray(a);
+    b = pointToArray(b);
+    return [
+      a[0] + (b[0] - a[0]) * ratio,
+      a[1] + (b[1] - a[1]) * ratio
+    ];
+  }
+
+  function routeLengthMeters(path) {
+    var total = 0;
+    for (var i = 1; i < path.length; i++) {
+      total += distanceMeters(path[i - 1], path[i]);
+    }
+    return total;
+  }
+
+  function resamplePathByDistance(path, stepMeters) {
+    if (path.length < 2) return path;
+    var sampled = [pointToArray(path[0])];
+    var carried = 0;
+
+    for (var i = 1; i < path.length; i++) {
+      var from = pointToArray(path[i - 1]);
+      var to = pointToArray(path[i]);
+      var segmentLength = distanceMeters(from, to);
+      if (segmentLength === 0) continue;
+
+      while (carried + segmentLength >= stepMeters) {
+        var ratio = (stepMeters - carried) / segmentLength;
+        var next = interpolatePoint(from, to, ratio);
+        sampled.push(next);
+        from = next;
+        segmentLength = distanceMeters(from, to);
+        carried = 0;
+      }
+
+      carried += segmentLength;
+    }
+
+    var last = pointToArray(path[path.length - 1]);
+    var tail = sampled[sampled.length - 1];
+    if (tail[0] !== last[0] || tail[1] !== last[1]) sampled.push(last);
+    return sampled;
+  }
+
   function playRoute() {
     if (!map || !window.AMap) return;
     resetRoute();
@@ -611,17 +678,22 @@
         els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-play"></i> 播放路线');
         return;
       }
+      var routeMeters = routeLengthMeters(animatedPath);
+      var durationMs = Math.max(16000, Math.min(90000, routeMeters * 5));
+      var frameMs = 90;
+      var stepMeters = Math.max(8, routeMeters / Math.ceil(durationMs / frameMs));
+      var playbackPath = resamplePathByDistance(animatedPath, stepMeters);
       var current = 1;
       routeLine.setOptions({ strokeOpacity: 0.92 });
-      routeLine.setPath([animatedPath[0]]);
+      routeLine.setPath([playbackPath[0]]);
       map.setZoomAndCenter(Math.max(map.getZoom(), 12), stops[0].coord);
       els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-pause"></i> 播放中');
 
       routeTimer = window.setInterval(function () {
         current += 1;
-        routeLine.setPath(animatedPath.slice(0, current));
-        if (current % 16 === 0) map.panTo(animatedPath[current - 1]);
-        if (current >= animatedPath.length) {
+        routeLine.setPath(playbackPath.slice(0, current));
+        if (current % 14 === 0) map.panTo(playbackPath[current - 1]);
+        if (current >= playbackPath.length) {
           window.clearInterval(routeTimer);
           routeTimer = null;
           els.playBtn && (els.playBtn.innerHTML = '<i class="fas fa-play"></i> 重新播放');
@@ -629,7 +701,7 @@
           infoWindow.setContent(infoContent(last));
           infoWindow.open(map, last.coord);
         }
-      }, 55);
+      }, frameMs);
     });
   }
 
