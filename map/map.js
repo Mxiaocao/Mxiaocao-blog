@@ -11,6 +11,24 @@
       tags: ["杭州", "灵隐", "元旦"]
     },
     {
+      id: "east-station",
+      name: "杭州东站",
+      date: "2026-01-01",
+      coord: [120.21201, 30.291716],
+      description: "杭州行程的常用起点，适合记录抵达和出发。",
+      photos: [],
+      tags: ["杭州", "交通", "元旦"]
+    },
+    {
+      id: "west-lake",
+      name: "西湖",
+      date: "2026-01-01",
+      coord: [120.143222, 30.245902],
+      description: "杭州足迹的核心地标，路线可以从这里延伸到湖滨、苏堤和北山街。",
+      photos: [],
+      tags: ["杭州", "西湖", "元旦"]
+    },
+    {
       id: "xiaohe",
       name: "小河直街",
       date: "2026-01-01",
@@ -156,7 +174,26 @@
     }
   ];
 
-  var routes = [];
+  var routes = [
+    {
+      id: "new-year-hangzhou",
+      title: "元旦杭州路线",
+      date: "2026-01-01",
+      placeIds: ["east-station", "west-lake", "lingyin", "xiaohe"]
+    },
+    {
+      id: "river-walk",
+      title: "钱塘江散步路线",
+      date: "2026-01-02",
+      placeIds: ["west-lake", "qiantang"]
+    },
+    {
+      id: "mountain-hike",
+      title: "虎跑公园登山路线",
+      date: "2026-05-19",
+      placeIds: ["hupao"]
+    }
+  ];
 
   var els = {
     empty: document.getElementById("mapEmptyState"),
@@ -234,7 +271,7 @@
     var visitsText = visits > 0 ? ' · ' + (visits + 1) + ' 次到访' : '';
     return '<article class="place-item" data-place-id="' + escapeHtml(place.id) + '">' +
       '<h3>' + escapeHtml(place.name) + '</h3>' +
-      '<div class="place-meta"><span>' + totalPhotos(place) + ' 张照片' + visitsText + '</span></div>' +
+      '<div class="place-meta"><span>' + escapeHtml(place.date) + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
       '<div class="place-tags">' + place.tags.map(function (tag) { return '<span>' + escapeHtml(tag) + '</span>'; }).join("") + '</div>' +
       '</article>';
   }
@@ -251,7 +288,7 @@
     var filtered = getFilteredPlaces();
     els.placeCount.textContent = filtered.length;
     els.placeList.innerHTML = filtered.map(placeCard).join("");
-    if (els.routeList) els.routeList.innerHTML = "";
+    els.routeList.innerHTML = routes.map(routeCard).join("");
     syncMarkers(filtered);
   }
 
@@ -279,21 +316,19 @@
       var allVisits = place.visits.slice().reverse();
       allVisits.forEach(function (v) {
         html += '<div class="amap-visit-section">' +
-          (v.description ? '<p class="amap-visit-date">' + escapeHtml(v.description) + '</p>' : '') +
+          '<p class="amap-visit-date">' + escapeHtml(v.date) + ' · ' + escapeHtml(v.description || '') + '</p>' +
           photosGrid(v.photos) +
           '</div>';
       });
       // Main entry as first visit
       html += '<div class="amap-visit-section">' +
-        (place.description ? '<p class="amap-visit-date">' + escapeHtml(place.description) + '</p>' : '') +
+        '<p class="amap-visit-date">' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
         photosGrid(place.photos) +
         '</div>';
     } else {
       // Single visit mode
-      if (place.description) {
-        html += '<p>' + escapeHtml(place.description) + '</p>';
-      }
-      html += photosGrid(place.photos);
+      html += '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description || '') + '</p>' +
+        photosGrid(place.photos);
     }
     html += '</div>';
     return html;
@@ -362,52 +397,54 @@
   // Fetch walking path between adjacent stops
   function fetchSegmentPath(fromCoord, toCoord) {
     return new Promise(function (resolve) {
-      var walking = new AMap.Walking({ map: map, hideMarkers: true });
-      walking.search(fromCoord, toCoord, function (status, result) {
-        if (status === 'complete' && result.routes && result.routes.length > 0) {
-          var path = [];
-          result.routes[0].steps.forEach(function (step) {
-            step.path.forEach(function (p) { path.push(p); });
-          });
-          resolve(path);
-        } else {
-          // Fallback: straight line if walking fails
-          resolve([
-            [fromCoord[0], fromCoord[1]],
-            [toCoord[0], toCoord[1]]
-          ]);
+      function fallback() {
+        resolve([
+          [fromCoord[0], fromCoord[1]],
+          [toCoord[0], toCoord[1]]
+        ]);
+      }
+
+      AMap.plugin("AMap.Walking", function () {
+        if (!AMap.Walking) {
+          fallback();
+          return;
         }
+
+        var walking = new AMap.Walking({ map: map, hideMarkers: true });
+        walking.search(fromCoord, toCoord, function (status, result) {
+          if (status === 'complete' && result.routes && result.routes.length > 0) {
+            var path = [];
+            result.routes[0].steps.forEach(function (step) {
+              step.path.forEach(function (p) { path.push(p); });
+            });
+            resolve(path);
+          } else {
+            fallback();
+          }
+        });
       });
     });
   }
 
   // Build full route path from walking directions
   function buildRoutePath(stops) {
-    return new Promise(function (resolve) {
-      var fullPath = [];
-      var pending = stops.length - 1;
-      if (pending <= 0) { resolve(fullPath); return; }
+    var segmentTasks = [];
+    for (var i = 0; i < stops.length - 1; i++) {
+      segmentTasks.push(fetchSegmentPath(stops[i].coord, stops[i + 1].coord));
+    }
 
-      for (var i = 0; i < stops.length - 1; i++) {
-        fetchSegmentPath(stops[i].coord, stops[i + 1].coord).then(function (segPath) {
-          fullPath.push(segPath);
-          pending--;
-          if (pending === 0) {
-            // Flatten and deduplicate adjacent points
-            var flat = [];
-            fullPath.forEach(function (seg) {
-              seg.forEach(function (p) {
-                if (flat.length === 0 ||
-                    flat[flat.length - 1][0] !== p[0] ||
-                    flat[flat.length - 1][1] !== p[1]) {
-                  flat.push(p);
-                }
-              });
-            });
-            resolve(flat);
+    return Promise.all(segmentTasks).then(function (segments) {
+      var flat = [];
+      segments.forEach(function (seg) {
+        seg.forEach(function (p) {
+          if (flat.length === 0 ||
+              flat[flat.length - 1][0] !== p[0] ||
+              flat[flat.length - 1][1] !== p[1]) {
+            flat.push(p);
           }
         });
-      }
+      });
+      return flat;
     });
   }
 
@@ -475,8 +512,8 @@
 
     els.tagFilter.addEventListener("change", renderLists);
     els.yearFilter.addEventListener("change", renderLists);
-    if (els.playBtn) els.playBtn.addEventListener("click", playRoute);
-    if (els.resetBtn) els.resetBtn.addEventListener("click", resetRoute);
+    els.playBtn.addEventListener("click", playRoute);
+    els.resetBtn.addEventListener("click", resetRoute);
   }
 
   function loadAmap() {
@@ -515,7 +552,9 @@
       }
     });
     document.addEventListener('mouseout', function (e) {
-      if (e.target.closest('.amap-photo-link') && !e.relatedTarget.closest('.amap-photo-link')) {
+      var leavingPhoto = e.target.closest('.amap-photo-link');
+      var enteringPhoto = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.amap-photo-link');
+      if (leavingPhoto && !enteringPhoto) {
         map.setStatus({ scrollWheel: true });
       }
     });
