@@ -155,9 +155,31 @@
       '<h3>' + escapeHtml(place.name) + '</h3>' +
       '<p>' + escapeHtml(place.date) + ' · ' + escapeHtml(place.description) + '</p>' +
       '<div class="amap-photo-grid">' + place.photos.map(function (src) {
-        return '<a href="' + escapeHtml(src) + '" target="_blank" class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '"></a>';
+        return '<div class="amap-photo-link"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(place.name) + '" onclick="showLightbox(\'' + escapeHtml(src) + '\')"></div>';
       }).join("") + '</div>' +
       '</div>';
+  }
+
+  function showLightbox(src) {
+    var overlay = document.getElementById('map-lightbox');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'map-lightbox';
+      overlay.className = 'map-lightbox';
+      overlay.innerHTML = '<div class="map-lightbox-bg"></div><img class="map-lightbox-img" src=""><button class="map-lightbox-close">&times;</button>';
+      document.body.appendChild(overlay);
+      overlay.querySelector('.map-lightbox-bg').addEventListener('click', hideLightbox);
+      overlay.querySelector('.map-lightbox-close').addEventListener('click', hideLightbox);
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) hideLightbox(); });
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape') hideLightbox(); });
+    }
+    overlay.querySelector('.map-lightbox-img').src = src;
+    overlay.classList.add('map-lightbox--visible');
+  }
+
+  function hideLightbox() {
+    var overlay = document.getElementById('map-lightbox');
+    if (overlay) overlay.classList.remove('map-lightbox--visible');
   }
 
   function syncMarkers(visiblePlaces) {

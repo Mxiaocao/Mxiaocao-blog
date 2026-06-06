@@ -513,6 +513,20 @@
   </url>
   
   <url>
+    <loc>https://mxiaocaoblog.com/tags/%E5%9B%BE%E8%AE%BA/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://mxiaocaoblog.com/tags/SPFA/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -521,6 +535,27 @@
   
   <url>
     <loc>https://mxiaocaoblog.com/tags/%E8%B4%9F%E7%8E%AF/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/BIT/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E6%A0%91%E7%8A%B6%E6%95%B0%E7%BB%84/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -549,41 +584,6 @@
   
   <url>
     <loc>https://mxiaocaoblog.com/tags/Prim/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/tags/%E5%9B%BE%E8%AE%BA/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/tags/%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/tags/BIT/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/tags/%E6%A0%91%E7%8A%B6%E6%95%B0%E7%BB%84/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -739,6 +739,13 @@
   </url>
   
   <url>
+    <loc>https://mxiaocaoblog.com/categories/review/2026/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
     <loc>https://mxiaocaoblog.com/categories/review/2025/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -747,13 +754,6 @@
   
   <url>
     <loc>https://mxiaocaoblog.com/categories/graph/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://mxiaocaoblog.com/categories/review/2026/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -809,13 +809,6 @@
   </url>
   
   <url>
-    <loc>https://mxiaocaoblog.com/categories/team-weekly-contest/</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://mxiaocaoblog.com/categories/codeforces/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -823,7 +816,7 @@
   </url>
   
   <url>
-    <loc>https://mxiaocaoblog.com/categories/seq-list/</loc>
+    <loc>https://mxiaocaoblog.com/categories/team-weekly-contest/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -831,6 +824,13 @@
   
   <url>
     <loc>https://mxiaocaoblog.com/categories/hdoj/</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://mxiaocaoblog.com/categories/seq-list/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
