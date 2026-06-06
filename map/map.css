@@ -1,8 +1,25 @@
+.type-map #content-inner {
+  max-width: none;
+  width: min(1720px, calc(100% - 32px));
+}
+
+.type-map #page {
+  width: 100%;
+}
+
+.type-map #aside-content {
+  display: none;
+}
+
+.type-map #article-container {
+  padding: 18px;
+}
+
 .travel-map-shell {
   display: grid;
   grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
   gap: 18px;
-  min-height: 680px;
+  min-height: 760px;
   margin: 0 auto 36px;
 }
 
@@ -184,7 +201,7 @@
 
 .travel-map-main {
   position: relative;
-  min-height: 680px;
+  min-height: 760px;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid rgba(127, 127, 127, 0.18);
@@ -257,6 +274,14 @@
 }
 
 @media (max-width: 900px) {
+  .type-map #content-inner {
+    width: min(100% - 16px, 760px);
+  }
+
+  .type-map #article-container {
+    padding: 12px;
+  }
+
   .travel-map-shell {
     grid-template-columns: 1fr;
   }
