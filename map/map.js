@@ -49,11 +49,41 @@
     {
       id: "hupao",
       name: "虎跑公园",
-      date: "2026-06-06",
-      coord: [120.1345, 30.2164],
+      date: "2026-05-19",
+      coord: [120.1299,30.208087],
       description: "虎跑泉水清冽，林深苔滑，适合记录山径、石阶与光影。",
       photos: ["/img/hupao-01.jpg", "/img/hupao-02.jpg", "/img/hupao-03.jpg", "/img/hupao-04.jpg", "/img/hupao-05.jpg", "/img/hupao-06.jpg", "/img/hupao-07.jpg", "/img/hupao-08.jpg", "/img/hupao-09.jpg", "/img/hupao-10.jpg", "/img/hupao-11.jpg", "/img/hupao-12.jpg"],
       tags: ["杭州", "虎跑", "山林"]
+    },
+    {
+      id: "jixian-pavilion", name: "集贤亭", date: "", coord: [120.1430, 30.2490], description: "湖心小亭，烟雨朦胧时最美。", photos: [], tags: ["杭州", "西湖"]
+    },
+    {
+      id: "silk-museum", name: "中国丝绸博物馆", date: "", coord: [120.1615, 30.2280], description: "馆藏丰富，建筑本身也是一件展品。", photos: [], tags: ["杭州", "博物馆"]
+    },
+    {
+      id: "taiziwan", name: "太子湾", date: "", coord: [120.1380, 30.2220], description: "春天的郁金香海。", photos: [], tags: ["杭州", "公园"]
+    },
+    {
+      id: "huagang-guanyu", name: "花港观鱼", date: "", coord: [120.1350, 30.2260], description: "红鲤成群，西湖十景之一。", photos: [], tags: ["杭州", "西湖", "十景"]
+    },
+    {
+      id: "sudi", name: "苏堤", date: "", coord: [120.1360, 30.2400], description: "六桥烟柳，春晓最动人。", photos: [], tags: ["杭州", "西湖", "十景"]
+    },
+    {
+      id: "quyuan-fenghe", name: "曲院风荷", date: "", coord: [120.1300, 30.2480], description: "夏日荷风，西湖十景之一。", photos: [], tags: ["杭州", "西湖", "十景"]
+    },
+    {
+      id: "best-corner", name: "西湖最美转角", date: "", coord: [120.1330, 30.2450], description: "北山街转角望湖。", photos: [], tags: ["杭州", "西湖"]
+    },
+    {
+      id: "pinghu-qiuyue", name: "平湖秋月", date: "", coord: [120.1380, 30.2520], description: "月夜湖面如镜。", photos: [], tags: ["杭州", "西湖", "十景"]
+    },
+    {
+      id: "baidi", name: "白堤", date: "", coord: [120.1430, 30.2550], description: "一株杨柳一株桃。", photos: [], tags: ["杭州", "西湖"]
+    },
+    {
+      id: "wulin-night", name: "杭州武林夜市", date: "", coord: [120.1650, 30.2720], description: "人间烟火，小吃与手作交织。", photos: [], tags: ["杭州", "夜市"]
     }
   ];
 
@@ -69,6 +99,12 @@
       title: "钱塘江散步路线",
       date: "2026-01-02",
       placeIds: ["west-lake", "qiantang"]
+    },
+    {
+      id: "mountain-hike",
+      title: "虎跑公园登山路线",
+      date: "2026-05-19",
+      placeIds: ["hupao"]
     }
   ];
 
