@@ -104,8 +104,6 @@
           date: "2026-04-06",
           description: "清明再访，郁金香满园盛放。",
           photos: [
-            "/img/taiziwan-20260406-01.jpg",
-            "/img/taiziwan-20260406-02.jpg",
             "/img/taiziwan-20260406-03.jpg",
             "/img/taiziwan-20260406-04.jpg",
             "/img/taiziwan-20260406-05.jpg",
@@ -335,6 +333,10 @@
   var routeLine = null;
   var activeRouteId = routes.length > 0 ? routes[0].id : null;
   var routeTimer = null;
+  var lightboxState = {
+    images: [],
+    index: 0
+  };
 
   function byId(id) {
     return places.find(function (place) { return place.id === id; });
@@ -457,6 +459,61 @@
     }).join("") + '</div>';
   }
 
+  function closeLightbox() {
+    var overlay = document.getElementById('map-lightbox');
+    if (!overlay) return;
+    overlay.classList.remove('map-lightbox--visible');
+    document.body.classList.remove('map-lightbox-open');
+    if (map && map.setStatus) {
+      map.setStatus({
+        scrollWheel: true,
+        dragEnable: true,
+        keyboardEnable: true,
+        doubleClickZoom: true
+      });
+    }
+  }
+
+  function renderLightbox(images, index) {
+    var overlay = document.getElementById('map-lightbox');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'map-lightbox';
+      overlay.className = 'map-lightbox';
+      overlay.innerHTML = '<div class="map-lightbox-bg"></div><div class="map-lightbox-panel"><button class="map-lightbox-close" type="button">&times;</button><img class="map-lightbox-img" src="" alt=""><div class="map-lightbox-strip"></div></div>';
+      document.body.appendChild(overlay);
+      overlay.querySelector('.map-lightbox-bg').addEventListener('click', closeLightbox);
+      overlay.querySelector('.map-lightbox-close').addEventListener('click', closeLightbox);
+      overlay.querySelector('.map-lightbox-strip').addEventListener('click', function (event) {
+        var button = event.target.closest('[data-lightbox-index]');
+        if (!button) return;
+        lightboxState.index = parseInt(button.dataset.lightboxIndex, 10) || 0;
+        renderLightbox(lightboxState.images, lightboxState.index);
+      });
+    }
+
+    lightboxState.images = images.slice();
+    lightboxState.index = Math.max(0, Math.min(index, images.length - 1));
+
+    var mainImage = overlay.querySelector('.map-lightbox-img');
+    var strip = overlay.querySelector('.map-lightbox-strip');
+    mainImage.src = images[lightboxState.index] || images[0];
+    strip.innerHTML = images.map(function (src, i) {
+      return '<button class="map-lightbox-thumb' + (i === lightboxState.index ? ' active' : '') + '" type="button" data-lightbox-index="' + i + '"><img src="' + escapeHtml(src) + '" alt=""></button>';
+    }).join('');
+
+    document.body.classList.add('map-lightbox-open');
+    overlay.classList.add('map-lightbox--visible');
+    if (map && map.setStatus) {
+      map.setStatus({
+        scrollWheel: false,
+        dragEnable: false,
+        keyboardEnable: false,
+        doubleClickZoom: false
+      });
+    }
+  }
+
   function infoContent(place) {
     var html = '<div class="amap-photo-window">' +
       '<h3>' + escapeHtml(place.name) + '</h3>';
@@ -488,21 +545,15 @@
     if (!img) return;
     var src = img.getAttribute('data-lightbox-src');
     if (!src) return;
-    var overlay = document.getElementById('map-lightbox');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'map-lightbox';
-      overlay.className = 'map-lightbox';
-      overlay.innerHTML = '<div class="map-lightbox-bg"></div><img class="map-lightbox-img" src=""><button class="map-lightbox-close">&times;</button>';
-      document.body.appendChild(overlay);
-      overlay.querySelector('.map-lightbox-bg').addEventListener('click', function () { overlay.classList.remove('map-lightbox--visible'); });
-      overlay.querySelector('.map-lightbox-close').addEventListener('click', function () { overlay.classList.remove('map-lightbox--visible'); });
-    }
-    overlay.querySelector('.map-lightbox-img').src = src;
-    overlay.classList.add('map-lightbox--visible');
+    var grid = img.closest('.amap-photo-grid');
+    var images = grid ? Array.from(grid.querySelectorAll('img[data-lightbox-src]')).map(function (node) {
+      return node.getAttribute('data-lightbox-src');
+    }) : [src];
+    var index = images.indexOf(src);
+    renderLightbox(images, index < 0 ? 0 : index);
     document.addEventListener('keydown', function escHandler(e) {
       if (e.key === 'Escape') {
-        overlay.classList.remove('map-lightbox--visible');
+        closeLightbox();
         document.removeEventListener('keydown', escHandler);
       }
     });
