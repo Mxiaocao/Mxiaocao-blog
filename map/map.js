@@ -421,7 +421,7 @@
   function placeCard(place) {
     var visits = placeVisits(place);
     var dateText = visits.length ? escapeHtml(visits[0].date) : placeKindLabel(place);
-    var visitsText = visits.length > 1 ? ' · ' + visits.length + ' 次到访' : '';
+    var visitsText = visits.length > 1 ? ' · ' + visits.length + ' 组照片' : '';
     return '<article class="place-item" data-place-id="' + escapeHtml(place.id) + '">' +
       '<h3>' + escapeHtml(place.name) + '</h3>' +
       '<div class="place-meta"><span>' + dateText + visitsText + '</span><span>' + totalPhotos(place) + ' 张照片</span></div>' +
@@ -524,7 +524,7 @@
     var visits = placeVisits(place);
 
     if (visits.length > 1) {
-      html += '<div class="amap-visit-count">' + visits.length + ' 次到访</div>';
+      html += '<div class="amap-visit-count">' + visits.length + ' 组照片</div>';
       visits.forEach(function (visit) {
         html += '<div class="amap-visit-section">' +
           '<div class="amap-visit-head">' + escapeHtml(visit.date) + '</div>' +
