@@ -474,6 +474,10 @@
     }
   }
 
+  function isInsidePhotoWindow(target) {
+    return target && target.closest && target.closest('.amap-photo-window');
+  }
+
   function renderLightbox(images, index) {
     var overlay = document.getElementById('map-lightbox');
     if (!overlay) {
@@ -819,18 +823,23 @@
       map.addControl(new AMap.ToolBar({ position: "RB" }));
     });
     infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -28) });
-    // Photo popup: disable scroll zoom when hovering, re-enable when leaving
+    // Keep scroll and drag gestures inside the photo popup instead of passing them to the map.
     document.addEventListener('mouseover', function (e) {
-      if (e.target.closest('.amap-photo-link')) {
-        map.setStatus({ scrollWheel: false });
+      if (isInsidePhotoWindow(e.target)) {
+        map.setStatus({ scrollWheel: false, dragEnable: false });
       }
     });
     document.addEventListener('mouseout', function (e) {
-      var leavingPhoto = e.target.closest('.amap-photo-link');
-      var enteringPhoto = e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('.amap-photo-link');
-      if (leavingPhoto && !enteringPhoto) {
-        map.setStatus({ scrollWheel: true });
+      var leavingPhotoWindow = isInsidePhotoWindow(e.target);
+      var enteringPhotoWindow = isInsidePhotoWindow(e.relatedTarget);
+      if (leavingPhotoWindow && !enteringPhotoWindow) {
+        map.setStatus({ scrollWheel: true, dragEnable: true });
       }
+    });
+    ["wheel", "pointerdown", "pointermove", "touchstart", "touchmove", "mousedown"].forEach(function (eventName) {
+      document.addEventListener(eventName, function (e) {
+        if (isInsidePhotoWindow(e.target)) e.stopPropagation();
+      }, true);
     });
     routeLine = new AMap.Polyline({
       path: [config.center || [120.1551, 30.2741], config.center || [120.1551, 30.2741]],

@@ -255,6 +255,20 @@
 
 .amap-photo-window {
   width: min(320px, 72vw);
+  max-height: min(54vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.amap-photo-window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.amap-photo-window::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 120, 0.28);
+  border-radius: 999px;
 }
 
 .amap-photo-window h3 {
@@ -368,6 +382,13 @@
 
   .map-filter-row select {
     width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .amap-photo-window {
+    width: min(300px, 76vw);
+    max-height: 48vh;
   }
 }
 
