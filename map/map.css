@@ -255,9 +255,10 @@
 
 .amap-photo-window {
   width: min(320px, 72vw);
-  max-height: min(54vh, 520px);
+  max-height: min(42vh, 360px);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   padding-right: 6px;
   -webkit-overflow-scrolling: touch;
 }
@@ -388,7 +389,7 @@
 @media (max-width: 520px) {
   .amap-photo-window {
     width: min(300px, 76vw);
-    max-height: 48vh;
+    max-height: 40vh;
   }
 }
 
